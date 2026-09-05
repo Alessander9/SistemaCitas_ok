@@ -1,0 +1,397 @@
+/* =============================================================================
+   BodyMapPicker — Interactive 2D Anatomical Pain Visualizer Styles
+   ============================================================================= */
+
+.bodymap-container {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  margin-bottom: 1.5rem;
+}
+
+.dark .bodymap-container,
+body.dark-mode .bodymap-container {
+  background: #131b2e;
+  border-color: #1e293b;
+}
+
+.bodymap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1.5px solid #f1f5f9;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.dark .bodymap-header,
+body.dark-mode .bodymap-header {
+  border-bottom-color: #1e293b;
+}
+
+.bodymap-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dark .bodymap-title,
+body.dark-mode .bodymap-title {
+  color: #f8fafc;
+}
+
+.bodymap-desc {
+  margin: 0.2rem 0 0;
+  font-size: 0.76rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.bodymap-toggle {
+  display: flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  gap: 3px;
+}
+
+.dark .bodymap-toggle,
+body.dark-mode .bodymap-toggle {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+.bodymap-toggle-btn {
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.bodymap-toggle-btn.active {
+  background: #ffffff;
+  color: #0284c7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.dark .bodymap-toggle-btn.active,
+body.dark-mode .bodymap-toggle-btn.active {
+  background: #1e293b;
+  color: #38bdf8;
+}
+
+.bodymap-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .bodymap-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bodymap-visualizer {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dark .bodymap-visualizer,
+body.dark-mode .bodymap-visualizer {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+.body-silhouette-wrap {
+  position: relative;
+  width: 190px;
+  height: 380px;
+  margin: 0 auto;
+}
+
+.body-silhouette-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.05));
+}
+
+.body-part {
+  fill: #e2e8f0;
+  stroke: #cbd5e1;
+  stroke-width: 1.5;
+  transition: all 160ms ease;
+}
+
+.dark .body-part,
+body.dark-mode .body-part {
+  fill: #1e293b;
+  stroke: #334155;
+}
+
+.bodymap-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid #0284c7;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: all 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+}
+
+.bodymap-pin:hover {
+  transform: translate(-50%, -50%) scale(1.25);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.bodymap-pin.has-pain {
+  color: #ffffff;
+  border-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.bodymap-pin.selected {
+  outline: 3px solid #38bdf8;
+  outline-offset: 2px;
+  transform: translate(-50%, -50%) scale(1.3);
+}
+
+.bodymap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin-top: 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.bodymap-sidebar {
+  min-height: 280px;
+}
+
+.bodymap-form-card,
+.bodymap-list-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.dark .bodymap-form-card,
+.dark .bodymap-list-card,
+body.dark-mode .bodymap-form-card,
+body.dark-mode .bodymap-list-card {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+.form-card-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #0284c7;
+  letter-spacing: 0.05em;
+}
+
+.form-card-title,
+.list-card-title {
+  margin: 0.15rem 0 0.75rem;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.dark .form-card-title,
+.dark .list-card-title,
+body.dark-mode .form-card-title,
+body.dark-mode .list-card-title {
+  color: #f8fafc;
+}
+
+.eva-badge-score {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 8px;
+}
+
+.eva-slider-input {
+  width: 100%;
+  height: 8px;
+  border-radius: 6px;
+  accent-color: #0284c7;
+  cursor: pointer;
+}
+
+.form-text-input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.dark .form-text-input,
+body.dark-mode .form-text-input {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+.form-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn-save-point {
+  padding: 0.5rem 1rem;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+}
+
+.btn-delete-point {
+  padding: 0.5rem 0.85rem;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.points-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.point-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.dark .point-item-row,
+body.dark-mode .point-item-row {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.point-item-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.point-eva-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.point-item-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #0f172a;
+}
+
+.dark .point-item-label,
+body.dark-mode .point-item-label {
+  color: #f8fafc;
+}
+
+.point-item-view {
+  display: block;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.btn-item-delete {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.2rem;
+}
+
+.btn-item-delete:hover {
+  color: #ef4444;
+}
+
+.list-card-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #94a3b8;
+  font-size: 0.78rem;
+}

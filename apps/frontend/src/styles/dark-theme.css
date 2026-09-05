@@ -1,0 +1,190 @@
+/* =============================================================================
+   CitasSistema — Medical Dark Theme & High-Contrast Clinical Palette
+   ============================================================================= */
+
+:root.dark,
+body.dark-mode {
+  --bg-main: #0b0f19;
+  --bg-card: #131b2e;
+  --bg-card-hover: #1e293b;
+  --bg-header: #0f172a;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --border-main: #1e293b;
+  --border-light: #334155;
+  --input-bg: #0f172a;
+}
+
+.dark body,
+body.dark-mode {
+  background-color: #0b0f19 !important;
+  color: #f8fafc !important;
+}
+
+.dark .min-h-screen.bg-slate-50,
+body.dark-mode .min-h-screen {
+  background-color: #0b0f19 !important;
+}
+
+/* Sidebar & Topbar Dark Mode */
+.dark .sidebar-container,
+body.dark-mode .sidebar-container {
+  background: #0f172a !important;
+  border-right-color: #1e293b !important;
+}
+
+.dark .topbar-header,
+body.dark-mode .topbar-header {
+  background: rgba(15, 23, 42, 0.92) !important;
+  border-bottom-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark .topbar-search-input,
+body.dark-mode .topbar-search-input {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark .user-profile-btn,
+body.dark-mode .user-profile-btn {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark .user-display-name,
+body.dark-mode .user-display-name {
+  color: #f8fafc !important;
+}
+
+.dark .user-dropdown-menu,
+body.dark-mode .user-dropdown-menu {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+}
+
+.dark .dropdown-header,
+body.dark-mode .dropdown-header {
+  background: #1e293b !important;
+  border-bottom-color: #334155 !important;
+}
+
+.dark .dropdown-header-name,
+body.dark-mode .dropdown-header-name {
+  color: #f8fafc !important;
+}
+
+.dark .dropdown-item,
+body.dark-mode .dropdown-item {
+  color: #cbd5e1 !important;
+}
+
+.dark .dropdown-item:hover,
+body.dark-mode .dropdown-item:hover {
+  background: #1e293b !important;
+  color: #ffffff !important;
+}
+
+.dark .dropdown-divider,
+body.dark-mode .dropdown-divider {
+  background: #1e293b !important;
+}
+
+/* Cards & Tables in Dark Mode */
+.dark .table-card,
+.dark .kpi-card,
+.dark .clinical-section-card,
+.dark .doctor-patient-card,
+.dark .kanban-column,
+body.dark-mode .table-card,
+body.dark-mode .kpi-card,
+body.dark-mode .clinical-section-card,
+body.dark-mode .doctor-patient-card,
+body.dark-mode .kanban-column {
+  background: #131b2e !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .dashboard-title,
+.dark .section-title,
+.dark .table-title,
+.dark .patient-name-title,
+.dark .kpi-value,
+body.dark-mode .dashboard-title,
+body.dark-mode .section-title,
+body.dark-mode .table-title,
+body.dark-mode .patient-name-title,
+body.dark-mode .kpi-value {
+  color: #f8fafc !important;
+}
+
+.dark .dashboard-subtitle,
+.dark .section-desc,
+.dark .table-subtitle,
+.dark .kpi-label,
+body.dark-mode .dashboard-subtitle,
+body.dark-mode .section-desc,
+body.dark-mode .table-subtitle,
+body.dark-mode .kpi-label {
+  color: #94a3b8 !important;
+}
+
+.dark .clinical-table th,
+body.dark-mode .clinical-table th {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+.dark .clinical-table td,
+body.dark-mode .clinical-table td {
+  border-bottom-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+.dark .clinical-table tr:hover td,
+body.dark-mode .clinical-table tr:hover td {
+  background: #1e293b !important;
+}
+
+.dark .clinical-form-input,
+.dark .clinical-form-textarea,
+.dark .clinical-form-select,
+body.dark-mode .clinical-form-input,
+body.dark-mode .clinical-form-textarea,
+body.dark-mode .clinical-form-select {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark .btn-action-ghost,
+body.dark-mode .btn-action-ghost {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark .btn-action-ghost:hover,
+body.dark-mode .btn-action-ghost:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
+
+.dark .modal-content-custom,
+body.dark-mode .modal-content-custom {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+.dark .modal-header-custom,
+body.dark-mode .modal-header-custom {
+  border-bottom-color: #1e293b !important;
+}

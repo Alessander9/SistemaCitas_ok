@@ -1,0 +1,467 @@
+/* =============================================================================
+   CitasSistema — Clinical Consultation & Treatment Module Styles
+   Light Modern Clinical SaaS Standard — Rich Micro-Animations & Color Accents
+   ============================================================================= */
+
+.clinical-container {
+  width: 100%;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+}
+
+.clinical-layout {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .clinical-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Patient Sidebar Card */
+.patient-sidebar-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  height: fit-content;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.patient-sidebar-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.patient-header-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.patient-avatar-large {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  flex-shrink: 0;
+  transition: transform 180ms ease;
+}
+
+.patient-sidebar-card:hover .patient-avatar-large {
+  transform: scale(1.06) rotate(-2deg);
+}
+
+.clinical-tag {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 0.25rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: all 140ms ease;
+}
+
+.clinical-tag:hover {
+  transform: translateY(-1px);
+}
+
+.profile-field-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+/* Main Form Area */
+.clinical-main-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.65rem 1.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.45rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+/* Tabs */
+.clinical-tab-list {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1.5px solid #e2e8f0;
+  margin-bottom: 0.25rem;
+  overflow-x: auto;
+}
+
+.clinical-tab-btn {
+  padding: 0.65rem 1.15rem;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.clinical-tab-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.clinical-tab-btn.active {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-color: #0284c7;
+  color: #0369a1;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15);
+  font-weight: 800;
+  transform: translateY(-1px);
+}
+
+/* Form Section Cards */
+.clinical-section-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem 1.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.clinical-section-card:hover {
+  border-color: #bae6fd;
+  box-shadow: 0 8px 20px -4px rgba(2, 132, 199, 0.08);
+  transform: translateY(-2px);
+}
+
+.clinical-section-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #818cf8 100%);
+  opacity: 0.85;
+}
+
+.clinical-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.55rem;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.clinical-section-title {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+/* Inputs & Labels */
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.clinical-form-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.clinical-form-input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: 11px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 0.86rem;
+  font-weight: 600;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 160ms ease;
+  font-family: inherit;
+}
+
+.clinical-form-input:focus {
+  background: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.16);
+  transform: translateY(-1px);
+}
+
+.clinical-form-input:hover:not(:focus) {
+  border-color: #94a3b8;
+  background: #ffffff;
+}
+
+/* EVA Pain Scale Selector */
+.eva-scale-box {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem 1.45rem;
+  transition: all 180ms ease;
+}
+
+.eva-scale-box:hover {
+  border-color: #bae6fd;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.06);
+}
+
+.eva-scale-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.95rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.eva-scale-buttons {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 0.4rem;
+}
+
+@media (max-width: 640px) {
+  .eva-scale-buttons {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.eva-btn {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+  border-radius: 11px;
+  padding: 0.7rem 0.2rem;
+  font-weight: 800;
+  font-size: 0.98rem;
+  cursor: pointer;
+  transition: all 160ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-align: center;
+}
+
+.eva-btn:hover {
+  transform: scale(1.14) translateY(-2px);
+  border-color: #0284c7;
+  color: #0284c7;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.22);
+  z-index: 2;
+}
+
+.eva-btn.active {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-color: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.45);
+  transform: scale(1.08);
+}
+
+.eva-btn.active.high-pain {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
+  transform: scale(1.08);
+}
+
+/* Chips selection for physical therapy techniques */
+.technique-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.technique-chip {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #475569;
+  padding: 0.5rem 0.95rem;
+  border-radius: 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.technique-chip:hover {
+  border-color: #0284c7;
+  color: #0284c7;
+  background: #f0f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.15);
+}
+
+.technique-chip.selected {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-color: #0284c7;
+  color: #0369a1;
+  font-weight: 800;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Prescription Medication Row */
+.rx-item-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.1rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 0.85rem;
+  align-items: flex-end;
+  margin-bottom: 0.85rem;
+  transition: all 160ms ease;
+}
+
+.rx-item-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+}
+
+@media (max-width: 768px) {
+  .rx-item-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btn-rx-delete {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: 1.5px solid #fecaca;
+  background: #fee2e2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 140ms ease;
+  margin-bottom: 2px;
+}
+
+.btn-rx-delete:hover {
+  background: #dc2626;
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+/* Success Banner */
+.success-banner-custom {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1.5px solid #86efac;
+  color: #15803d;
+  padding: 0.95rem 1.35rem;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+  animation: slideInDown 240ms ease;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Vital Signs Boxes */
+.vital-box-item {
+  background: #ffffff;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  transition: all 140ms ease;
+}
+
+.vital-box-item:hover {
+  border-color: #0284c7;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Pulsing Live Dot */
+.pulse-dot-green {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #16a34a;
+  display: inline-block;
+  animation: pulseGlowGreen 1.8s infinite;
+}
+
+@keyframes pulseGlowGreen {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+  }
+}

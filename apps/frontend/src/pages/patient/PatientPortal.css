@@ -1,0 +1,382 @@
+/* =============================================================================
+   CitasSistema — Patient Portal Styles (Light Modern Clinical SaaS)
+   Clean, Elegant, High-Trust Medical Records & Prescriptions Hub
+   ============================================================================= */
+
+.portal-container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(13, 148, 136, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(99, 102, 241, 0.05) 0px, transparent 60%);
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+}
+
+/* Portal Navbar */
+.portal-navbar {
+  background: #ffffff;
+  border-bottom: 1.5px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.portal-navbar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  cursor: pointer;
+}
+
+.portal-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.user-avatar-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  padding: 0.35rem 0.85rem 0.35rem 0.45rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.user-avatar-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: #ffffff;
+}
+
+.btn-logout {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #64748b;
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.btn-logout:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* Main Body Layout */
+.portal-main {
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  flex: 1;
+}
+
+.portal-hero-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+  padding: 1.75rem 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 60%, #e0f2fe 100%);
+  border: 1.5px solid #bae6fd;
+  border-radius: 22px;
+  box-shadow: 0 10px 30px -8px rgba(2, 132, 199, 0.1);
+}
+
+.portal-greeting h1 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display, 'Outfit', sans-serif);
+}
+
+.portal-greeting p {
+  font-size: 0.88rem;
+  color: #475569;
+  margin: 0;
+}
+
+.btn-book-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 60%, #4338ca 100%);
+  color: #ffffff;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 18px -3px rgba(2, 132, 199, 0.45);
+  transition: all 180ms ease;
+}
+
+.btn-book-cta:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 60%, #3730a3 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -3px rgba(2, 132, 199, 0.55);
+}
+
+/* Tabs Navigation */
+.portal-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.35rem;
+  border-radius: 14px;
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.portal-tab-btn {
+  padding: 0.55rem 1.15rem;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  transition: all 140ms ease;
+}
+
+.portal-tab-btn:hover {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.portal-tab-btn.active {
+  background: #ffffff;
+  color: #0284c7;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+/* Appointment Cards */
+.portal-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.35rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.04);
+  transition: all 160ms ease;
+}
+
+.portal-card:hover {
+  border-color: #bae6fd;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(2, 132, 199, 0.1);
+}
+
+.appt-card-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.appt-date-block {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  background: #f0f9ff;
+  border: 1.5px solid #bae6fd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.appt-day {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #0284c7;
+  line-height: 1;
+}
+
+.appt-month {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #0369a1;
+  text-transform: uppercase;
+}
+
+.appt-info-block h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.25rem;
+}
+
+.appt-info-block p {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Prescriptions & Treatment Plan */
+.treatment-card {
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+  border: 1.5px solid #e9d5ff;
+  border-radius: 20px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 16px -2px rgba(124, 58, 237, 0.08);
+}
+
+.treatment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.treatment-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.treatment-progress-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #7c3aed;
+  background: #f3e8ff;
+  border: 1px solid #d8b4fe;
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+}
+
+.treatment-bar-wrap {
+  height: 10px;
+  border-radius: 999px;
+  background: #ede9fe;
+  border: 1px solid #ddd6fe;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.treatment-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c3aed 0%, #a855f7 100%);
+}
+
+.treatment-meta-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem 1.15rem;
+  margin-top: 0.75rem;
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* Profile / Ficha Maestra Grid */
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.profile-field-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.15rem;
+}
+
+.profile-field-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.profile-field-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .portal-main {
+    padding: 1rem 0.75rem 5rem;
+  }
+
+  .portal-hero-row {
+    padding: 1.25rem 1rem;
+    border-radius: 18px;
+  }
+
+  .portal-tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .portal-tab-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.45rem 0.35rem;
+    font-size: 0.74rem;
+  }
+
+  .appt-card-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

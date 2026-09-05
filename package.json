@@ -1,0 +1,33 @@
+{
+  "name": "citassistema",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "description": "Plataforma integral de gestión de citas, pacientes y operación clínica",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm run start:dev --workspace=apps/backend",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "build:backend": "npm run build --workspace=apps/backend",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "test": "npm run test --workspace=apps/backend && npm run test --workspace=apps/frontend",
+    "test:backend": "npm run test --workspace=apps/backend",
+    "test:frontend": "npm run test --workspace=apps/frontend",
+    "test:e2e": "npm run test:e2e --workspace=apps/backend",
+    "lint": "npm run lint --workspace=apps/backend && npm run lint --workspace=apps/frontend",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:migrate": "npm run db:migrate --workspace=apps/backend",
+    "db:seed": "npm run db:seed --workspace=apps/backend",
+    "db:reset": "npm run db:reset --workspace=apps/backend"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0"
+  }
+}

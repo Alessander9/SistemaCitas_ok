@@ -1,0 +1,474 @@
+import React, { useState } from 'react';
+import './PatientPortal.css';
+
+interface PatientPortalProps {
+  onLogout: () => void;
+  onBookAppointment: () => void;
+}
+
+export const PatientPortal: React.FC<PatientPortalProps> = ({
+  onLogout,
+  onBookAppointment,
+}) => {
+  const [activeTab, setActiveTab] = useState<'citas' | 'tratamientos' | 'perfil' | 'pagos'>('citas');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Simulated Patient Data
+  const patient = {
+    firstName: 'Juan Carlos',
+    lastName: 'Pérez Gómez',
+    nationalId: '73829104',
+    email: 'paciente@clinica.pe',
+    phone: '+51 987 654 321',
+    birthDate: '1992-05-14',
+    bloodType: 'O+',
+    allergies: 'Ninguna conocida',
+    emergencyContact: 'María Gómez (Madre) - +51 991 223 344',
+    consentGranted: true,
+  };
+
+  const upcomingAppointments = [
+    {
+      id: 'appt-101',
+      serviceName: 'Sesión de Fisioterapia y Punción Seca',
+      professionalName: 'Dra. María González Flores',
+      date: '2026-09-08',
+      day: '08',
+      month: 'Sep',
+      time: '10:00 AM',
+      duration: '45 min',
+      status: 'confirmed',
+      notes: 'Sesión 7 de 10 — Fortalecimiento lumbar y electroterapia.',
+    },
+    {
+      id: 'appt-102',
+      serviceName: 'Evaluación y Control Traumatológico',
+      professionalName: 'Dr. Carlos Mendoza Ruiz',
+      date: '2026-09-22',
+      day: '22',
+      month: 'Sep',
+      time: '04:30 PM',
+      duration: '30 min',
+      status: 'pending',
+      notes: 'Control post-tratamiento de hombro.',
+    },
+  ];
+
+  const activeTreatments = [
+    {
+      id: 'treat-1',
+      title: 'Plan de Readaptación Lumbar y Postural',
+      prescribedBy: 'Dra. María González Flores (CMP 48291)',
+      totalSessions: 10,
+      completedSessions: 6,
+      diagnostics: 'Lumbalgia mecánica postural por sedentarismo laboral.',
+      homeExercises: 'Estiramientos isquiotibiales 2 veces al día y pausas activas cada 2 horas.',
+    },
+  ];
+
+  const digitalPrescriptions = [
+    {
+      id: 'rx-2026-088',
+      code: 'Receta Digital #RX-2026-088',
+      medication: 'Ibuprofeno 400mg Comprimidos Recubiertos',
+      dosage: '1 tableta cada 8 horas por 3 días después de alimentos.',
+      date: '10 de Septiembre, 2026',
+      validity: 'Vigente hasta 15 Sep 2026',
+      doctor: 'Dra. María González Flores · CMP 48291 · RNE 19283',
+      instructions: 'Aplicar frío local (compresas de gel) 15 minutos tras la sesión de fisioterapia.',
+    },
+    {
+      id: 'rx-2026-042',
+      code: 'Receta Digital #RX-2026-042',
+      medication: 'Complejo B Forte Ampollas Inyectables (3 Dosis)',
+      dosage: '1 ampolla intramuscular interdiaria en tópico de enfermería.',
+      date: '24 de Agosto, 2026',
+      validity: 'Tratamiento completado',
+      doctor: 'Dra. María González Flores · CMP 48291',
+      instructions: 'Administración en tópico de enfermería de Clínica Sanitas Sede San Isidro.',
+    },
+  ];
+
+  const paymentReceipts = [
+    {
+      id: 'rec-001',
+      number: 'Boleta Electrónica B001-000491',
+      service: 'Terapia Manual Ortopédica & Descompresión',
+      amount: 'S/ 80.00',
+      date: '24 de Agosto, 2026',
+      method: 'Pagado con Tarjeta Visa (POS)',
+      authCode: 'AUTH-948102',
+      status: 'Aprobado SUNAT',
+    },
+    {
+      id: 'rec-002',
+      number: 'Boleta Electrónica B001-000420',
+      service: 'Consulta Médica de Evaluación Inicial',
+      amount: 'S/ 120.00',
+      date: '18 de Agosto, 2026',
+      method: 'Pagado con Yape (App Móvil)',
+      authCode: 'YAPE-839102',
+      status: 'Aprobado SUNAT',
+    },
+  ];
+
+  return (
+    <div className="portal-container">
+      {/* Toast Feedback */}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 9999,
+          background: '#0f172a',
+          color: '#ffffff',
+          padding: '0.85rem 1.35rem',
+          borderRadius: '14px',
+          boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          fontSize: '0.84rem',
+          fontWeight: 700,
+          border: '1px solid rgba(255,255,255,0.15)',
+        }}>
+          <span>{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', marginLeft: '0.5rem' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <main className="portal-main">
+        {/* Hero Greeting & Quick Action */}
+        <div className="portal-hero-row">
+          <div className="portal-greeting">
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0.65rem', borderRadius: '999px', background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+              <span>● PACIENTE ACTIVO · DNI {patient.nationalId}</span>
+            </div>
+            <h1>¡Hola, {patient.firstName}!</h1>
+            <p>Bienvenido(a) a tu panel de salud, recetas médicas y comprobantes electrónicos.</p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn-book-cta"
+              onClick={onBookAppointment}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Agendar Nueva Cita
+            </button>
+
+            {onLogout && (
+              <button
+                type="button"
+                className="btn-logout"
+                onClick={onLogout}
+                title="Cerrar sesión"
+              >
+                Cerrar Sesión
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="portal-tabs">
+          <button
+            type="button"
+            className={`portal-tab-btn ${activeTab === 'citas' ? 'active' : ''}`}
+            onClick={() => setActiveTab('citas')}
+          >
+            <span>📅</span> Mis Citas ({upcomingAppointments.length})
+          </button>
+          <button
+            type="button"
+            className={`portal-tab-btn ${activeTab === 'tratamientos' ? 'active' : ''}`}
+            onClick={() => setActiveTab('tratamientos')}
+          >
+            <span>🩺</span> Mis Tratamientos y Recetas ({digitalPrescriptions.length})
+          </button>
+          <button
+            type="button"
+            className={`portal-tab-btn ${activeTab === 'pagos' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pagos')}
+          >
+            <span>🧾</span> Mis Comprobantes de Pago ({paymentReceipts.length})
+          </button>
+          <button
+            type="button"
+            className={`portal-tab-btn ${activeTab === 'perfil' ? 'active' : ''}`}
+            onClick={() => setActiveTab('perfil')}
+          >
+            <span>👤</span> Ficha Médica y Perfil
+          </button>
+        </div>
+
+        {/* TAB 1: Mis Citas */}
+        {activeTab === 'citas' && (
+          <section>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.25rem', color: '#0f172a' }}>
+              Próximas Atenciones Agendadas
+            </h2>
+            <div>
+              {upcomingAppointments.map((appt) => (
+                <div key={appt.id} className="portal-card">
+                  <div className="appt-card-inner">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div className="appt-date-block">
+                        <div className="appt-day">{appt.day}</div>
+                        <div className="appt-month">{appt.month}</div>
+                      </div>
+                      <div className="appt-info-block">
+                        <h3>{appt.serviceName}</h3>
+                        <p>
+                          Especialista: <strong>{appt.professionalName}</strong> • {appt.time} ({appt.duration})
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.74rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '6px', background: appt.status === 'confirmed' ? '#ecfdf5' : '#fffbeb', color: appt.status === 'confirmed' ? '#065f46' : '#92400e', border: `1px solid ${appt.status === 'confirmed' ? '#a7f3d0' : '#fde68a'}` }}>
+                            {appt.status === 'confirmed' ? '✓ Confirmada' : '⏳ Pendiente'}
+                          </span>
+                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            {appt.notes}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        style={{ padding: '0.5rem 0.95rem', borderRadius: '10px', background: '#ffffff', border: '1.5px solid #cbd5e1', color: '#0284c7', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
+                        onClick={() => showToast(`📄 Recordatorio de cita ${appt.id} descargado.`)}
+                      >
+                        📄 Recordatorio
+                      </button>
+                      <button
+                        type="button"
+                        style={{ padding: '0.5rem 0.95rem', borderRadius: '10px', background: '#f8fafc', border: '1.5px solid #cbd5e1', color: '#475569', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
+                        onClick={() => showToast('Para cancelar o reprogramar, también puedes usar el botón en tu portal.')}
+                      >
+                        Reprogramar / Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* TAB 2: Mis Tratamientos y Recetas */}
+        {activeTab === 'tratamientos' && (
+          <section>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.25rem', color: '#0f172a' }}>
+              Plan Terapéutico en Curso
+            </h2>
+            {activeTreatments.map((t) => {
+              const progressPct = Math.round((t.completedSessions / t.totalSessions) * 100);
+              return (
+                <div key={t.id} className="treatment-card">
+                  <div className="treatment-header">
+                    <div>
+                      <h3 className="treatment-title">{t.title}</h3>
+                      <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '2px 0 0' }}>
+                        Médico Tratante: <strong>{t.prescribedBy}</strong>
+                      </p>
+                    </div>
+                    <span className="treatment-progress-badge">
+                      {t.completedSessions} de {t.totalSessions} Sesiones Completadas
+                    </span>
+                  </div>
+
+                  <div className="treatment-bar-wrap">
+                    <div className="treatment-bar-fill" style={{ width: `${progressPct}%` }} />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem', marginTop: '1rem' }}>
+                    <div className="treatment-meta-box">
+                      <strong style={{ display: 'block', color: '#0f172a', marginBottom: '0.25rem' }}>🩺 Diagnóstico Clínico</strong>
+                      <span>{t.diagnostics}</span>
+                    </div>
+                    <div className="treatment-meta-box">
+                      <strong style={{ display: 'block', color: '#0f172a', marginBottom: '0.25rem' }}>📋 Pautas y Ejercicios Domiciliarios</strong>
+                      <span>{t.homeExercises}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Recetas Médicas Digitales */}
+            <div style={{ marginTop: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                    Recetas Médicas con Firma Digital MINSA
+                  </h3>
+                  <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b' }}>
+                    Prescripciones oficiales autorizadas para farmacias a nivel nacional.
+                  </p>
+                </div>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '0.25rem 0.65rem', borderRadius: '8px' }}>
+                  🛡️ Validez Legal Ley N° 27269
+                </span>
+              </div>
+
+              {digitalPrescriptions.map((rx) => (
+                <div key={rx.id} className="portal-card" style={{ borderLeft: '4px solid #7c3aed' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div style={{ flex: 1, minWidth: '260px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#7c3aed', background: '#f3e8ff', border: '1px solid #d8b4fe', padding: '0.15rem 0.5rem', borderRadius: '6px' }}>
+                          {rx.code}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Emitida: {rx.date}</span>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#15803d', background: '#f0fdf4', padding: '0.15rem 0.45rem', borderRadius: '6px' }}>● {rx.validity}</span>
+                      </div>
+                      <h4 style={{ margin: '0 0 0.35rem', fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                        {rx.medication}
+                      </h4>
+                      <p style={{ margin: '0 0 0.35rem', fontSize: '0.82rem', color: '#334155', lineHeight: 1.45 }}>
+                        <strong>Posología:</strong> {rx.dosage}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748b' }}>
+                        <strong>Indicaciones:</strong> {rx.instructions} • Emisor: <em>{rx.doctor}</em>
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      style={{ padding: '0.65rem 1.15rem', borderRadius: '12px', background: '#7c3aed', color: '#ffffff', border: 'none', fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px -2px rgba(124, 58, 237, 0.35)' }}
+                      onClick={() => showToast(`📄 Descargando ${rx.code} oficial en PDF con código QR y firma digital colegiada...`)}
+                    >
+                      <span>📥</span>
+                      <span>Descargar Receta PDF</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* TAB 3: Mis Comprobantes de Pago */}
+        {activeTab === 'pagos' && (
+          <section>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  Mis Comprobantes de Pago Electrónicos
+                </h2>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 0' }}>
+                  Boletas electrónicas emitidas y validadas ante SUNAT por Clínica Sanitas.
+                </p>
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#15803d', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.35rem 0.85rem', borderRadius: '10px' }}>
+                ✓ Saldo Pendiente: S/ 0.00 (Al Día)
+              </span>
+            </div>
+
+            <div>
+              {paymentReceipts.map((rec) => (
+                <div key={rec.id} className="portal-card">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0f172a' }}>{rec.number}</h4>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '0.15rem 0.45rem', borderRadius: '6px' }}>{rec.status}</span>
+                      </div>
+                      <p style={{ margin: '0 0 0.25rem', fontSize: '0.82rem', color: '#475569' }}>{rec.service}</p>
+                      <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        📅 {rec.date} • {rec.method} • Ref: {rec.authCode}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <span style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0284c7' }}>{rec.amount}</span>
+                      <button
+                        type="button"
+                        style={{ padding: '0.55rem 1rem', borderRadius: '10px', background: '#ffffff', border: '1.5px solid #cbd5e1', color: '#0369a1', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        onClick={() => showToast(`🧾 Descargando ${rec.number} autorizada por SUNAT en PDF...`)}
+                      >
+                        <span>🧾</span>
+                        <span>Descargar Boleta</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* TAB 4: Mi Ficha Médica y Perfil */}
+        {activeTab === 'perfil' && (
+          <section>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.25rem', color: '#0f172a' }}>
+              Ficha Maestra del Paciente
+            </h2>
+            <div className="profile-grid">
+              <div className="profile-field-box">
+                <span className="profile-field-label">Nombres y Apellidos</span>
+                <span className="profile-field-val">{patient.firstName} {patient.lastName}</span>
+              </div>
+              <div className="profile-field-box">
+                <span className="profile-field-label">Documento de Identidad (DNI)</span>
+                <span className="profile-field-val">{patient.nationalId}</span>
+              </div>
+              <div className="profile-field-box">
+                <span className="profile-field-label">Correo Electrónico</span>
+                <span className="profile-field-val">{patient.email}</span>
+              </div>
+              <div className="profile-field-box">
+                <span className="profile-field-label">Teléfono de Contacto</span>
+                <span className="profile-field-val">{patient.phone}</span>
+              </div>
+              <div className="profile-field-box">
+                <span className="profile-field-label">Fecha de Nacimiento</span>
+                <span className="profile-field-val">{patient.birthDate}</span>
+              </div>
+              <div className="profile-field-box">
+                <span className="profile-field-label">Grupo Sanguíneo</span>
+                <span className="profile-field-val">{patient.bloodType}</span>
+              </div>
+              <div className="profile-field-box">
+                <span className="profile-field-label">Alergias Registradas</span>
+                <span className="profile-field-val">{patient.allergies}</span>
+              </div>
+              <div className="profile-field-box">
+                <span className="profile-field-label">Contacto de Emergencia</span>
+                <span className="profile-field-val">{patient.emergencyContact}</span>
+              </div>
+              <div style={{ gridColumn: '1 / -1', borderTop: '1.5px solid #e2e8f0', paddingTop: '1rem', background: '#ecfdf5', padding: '1rem 1.25rem', borderRadius: '12px', border: '1px solid #a7f3d0' }}>
+                <span className="profile-field-label" style={{ color: '#047857' }}>Consentimiento de Privacidad</span>
+                <div style={{ color: '#065f46', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
+                  <span>🛡️</span> Consentimiento de tratamiento de datos personales aceptado conforme a la Ley N° 29733 (Perú).
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default PatientPortal;
