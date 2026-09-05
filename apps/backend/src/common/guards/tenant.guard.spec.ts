@@ -12,7 +12,7 @@ describe('TenantGuard (Multi-Tenancy Isolation Security Tests)', () => {
     guard = new TenantGuard();
   });
 
-  function createMockContext(request: any): ExecutionContext {
+  function createMockContext(request: unknown): ExecutionContext {
     return {
       switchToHttp: () => ({
         getRequest: () => request,
@@ -25,9 +25,10 @@ describe('TenantGuard (Multi-Tenancy Isolation Security Tests)', () => {
   }
 
   it('should allow user of Clinic A to access Clinic A resources and bind clinicId', () => {
-    const request: any = {
+    const request = {
       headers: { 'x-clinic-id': clinicA },
       params: {},
+      clinicId: undefined as string | undefined,
       user: {
         id: 'user-1',
         clinicId: clinicA,
@@ -43,7 +44,7 @@ describe('TenantGuard (Multi-Tenancy Isolation Security Tests)', () => {
   });
 
   it('CRITICAL SECURITY: should throw ForbiddenException when user of Clinic A attempts cross-tenant access to Clinic B via header', () => {
-    const request: any = {
+    const request = {
       headers: { 'x-clinic-id': clinicB },
       params: {},
       user: {
@@ -59,7 +60,7 @@ describe('TenantGuard (Multi-Tenancy Isolation Security Tests)', () => {
   });
 
   it('CRITICAL SECURITY: should throw ForbiddenException when user of Clinic A attempts cross-tenant access to Clinic B via route param', () => {
-    const request: any = {
+    const request = {
       headers: {},
       params: { clinicId: clinicB },
       user: {
@@ -75,9 +76,10 @@ describe('TenantGuard (Multi-Tenancy Isolation Security Tests)', () => {
   });
 
   it('should allow SUPER_ADMIN to access target Clinic B', () => {
-    const request: any = {
+    const request = {
       headers: { 'x-clinic-id': clinicB },
       params: {},
+      clinicId: undefined as string | undefined,
       user: {
         id: 'superadmin-1',
         clinicId: clinicA,
@@ -93,9 +95,10 @@ describe('TenantGuard (Multi-Tenancy Isolation Security Tests)', () => {
   });
 
   it('should allow unauthenticated public requests to bind target clinic header', () => {
-    const request: any = {
+    const request = {
       headers: { 'x-clinic-id': clinicA },
       params: {},
+      clinicId: undefined as string | undefined,
       user: undefined,
     };
 

@@ -12,7 +12,7 @@ describe('RolesGuard (RBAC Role Security Tests)', () => {
     guard = new RolesGuard(reflector);
   });
 
-  function createMockContext(user: any): ExecutionContext {
+  function createMockContext(user: unknown): ExecutionContext {
     return {
       switchToHttp: () => ({
         getRequest: () => ({ user }),

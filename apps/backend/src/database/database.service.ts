@@ -14,9 +14,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       process.env.DATABASE_URL ||
       'postgresql://postgres@localhost:5432/citassistema';
 
+    const poolMax = parseInt(
+      this.configService.get<string>('DB_POOL_MAX') || process.env.DB_POOL_MAX || '20',
+      10,
+    );
+
     this.pool = new Pool({
       connectionString,
-      max: 20,
+      max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
     });

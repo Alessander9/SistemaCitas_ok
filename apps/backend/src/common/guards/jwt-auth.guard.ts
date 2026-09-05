@@ -22,10 +22,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest<TUser = any>(err: any, user: any, _info?: any): TUser {
+  handleRequest<TUser = unknown>(err: unknown, user: unknown, _info?: unknown): TUser {
     if (err || !user) {
-      throw err || new UnauthorizedException('Tu sesión no es válida o ha expirado. Inicia sesión nuevamente.');
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new UnauthorizedException('Tu sesión no es válida o ha expirado. Inicia sesión nuevamente.');
     }
-    return user;
+    return user as TUser;
   }
 }
+

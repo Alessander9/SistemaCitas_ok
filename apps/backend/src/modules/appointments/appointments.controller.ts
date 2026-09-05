@@ -51,6 +51,8 @@ export class AppointmentsController {
     @Query('status') status?: AppointmentStatus,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
   ): Promise<Appointment[]> {
     return this.appointmentsService.findAll(clinicId, {
       professionalId,
@@ -58,6 +60,8 @@ export class AppointmentsController {
       status,
       dateFrom,
       dateTo,
+      limit,
+      offset,
     });
   }
 

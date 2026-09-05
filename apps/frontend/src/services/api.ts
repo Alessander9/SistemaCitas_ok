@@ -55,16 +55,16 @@ export async function fetchProfessionals(): Promise<Professional[]> {
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) {
-      return data.map((prof: any) => ({
+      return data.map((prof: Record<string, unknown>) => ({
         ...prof,
         avatarUrl:
-          prof.avatarUrl ||
-          (prof.firstName?.includes('María')
+          (prof.avatarUrl as string) ||
+          (String(prof.firstName || '').includes('María')
             ? 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400'
-            : prof.firstName?.includes('Carlos')
+            : String(prof.firstName || '').includes('Carlos')
             ? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400'
             : 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=400'),
-      }));
+      })) as Professional[];
     }
     return MOCK_PROFESSIONALS;
   } catch (error) {
@@ -84,7 +84,7 @@ export async function fetchAvailability(professionalId: string, date: string, se
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
     if (Array.isArray(data)) {
-      return data.map((slot: any) => slot.startTime || slot);
+      return data.map((slot: Record<string, unknown>) => (slot.startTime as string) || String(slot));
     }
     if (Array.isArray(data?.availableSlots)) {
       return data.availableSlots;

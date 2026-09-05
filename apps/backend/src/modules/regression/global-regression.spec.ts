@@ -128,6 +128,7 @@ describe('Global Multi-Tenant Regression Suite (Fases 1–12)', () => {
     db.transaction.mockImplementation(async (cb: (client: unknown) => Promise<unknown>) => {
       const client = {
         query: jest.fn()
+          .mockResolvedValueOnce({ rows: [] }) // advisory lock
           .mockResolvedValueOnce({ rows: [] }) // check conflicting appointments
           .mockResolvedValueOnce({ rows: [] }) // check conflicting schedule blocks
           .mockResolvedValueOnce({ rows: [appointmentRow] }) // insert appointment

@@ -211,6 +211,7 @@ describe('AppointmentsService', () => {
         const client = {
           query: jest
             .fn()
+            .mockResolvedValueOnce({ rows: [] }) // advisory lock
             .mockResolvedValueOnce({ rows: [{ start_time: '09:15:00', end_time: '09:45:00' }] }), // overlapping appt
         };
         return cb(client);
@@ -232,6 +233,7 @@ describe('AppointmentsService', () => {
         const client = {
           query: jest
             .fn()
+            .mockResolvedValueOnce({ rows: [] }) // advisory lock
             .mockResolvedValueOnce({ rows: [] }) // no conflicting appointments
             .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '10:00:00' }] }), // block
         };
@@ -275,6 +277,7 @@ describe('AppointmentsService', () => {
         const client = {
           query: jest
             .fn()
+            .mockResolvedValueOnce({ rows: [] }) // advisory lock
             .mockResolvedValueOnce({ rows: [] }) // no conflicting appointments
             .mockResolvedValueOnce({ rows: [] }) // no blocks
             .mockResolvedValueOnce({ rows: [appointmentRow] }) // insert

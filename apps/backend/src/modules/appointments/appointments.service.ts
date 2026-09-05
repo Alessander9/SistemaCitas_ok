@@ -254,6 +254,12 @@ export class AppointmentsService {
 
     // ANTI-COLLISION: Lock the relevant rows and check for conflicts
     return this.db.transaction(async (client) => {
+      // 1. Transactional advisory lock to strictly serialize concurrent bookings for this professional & date
+      await client.query(`SELECT pg_advisory_xact_lock(hashtext($1 || '_' || $2))`, [
+        dto.professionalId,
+        dto.appointmentDate,
+      ]);
+
       // Lock existing non-cancelled appointments for this professional on this date
       const { rows: lockedAppointments } = await client.query<{ start_time: string; end_time: string }>(
         `SELECT start_time, end_time
@@ -333,6 +339,8 @@ export class AppointmentsService {
       status?: AppointmentStatus;
       dateFrom?: string;
       dateTo?: string;
+      limit?: number;
+      offset?: number;
     } = {},
   ): Promise<Appointment[]> {
     const conditions = ['a.clinic_id = $1', 'a.deleted_at IS NULL'];
@@ -360,8 +368,7 @@ export class AppointmentsService {
       params.push(filters.dateTo);
     }
 
-    const { rows } = await this.db.query<AppointmentDbRow>(
-      `SELECT a.*,
+    let query = `SELECT a.*,
               p.first_name AS patient_first_name, p.last_name AS patient_last_name,
               pr.first_name AS professional_first_name, pr.last_name AS professional_last_name,
               s.name AS service_name
@@ -370,9 +377,16 @@ export class AppointmentsService {
        JOIN professionals pr ON pr.id = a.professional_id
        JOIN services s ON s.id = a.service_id
        WHERE ${conditions.join(' AND ')}
-       ORDER BY a.appointment_date ASC, a.start_time ASC`,
-      params,
-    );
+       ORDER BY a.appointment_date ASC, a.start_time ASC`;
+
+    if (filters.limit !== undefined) {
+      const limit = Math.min(Math.max(Number(filters.limit), 1), 1000);
+      const offset = filters.offset ? Math.max(Number(filters.offset), 0) : 0;
+      query += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+      params.push(limit, offset);
+    }
+
+    const { rows } = await this.db.query<AppointmentDbRow>(query, params);
 
     return rows.map((r) => this.mapRow(r));
   }

@@ -76,3 +76,6 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     </>
   );
 };
+
+export const SkeletonLoader = Skeleton;
+

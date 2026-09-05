@@ -8,13 +8,13 @@ describe('App Root Component Navigation', () => {
     expect(screen.getByRole('heading', { name: /Atención Médica y Fisioterapia de Alta Especialidad/i })).toBeInTheDocument();
   });
 
-  it('navigates to Booking Wizard when clicking Reservar Cita and returns to home', () => {
+  it('navigates to Booking Wizard when clicking Reservar Cita and returns to home', async () => {
     render(<App />);
 
     const bookBtn = screen.getAllByRole('button', { name: /Reservar Cita/i })[0];
     fireEvent.click(bookBtn);
 
-    expect(screen.getByRole('heading', { name: /1\. Selecciona la Especialidad Médica/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /1\. Selecciona la Especialidad Médica/i })).toBeInTheDocument();
   });
 
   it('navigates to Login page when clicking Acceder and returns to home', () => {

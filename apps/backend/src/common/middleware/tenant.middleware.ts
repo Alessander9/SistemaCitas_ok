@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 
 // Extend Express Request interface to include tenant metadata
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       clinicId?: string;

@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { LandingPage } from './pages/public/LandingPage';
-import { BookingWizard } from './components/booking/BookingWizard';
 import { LoginPage } from './pages/login/LoginPage';
-import { ClinicalConsultationView } from './pages/clinical/ClinicalConsultationView';
-import { CashRegisterPage } from './pages/admin/CashRegisterPage';
-import { InventoryPage } from './pages/admin/InventoryPage';
-import { CommunicationsPage } from './pages/admin/CommunicationsPage';
-import { TelegramBotPage } from './pages/admin/TelegramBotPage';
-import { ReceptionBookingPage } from './pages/admin/ReceptionBookingPage';
-import { PatientPortal } from './pages/patient/PatientPortal';
 import { AppShell } from './components/layout/AppShell';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { SpeedDialFAB } from './components/layout/SpeedDialFAB';
-import {
-  SuperAdminDashboard,
-  ClinicAdminDashboard,
-  DoctorDashboard,
-  ReceptionDashboard,
-  PatientDashboard,
-} from './pages/dashboards';
+import { SkeletonLoader } from './components/common/SkeletonLoader';
+
+// Lazy-loaded heavy pages and dashboards for optimized bundle splitting
+const BookingWizard = lazy(() => import('./components/booking/BookingWizard').then((m) => ({ default: m.BookingWizard })));
+const ClinicalConsultationView = lazy(() => import('./pages/clinical/ClinicalConsultationView').then((m) => ({ default: m.ClinicalConsultationView })));
+const CashRegisterPage = lazy(() => import('./pages/admin/CashRegisterPage').then((m) => ({ default: m.CashRegisterPage })));
+const InventoryPage = lazy(() => import('./pages/admin/InventoryPage').then((m) => ({ default: m.InventoryPage })));
+const CommunicationsPage = lazy(() => import('./pages/admin/CommunicationsPage').then((m) => ({ default: m.CommunicationsPage })));
+const TelegramBotPage = lazy(() => import('./pages/admin/TelegramBotPage').then((m) => ({ default: m.TelegramBotPage })));
+const ReceptionBookingPage = lazy(() => import('./pages/admin/ReceptionBookingPage').then((m) => ({ default: m.ReceptionBookingPage })));
+const PatientPortal = lazy(() => import('./pages/patient/PatientPortal').then((m) => ({ default: m.PatientPortal })));
+const SuperAdminDashboard = lazy(() => import('./pages/dashboards/SuperAdminDashboard').then((m) => ({ default: m.SuperAdminDashboard })));
+const ClinicAdminDashboard = lazy(() => import('./pages/dashboards/ClinicAdminDashboard').then((m) => ({ default: m.ClinicAdminDashboard })));
+const DoctorDashboard = lazy(() => import('./pages/dashboards/DoctorDashboard').then((m) => ({ default: m.DoctorDashboard })));
+const ReceptionDashboard = lazy(() => import('./pages/dashboards/ReceptionDashboard').then((m) => ({ default: m.ReceptionDashboard })));
+const PatientDashboard = lazy(() => import('./pages/dashboards/PatientDashboard').then((m) => ({ default: m.PatientDashboard })));
 
 export const App: React.FC = () => {
   const [activeRole, setActiveRole] = useState<'SUPER_ADMIN' | 'ADMIN_CLINIC' | 'PROFESIONAL' | 'RECEPCION' | 'PACIENTE'>('ADMIN_CLINIC');
@@ -245,11 +246,13 @@ export const App: React.FC = () => {
   if (currentView === 'booking') {
     return (
       <>
-        <BookingWizard
-          onBackToHome={handleBackToLanding}
-          preselectedSpecialtyId={bookingPreselect.specialtyId}
-          preselectedServiceId={bookingPreselect.serviceId}
-        />
+        <Suspense fallback={<div style={{ padding: '2rem' }}><SkeletonLoader count={4} /></div>}>
+          <BookingWizard
+            onBackToHome={handleBackToLanding}
+            preselectedSpecialtyId={bookingPreselect.specialtyId}
+            preselectedServiceId={bookingPreselect.serviceId}
+          />
+        </Suspense>
         <MobileBottomNav
           activeView={currentView}
           userRole="public"
@@ -304,51 +307,53 @@ export const App: React.FC = () => {
         }}
         onLogout={handleNavigateToLogin}
       >
-        {currentView === 'dashboard' && renderDashboardByRole()}
+        <Suspense fallback={<div style={{ padding: '1.5rem' }}><SkeletonLoader count={4} /></div>}>
+          {currentView === 'dashboard' && renderDashboardByRole()}
 
-        {currentView === 'doctor-schedule' && (
-          <DoctorDashboard
-            doctorName="Dra. María González"
-            specialty="Fisioterapia y Rehabilitación"
-            initialTab="weekly"
-            onOpenConsultation={() => setCurrentView('clinical-consultation')}
-          />
-        )}
+          {currentView === 'doctor-schedule' && (
+            <DoctorDashboard
+              doctorName="Dra. María González"
+              specialty="Fisioterapia y Rehabilitación"
+              initialTab="weekly"
+              onOpenConsultation={() => setCurrentView('clinical-consultation')}
+            />
+          )}
 
-        {currentView === 'reception-booking' && (
-          <ReceptionBookingPage
-            onNavigateToCash={() => setCurrentView('cash-register')}
-            onBack={() => setCurrentView('dashboard')}
-          />
-        )}
+          {currentView === 'reception-booking' && (
+            <ReceptionBookingPage
+              onNavigateToCash={() => setCurrentView('cash-register')}
+              onBack={() => setCurrentView('dashboard')}
+            />
+          )}
 
-        {currentView === 'clinical-consultation' && (
-          <ClinicalConsultationView
-            onBack={() => setCurrentView('dashboard')}
-            onNavigateToCash={() => setCurrentView('cash-register')}
-            onNavigateToBooking={() => setCurrentView('reception-booking')}
-          />
-        )}
+          {currentView === 'clinical-consultation' && (
+            <ClinicalConsultationView
+              onBack={() => setCurrentView('dashboard')}
+              onNavigateToCash={() => setCurrentView('cash-register')}
+              onNavigateToBooking={() => setCurrentView('reception-booking')}
+            />
+          )}
 
-        {currentView === 'cash-register' && (
-          <CashRegisterPage
-            onNavigateToInventory={() => setCurrentView('inventory')}
-            onNavigateToBooking={() => setCurrentView('reception-booking')}
-          />
-        )}
-        {currentView === 'inventory' && (
-          <InventoryPage
-            onNavigateToCash={() => setCurrentView('cash-register')}
-          />
-        )}
-        {currentView === 'communications' && <CommunicationsPage />}
-        {currentView === 'telegram-bot' && <TelegramBotPage />}
-        {currentView === 'patient-portal' && (
-          <PatientPortal
-            onLogout={handleNavigateToLogin}
-            onBookAppointment={() => handleStartBooking()}
-          />
-        )}
+          {currentView === 'cash-register' && (
+            <CashRegisterPage
+              onNavigateToInventory={() => setCurrentView('inventory')}
+              onNavigateToBooking={() => setCurrentView('reception-booking')}
+            />
+          )}
+          {currentView === 'inventory' && (
+            <InventoryPage
+              onNavigateToCash={() => setCurrentView('cash-register')}
+            />
+          )}
+          {currentView === 'communications' && <CommunicationsPage />}
+          {currentView === 'telegram-bot' && <TelegramBotPage />}
+          {currentView === 'patient-portal' && (
+            <PatientPortal
+              onLogout={handleNavigateToLogin}
+              onBookAppointment={() => handleStartBooking()}
+            />
+          )}
+        </Suspense>
       </AppShell>
 
       <SpeedDialFAB onAction={handleSpeedDialAction} />

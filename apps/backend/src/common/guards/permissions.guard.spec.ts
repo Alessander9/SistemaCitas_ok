@@ -12,7 +12,7 @@ describe('PermissionsGuard (RBAC Permission Security Tests)', () => {
     guard = new PermissionsGuard(reflector);
   });
 
-  function createMockContext(user: any): ExecutionContext {
+  function createMockContext(user: unknown): ExecutionContext {
     return {
       switchToHttp: () => ({
         getRequest: () => ({ user }),
