@@ -23,6 +23,9 @@ export type { SpecialtyTreatmentsModalProps } from './SpecialtyTreatmentsModal';
 export { AppointmentSpecialtyStep } from './AppointmentSpecialtyStep';
 export type { AppointmentSpecialtyStepProps } from './AppointmentSpecialtyStep';
 
+export { AppointmentSelectionStep } from './AppointmentSelectionStep';
+export type { AppointmentSelectionStepProps } from './AppointmentSelectionStep';
+
 export { SelectedSpecialtyCard } from './SelectedSpecialtyCard';
 export type { SelectedSpecialtyCardProps } from './SelectedSpecialtyCard';
 

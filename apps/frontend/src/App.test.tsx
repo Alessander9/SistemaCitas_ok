@@ -27,7 +27,7 @@ describe('App Root Component Navigation', () => {
     const loginBtn = screen.getByRole('button', { name: /Acceder/i });
     fireEvent.click(loginBtn);
 
-    expect(screen.getByRole('heading', { name: /Acceso a la Plataforma/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Acceso al Personal VitalSalud/i })).toBeInTheDocument();
 
     const returnHomeBtn = screen.getByRole('button', { name: /Volver a Inicio/i });
     fireEvent.click(returnHomeBtn);

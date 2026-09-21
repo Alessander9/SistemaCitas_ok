@@ -14,6 +14,7 @@ import { CashPaymentConfirmation } from './CashPaymentConfirmation';
 
 export interface AppointmentCheckoutStepProps {
   paymentMethod: 'CLINICA' | 'TARJETA';
+  onSelectPaymentMethod?: (method: 'CLINICA' | 'TARJETA') => void;
   selectedSubMethod?: OnlinePaymentMethodId;
   onSelectSubMethod?: (method: OnlinePaymentMethodId) => void;
   cardValues?: CardPaymentFormValues;
@@ -68,6 +69,7 @@ const DEFAULT_TRANSFER_VALUES: TransferPaymentFormValues = {
 
 export const AppointmentCheckoutStep: React.FC<AppointmentCheckoutStepProps> = ({
   paymentMethod,
+  onSelectPaymentMethod,
   selectedSubMethod: controlledSubMethod,
   onSelectSubMethod,
   cardValues: controlledCardValues,
@@ -176,7 +178,7 @@ export const AppointmentCheckoutStep: React.FC<AppointmentCheckoutStepProps> = (
           {/* Header */}
           <header className="apx-checkout__header">
             <h2 id="checkout-step-title" className="apx-checkout__title">
-              {isOnline ? '10. Completa tu pago' : '10. Confirma tu reserva'}
+              {isOnline ? '5. Completa tu pago' : '5. Confirma tu reserva'}
             </h2>
             <p className="apx-checkout__subtitle">
               {isOnline
@@ -184,6 +186,50 @@ export const AppointmentCheckoutStep: React.FC<AppointmentCheckoutStepProps> = (
                 : 'Tu cita quedará reservada y podrás realizar el pago directamente en la clínica.'}
             </p>
           </header>
+
+          {/* Modality Switcher (Online vs Clinic) */}
+          {onSelectPaymentMethod && (
+            <div className="apx-payment-mode-selector" role="radiogroup" aria-label="Modalidad de pago">
+              <button
+                type="button"
+                className={`apx-payment-mode-btn ${isOnline ? 'apx-payment-mode-btn--active' : ''}`}
+                onClick={() => onSelectPaymentMethod('TARJETA')}
+                aria-checked={isOnline}
+                role="radio"
+              >
+                <div className="apx-payment-mode-btn__icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect width="20" height="14" x="2" y="5" rx="2" />
+                    <line x1="2" x2="22" y1="10" y2="10" />
+                  </svg>
+                </div>
+                <div className="apx-payment-mode-btn__text">
+                  <strong>Pago Online Inmediato</strong>
+                  <span>Tarjeta, Yape, Plin o Transferencia</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`apx-payment-mode-btn ${!isOnline ? 'apx-payment-mode-btn--active' : ''}`}
+                onClick={() => onSelectPaymentMethod('CLINICA')}
+                aria-checked={!isOnline}
+                role="radio"
+              >
+                <div className="apx-payment-mode-btn__icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                    <path d="M12 5v14" />
+                    <path d="M5 12h14" />
+                  </svg>
+                </div>
+                <div className="apx-payment-mode-btn__text">
+                  <strong>Pago en Recepción</strong>
+                  <span>Abona en counter el día de tu cita</span>
+                </div>
+              </button>
+            </div>
+          )}
 
           {/* Reservation Retention Timer Banner */}
           <div

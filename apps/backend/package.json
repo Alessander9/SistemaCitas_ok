@@ -1,8 +1,8 @@
 {
-  "name": "citassistema-backend",
+  "name": "vitalsalud-backend",
   "version": "0.1.0-alpha",
   "private": true,
-  "description": "Backend API — CitasSistema (NestJS + TypeScript)",
+  "description": "Backend API — Clínica VitalSalud (NestJS + TypeScript)",
   "scripts": {
     "build": "nest build",
     "start": "nest start",

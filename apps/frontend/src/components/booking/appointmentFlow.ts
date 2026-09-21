@@ -5,40 +5,30 @@
 
 import { AppointmentStepDefinition } from './appointmentTypes';
 
-/** The booking flow is an 11-step wizard with 11 milestone nodes in the stepper. */
-export const APPOINTMENT_TOTAL_STEPS = 11;
+/** The booking flow is a 6-step streamlined wizard (5 active steps + 1 confirmation). */
+export const APPOINTMENT_TOTAL_STEPS = 6;
 
 /**
- * Main milestones of the booking flow (11 steps):
- * 1. Especialidad
- * 2. Servicio
- * 3. Profesional
- * 4. Fecha
- * 5. Horario
- * 6. Datos
- * 7. Revisión
- * 8. Políticas
- * 9. Modalidad de pago
- * 10. Pago / Confirmación
- * 11. Confirmación de reserva
+ * Main milestones of the streamlined booking flow (6 steps):
+ * 1. Especialidad & Servicio (includes optional doctor selection)
+ * 2. Fecha & Horario (calendar + day slots integrated)
+ * 3. Datos del Paciente (identity + contact details)
+ * 4. Revisión & Políticas (summary + consent checkboxes)
+ * 5. Pago y Confirmación (modalities + checkout)
+ * 6. Confirmación de Reserva (success code + post-booking actions)
  */
 export const APPOINTMENT_WIZARD_STEPS: AppointmentStepDefinition[] = [
-  { id: 'specialty', label: 'Especialidad' },
-  { id: 'service', label: 'Servicio' },
-  { id: 'professional', label: 'Profesional' },
-  { id: 'date', label: 'Fecha' },
-  { id: 'time', label: 'Horario' },
+  { id: 'selection', label: 'Especialidad & Servicio' },
+  { id: 'schedule', label: 'Fecha & Horario' },
   { id: 'data', label: 'Datos' },
-  { id: 'review', label: 'Revisión' },
-  { id: 'policies', label: 'Políticas' },
-  { id: 'payment-mode', label: 'Pago' },
-  { id: 'checkout', label: 'Pago' },
+  { id: 'review', label: 'Revisión & Políticas' },
+  { id: 'payment', label: 'Pago' },
   { id: 'confirmation', label: 'Confirmación' },
 ];
 
 /**
- * Maps every internal wizard step to its milestone node.
- * Step 1..11 maps to 0..10 index.
+ * Maps every internal wizard step to its milestone node (0-indexed).
+ * Step 1..6 maps to 0..5 index.
  */
 export function resolveStepperIndex(step: number): number {
   if (step <= 1) return 0;
@@ -63,11 +53,12 @@ export function resolveNextLabel(
   paymentMethod?: 'CLINICA' | 'TARJETA',
   price: number = 150,
 ): string {
-  if (step === 1) return 'Continuar';
-  if (step === 7) return 'Continuar con las políticas';
-  if (step === 8) return 'Continuar con el pago';
-  if (step === 9) return paymentMethod === 'TARJETA' ? 'Continuar al pago' : 'Continuar a la confirmación';
-  if (step === 10) return paymentMethod === 'TARJETA' ? `Pagar S/ ${price.toFixed(2)}` : 'Confirmar mi reserva';
-  if (step === 11) return 'Finalizar y Descargar';
+  if (step === 1) return 'Continuar al horario';
+  if (step === 2) return 'Continuar con mis datos';
+  if (step === 3) return 'Revisar mi reserva';
+  if (step === 4) return 'Continuar al pago';
+  if (step === 5) return paymentMethod === 'TARJETA' ? `Pagar S/ ${price.toFixed(2)}` : 'Confirmar mi reserva';
+  if (step === 6) return 'Finalizar';
   return 'Siguiente';
 }
+

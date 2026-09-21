@@ -31,6 +31,10 @@ const renderStep = (overrides: Partial<AppointmentReviewStepProps> = {}) => {
     date: '2026-09-24',
     time: '17:30',
     patient: PATIENT,
+    cancellationAccepted: true,
+    privacyAccepted: true,
+    onCancellationToggle: vi.fn(),
+    onPrivacyToggle: vi.fn(),
     onEditStep: vi.fn(),
     onContinue: vi.fn(),
     ...overrides,
@@ -39,11 +43,11 @@ const renderStep = (overrides: Partial<AppointmentReviewStepProps> = {}) => {
   return props;
 };
 
-describe('AppointmentReviewStep (Step 7 — Revisa tu reserva)', () => {
+describe('AppointmentReviewStep (Step 4 — Revisa tu reserva y acepta las políticas)', () => {
   it('renders the review heading, the details card and the payment summary', () => {
     renderStep();
 
-    expect(screen.getByRole('heading', { name: /7\. Revisa tu reserva/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /4\. Revisa tu reserva y acepta las políticas/i })).toBeInTheDocument();
     expect(
       screen.getByText(/Verifica que todos los datos de tu cita sean correctos/i),
     ).toBeInTheDocument();
@@ -101,16 +105,16 @@ describe('AppointmentReviewStep (Step 7 — Revisa tu reserva)', () => {
     expect(props.onEditStep).toHaveBeenCalledWith(1);
 
     fireEvent.click(screen.getByRole('button', { name: 'Editar: Servicio' }));
-    expect(props.onEditStep).toHaveBeenCalledWith(2);
+    expect(props.onEditStep).toHaveBeenCalledWith(1);
 
     fireEvent.click(screen.getByRole('button', { name: 'Cambiar: Profesional' }));
-    expect(props.onEditStep).toHaveBeenCalledWith(3);
+    expect(props.onEditStep).toHaveBeenCalledWith(1);
 
     fireEvent.click(screen.getByRole('button', { name: 'Cambiar: Fecha y hora' }));
-    expect(props.onEditStep).toHaveBeenCalledWith(4);
+    expect(props.onEditStep).toHaveBeenCalledWith(2);
 
     fireEvent.click(screen.getByRole('button', { name: 'Editar datos: Datos del paciente' }));
-    expect(props.onEditStep).toHaveBeenCalledWith(6);
+    expect(props.onEditStep).toHaveBeenCalledWith(3);
   });
 
   it('groups the payment into a high-contrast total and never hides the amount', () => {
@@ -145,7 +149,7 @@ describe('AppointmentReviewStep (Step 7 — Revisa tu reserva)', () => {
       'Datos del paciente',
     ].forEach((item) => expect(screen.getAllByText(item).length).toBeGreaterThan(0));
 
-    const cta = screen.getByRole('button', { name: /Continuar con la confirmación/i });
+    const cta = screen.getByRole('button', { name: /Continuar al pago/i });
     expect(cta).toBeEnabled();
 
     fireEvent.click(cta);
@@ -162,7 +166,7 @@ describe('AppointmentReviewStep (Step 7 — Revisa tu reserva)', () => {
     expect(screen.getByText('Fernandez')).toBeInTheDocument();
     expect(screen.getByText('Documento pendiente')).toBeInTheDocument();
 
-    expect(screen.getByRole('button', { name: /Continuar con la confirmación/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Continuar al pago/i })).toBeDisabled();
     // The complete items are still reported as ready.
     expect(screen.getAllByText('Listo').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Información pendiente').length).toBe(1);
@@ -181,6 +185,6 @@ describe('AppointmentReviewStep (Step 7 — Revisa tu reserva)', () => {
 
     expect(screen.getByText('Por definir')).toBeInTheDocument();
     expect(screen.getByText('Falta información')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Continuar con la confirmación/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Continuar al pago/i })).toBeDisabled();
   });
 });

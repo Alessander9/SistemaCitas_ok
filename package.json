@@ -1,8 +1,8 @@
 {
-  "name": "citassistema",
+  "name": "vitalsalud",
   "version": "0.1.0-alpha",
   "private": true,
-  "description": "Plataforma integral de gestión de citas, pacientes y operación clínica",
+  "description": "Sistema de gestión de citas, pacientes y operación de la Clínica VitalSalud",
   "workspaces": [
     "apps/*",
     "packages/*"

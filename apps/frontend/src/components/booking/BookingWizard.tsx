@@ -5,17 +5,12 @@ import { fetchSpecialties, fetchServices, fetchProfessionals, createAppointment 
 import {
   ANY_AVAILABLE_PROFESSIONAL_ID,
   AppointmentCheckoutStep,
-  AppointmentConsentStep,
   AppointmentHeader,
   AppointmentNavigation,
   AppointmentPatientStep,
-  AppointmentPaymentStep,
-  AppointmentProfessionalStep,
   AppointmentReviewStep,
   AppointmentScheduleStep,
-  AppointmentServiceStep,
-  AppointmentTimeStep,
-  AppointmentSpecialtyStep,
+  AppointmentSelectionStep,
   AppointmentStepper,
   CardPaymentFormValues,
   OnlinePaymentMethodId,
@@ -55,35 +50,14 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   preselectedSpecialtyId,
   preselectedServiceId,
 }) => {
-  const [step, setStep] = useState<number>(() => {
-    if (preselectedServiceId) return 3;
-    if (preselectedSpecialtyId) return 2;
-    return 1;
-  });
+  const [step, setStep] = useState<number>(1);
 
   // Live Database State
   const [specialtiesList, setSpecialtiesList] = useState<Specialty[]>(MOCK_SPECIALTIES);
   const [servicesList, setServicesList] = useState<MedicalService[]>(MOCK_SERVICES);
   const [professionalsList, setProfessionalsList] = useState<Professional[]>(MOCK_PROFESSIONALS);
 
-  useEffect(() => {
-    let isMounted = true;
-    Promise.all([fetchSpecialties(), fetchServices(), fetchProfessionals()])
-      .then(([specs, servs, profs]) => {
-        if (isMounted) {
-          if (specs && specs.length > 0) setSpecialtiesList(specs);
-          if (servs && servs.length > 0) setServicesList(servs);
-          if (profs && profs.length > 0) setProfessionalsList(profs);
-        }
-      })
-      .catch((err) => console.warn('BookingWizard database sync:', err));
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Booking State
+  // Booking State (Step 1)
   const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty | null>(() => {
     return MOCK_SPECIALTIES.find((s) => s.id === preselectedSpecialtyId) || null;
   });
@@ -92,12 +66,15 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     return MOCK_SERVICES.find((s) => s.id === preselectedServiceId) || null;
   });
 
-  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string | null>(null);
-  // The date and time are chosen in the schedule step; both stay empty until then.
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string | null>(
+    ANY_AVAILABLE_PROFESSIONAL_ID,
+  );
+
+  // Date & Time (Step 2)
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
 
-  // Patient Info (Step 6)
+  // Patient Info (Step 3)
   const [patientDocType, setPatientDocType] = useState<string>('DNI');
   const [patientDocNumber, setPatientDocNumber] = useState<string>('');
   const [patientFirstName, setPatientFirstName] = useState<string>('');
@@ -106,17 +83,13 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   const [patientEmail, setPatientEmail] = useState<string>('');
   const [patientNotes, setPatientNotes] = useState<string>('');
 
-  // Policies (Step 8)
+  // Policies & Consent (Step 4)
   const [acceptCancellationPolicy, setAcceptCancellationPolicy] = useState<boolean>(false);
   const [acceptDataProtection, setAcceptDataProtection] = useState<boolean>(false);
-  // Tracks whether the patient tried to advance step 8 without accepting both policies.
-  // Only set to true on a failed submit attempt so the alert stays hidden initially.
   const [consentSubmitAttempted, setConsentSubmitAttempted] = useState<boolean>(false);
 
-  // Payment Selection (Step 9)
-  const [paymentMethod, setPaymentMethod] = useState<'CLINICA' | 'TARJETA'>('CLINICA');
-
-  // Checkout Data (Step 10)
+  // Payment Selection (Step 5)
+  const [paymentMethod, setPaymentMethod] = useState<'CLINICA' | 'TARJETA'>('TARJETA');
   const [onlineSubMethod, setOnlineSubMethod] = useState<OnlinePaymentMethodId>('CARD');
   const [cardValues, setCardValues] = useState<CardPaymentFormValues>({
     cardNumber: '',
@@ -138,18 +111,35 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     operationNumber: '',
   });
 
-  // Confirmation Details (Step 11)
+  // Confirmation Details (Step 6)
   const [bookingCode, setBookingCode] = useState<string>('CIT-2026-8491');
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  // True while the patient is editing a block launched from the review step:
-  // finishing (or cancelling) that step returns straight to the review.
   const [returnToReview, setReturnToReview] = useState<boolean>(false);
 
-  // Filtered Services based on chosen Specialty
-  const availableServices = selectedSpecialty
-    ? servicesList.filter((s) => s.specialtyId === selectedSpecialty.id)
-    : servicesList;
+  // Fetch from backend
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      try {
+        const [specs, servs, profs] = await Promise.all([
+          fetchSpecialties(),
+          fetchServices(),
+          fetchProfessionals(),
+        ]);
+        if (!isMounted) return;
+        if (specs?.length) setSpecialtiesList(specs);
+        if (servs?.length) setServicesList(servs);
+        if (profs?.length) setProfessionalsList(profs);
+      } catch (err) {
+        console.warn('API error, using mock catalog data:', err);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Selection is stored as an id (ANY_AVAILABLE_PROFESSIONAL_ID = auto-assign).
   const manualProfessionalId =
@@ -161,8 +151,6 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     ? professionalsList.find((prof) => prof.id === manualProfessionalId) ?? null
     : null;
 
-  // View-models for the schedule step (memoized so the availability requests
-  // are not re-triggered on every render).
   const scheduleSpecialty = useMemo(
     () => (selectedSpecialty ? buildSelectedSpecialtySummary(selectedSpecialty) : null),
     [selectedSpecialty],
@@ -176,8 +164,6 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     [professionalsList, selectedProfessionalId, selectedSpecialty],
   );
 
-  // Step 7 reads the booking as it really is: the validation rules live in the
-  // data layer, so the review screen and this guard can never disagree.
   const autoAssignProfessional = selectedProfessionalId === ANY_AVAILABLE_PROFESSIONAL_ID;
   const reviewPatient = useMemo<ReviewPatientInput>(
     () => ({
@@ -200,7 +186,6 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     ],
   );
 
-  // Step 6 works on the same values the review and the payload consume.
   const patientValues = useMemo<PatientFormValues>(
     () => ({
       documentType: patientDocType as PatientFormValues['documentType'],
@@ -252,16 +237,28 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   const handleNext = async () => {
     setFormError(null);
 
-    if (step === 1 && !selectedSpecialty) {
-      setFormError('Por favor selecciona una especialidad para continuar.');
-      return;
+    // Paso 1: Especialidad y Servicio
+    if (step === 1) {
+      if (!selectedSpecialty) {
+        setFormError('Por favor selecciona una especialidad para continuar.');
+        return;
+      }
+      if (!selectedService) {
+        setFormError('Por favor selecciona un servicio o terapia para continuar.');
+        return;
+      }
     }
-    if (step === 2 && !selectedService) {
-      setFormError('Por favor selecciona un servicio o terapia para continuar.');
-      return;
+
+    // Paso 2: Fecha y Horario
+    if (step === 2) {
+      if (!selectedDate || !selectedTime) {
+        setFormError('Por favor selecciona la fecha y el turno horario deseado.');
+        return;
+      }
     }
-    if (step === 6) {
-      // Revalidated on submit; the CTA is already disabled while it is invalid.
+
+    // Paso 3: Datos del paciente
+    if (step === 3) {
       if (!patientValidation.isValid) {
         const missing = describePatientValidation(patientValidation);
         setFormError(
@@ -272,25 +269,26 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
         return;
       }
     }
-    if (step === 7 && !reviewValidation.isReady) {
-      // Defensive guard: the CTA is already disabled while something is missing.
-      const missing = reviewValidation.items
-        .filter((item) => !item.isComplete)
-        .map((item) => item.label)
-        .join(', ');
-      setFormError(`Falta completar: ${missing}.`);
-      return;
-    }
-    if (step === 8) {
+
+    // Paso 4: Revisión y Consentimientos
+    if (step === 4) {
+      if (!reviewValidation.isReady) {
+        const missing = reviewValidation.items
+          .filter((item) => !item.isComplete)
+          .map((item) => item.label)
+          .join(', ');
+        setFormError(`Falta completar: ${missing}.`);
+        return;
+      }
       if (!acceptCancellationPolicy || !acceptDataProtection) {
-        // Signal the consent step to show its inline alert (no global formError banner).
         setConsentSubmitAttempted(true);
         return;
       }
-      // Reset attempt flag when both are accepted and the step advances.
       setConsentSubmitAttempted(false);
     }
-    if (step === 10) {
+
+    // Paso 5: Pago y Confirmación de reserva
+    if (step === 5) {
       setIsSubmitting(true);
       try {
         const appointmentRes = await createAppointment({
@@ -320,13 +318,12 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       }
     }
 
-    // Coming from the review, any edited step leads back to it automatically.
     if (returnToReview) {
       backToReview();
       return;
     }
 
-    setStep((prev) => Math.min(prev + 1, 11));
+    setStep((prev) => Math.min(prev + 1, APPOINTMENT_TOTAL_STEPS));
   };
 
   const handleBack = () => {
@@ -334,14 +331,12 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
-  /** Sends the patient back to the review keeping every selection untouched. */
   const backToReview = () => {
     setFormError(null);
     setReturnToReview(false);
-    setStep(7);
+    setStep(4);
   };
 
-  /** Writes one field of the patient form (state lives here, not in the UI). */
   const handlePatientFieldChange = (field: PatientFieldId, value: string) => {
     switch (field) {
       case 'documentType':
@@ -370,7 +365,6 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     }
   };
 
-  /** Pre-fills the form with the patient returned by GET /patients/by-document. */
   const handleApplyPatient = (patient: PatientLookupMatch) => {
     if (patient.firstName) setPatientFirstName(patient.firstName);
     if (patient.lastName) setPatientLastName(patient.lastName);
@@ -378,11 +372,6 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     if (patient.email) setPatientEmail(patient.email);
   };
 
-  /**
-   * Sends the patient back to the step that owns a review block without
-   * touching the booking state, so nothing is lost (and the review is rebuilt
-   * with the same data on the way back).
-   */
   const handleEditStep = (targetStep: number) => {
     setFormError(null);
     setReturnToReview(true);
@@ -390,20 +379,9 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   };
 
   const progressPercentage = resolveProgressPercent(step, APPOINTMENT_TOTAL_STEPS);
-  const specialtyHint = selectedSpecialty
-    ? `Especialidad: ${selectedSpecialty.name}`
-    : 'Selecciona una especialidad para continuar';
   const serviceHint = selectedService
     ? `Servicio: ${selectedService.name}`
     : 'Selecciona un servicio para continuar';
-  const professionalHint = !selectedProfessionalId
-    ? 'Selecciona un profesional para continuar'
-    : selectedProfessionalRecord
-      ? `Profesional: ${selectedProfessionalRecord.firstName} ${selectedProfessionalRecord.lastName}`
-      : 'Profesional: primero disponible';
-  const dateHint = selectedDate
-    ? `Fecha: ${formatLongDate(selectedDate)}`
-    : 'Selecciona una fecha para continuar';
   const scheduleHint =
     selectedDate && selectedTime
       ? `${selectedDate} · ${selectedTime} hrs`
@@ -431,54 +409,27 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
         )}
 
         {/* Content Body based on step */}
-        <div className={`wizard-content${step <= 5 ? ' wizard-content--flush' : ''}`}>
-          {/* PASO 1: Especialidad — premium specialty selection step */}
+        <div className={`wizard-content${step <= 2 ? ' wizard-content--flush' : ''}`}>
+          {/* PASO 1: Especialidad, Servicio y Profesional */}
           {step === 1 && (
-            <AppointmentSpecialtyStep
+            <AppointmentSelectionStep
               specialties={specialtiesList}
               services={servicesList}
               professionals={professionalsList}
               selectedSpecialtyId={selectedSpecialty?.id ?? null}
+              selectedServiceId={selectedService?.id ?? null}
+              selectedProfessionalId={selectedProfessionalId}
               onSelectSpecialty={(specialty) => {
                 setSelectedSpecialty(specialty);
                 setSelectedService(null);
               }}
-            />
-          )}
-
-          {/* PASO 2: Servicio — premium service selection step */}
-          {step === 2 &&
-            (selectedSpecialty ? (
-              <AppointmentServiceStep
-                specialty={selectedSpecialty}
-                services={availableServices}
-                selectedServiceId={selectedService?.id ?? null}
-                onSelectService={setSelectedService}
-                onChangeSpecialty={() => setStep(1)}
-              />
-            ) : (
-              <div className="apx-step">
-                <div className="apx-empty" role="status">
-                  <h3 className="apx-empty__title">Selecciona una especialidad</h3>
-                  <p className="apx-empty__text">
-                    Necesitas elegir una especialidad para ver sus servicios disponibles.
-                  </p>
-                </div>
-              </div>
-            ))}
-
-          {/* PASO 3: Profesional — premium professional selection step */}
-          {step === 3 && (
-            <AppointmentProfessionalStep
-              professionals={professionalsList}
-              specialtyName={selectedSpecialty?.name}
-              selectedProfessionalId={selectedProfessionalId}
+              onSelectService={setSelectedService}
               onSelectProfessional={setSelectedProfessionalId}
             />
           )}
 
-          {/* PASO 4: Fecha y hora — calendario mensual + agenda semanal */}
-          {step === 4 && scheduleSpecialty && scheduleService && (
+          {/* PASO 2: Fecha y Horario integrados */}
+          {step === 2 && scheduleSpecialty && scheduleService && (
             <AppointmentScheduleStep
               specialty={scheduleSpecialty}
               service={scheduleService}
@@ -492,23 +443,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             />
           )}
 
-          {/* PASO 5: Horario — agenda del día + panel lateral sticky */}
-          {step === 5 && scheduleSpecialty && scheduleService && (
-            <AppointmentTimeStep
-              specialty={scheduleSpecialty}
-              service={scheduleService}
-              professional={scheduleProfessional}
-              professionalId={manualProfessionalId ?? undefined}
-              selectedDate={selectedDate}
-              selectedTime={selectedTime}
-              onSelectTime={setSelectedTime}
-              onChangeDate={() => setStep(4)}
-              onEdit={() => setStep(1)}
-            />
-          )}
-
-          {/* PASO 6: Datos del paciente */}
-          {step === 6 && (
+          {/* PASO 3: Datos del paciente */}
+          {step === 3 && (
             <AppointmentPatientStep
               values={patientValues}
               onChange={handlePatientFieldChange}
@@ -521,8 +457,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             />
           )}
 
-          {/* PASO 7: Revisión — detalles por bloques + resumen de pago + validación */}
-          {step === 7 && (
+          {/* PASO 4: Revisión de la cita + Políticas integradas */}
+          {step === 4 && (
             <AppointmentReviewStep
               specialty={scheduleSpecialty}
               service={scheduleService}
@@ -531,96 +467,28 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
               date={selectedDate}
               time={selectedTime}
               patient={reviewPatient}
-              onEditStep={handleEditStep}
-              onContinue={handleNext}
-              isBusy={isSubmitting}
-            />
-          )}
-
-          {/* PASO 8: Políticas y Consentimiento — premium redesign */}
-          {step === 8 && (
-            <AppointmentConsentStep
               cancellationAccepted={acceptCancellationPolicy}
               privacyAccepted={acceptDataProtection}
               onCancellationToggle={() => {
                 setAcceptCancellationPolicy((v) => !v);
-                // Clear the error hint once the patient starts correcting.
                 if (!acceptCancellationPolicy) setConsentSubmitAttempted(false);
               }}
               onPrivacyToggle={() => {
                 setAcceptDataProtection((v) => !v);
                 if (!acceptDataProtection) setConsentSubmitAttempted(false);
               }}
-              hasSubmitError={consentSubmitAttempted}
-              specialtyName={scheduleSpecialty?.name}
-              specialtyIconKey={scheduleSpecialty?.icon}
-              serviceName={scheduleService?.name}
-              durationLabel={
-                scheduleService?.durationMinutes
-                  ? `${scheduleService.durationMinutes} minutos`
-                  : undefined
-              }
-              professionalName={
-                selectedProfessionalRecord
-                  ? `${selectedProfessionalRecord.firstName} ${selectedProfessionalRecord.lastName}`
-                  : undefined
-              }
-              professionalLicense={selectedProfessionalRecord?.licenseNumber}
-              professionalPhotoUrl={selectedProfessionalRecord?.avatarUrl ?? null}
-              dateLabel={selectedDate ? formatLongDate(selectedDate) : undefined}
-              timeRangeLabel={selectedTime || undefined}
-              patientName={
-                patientFirstName || patientLastName
-                  ? `${patientFirstName} ${patientLastName}`.trim()
-                  : undefined
-              }
-              location="Sede San Isidro"
-              priceLabel={
-                selectedService?.price != null
-                  ? `S/ ${selectedService.price.toFixed(2)}`
-                  : undefined
-              }
+              hasConsentError={consentSubmitAttempted}
+              onEditStep={handleEditStep}
+              onContinue={handleNext}
+              isBusy={isSubmitting}
             />
           )}
 
-          {/* PASO 9: Método de Pago — Premium Redesign */}
-          {step === 9 && (
-            <AppointmentPaymentStep
-              paymentMethod={paymentMethod}
-              onSelectPaymentMethod={setPaymentMethod}
-              specialtyName={scheduleSpecialty?.name}
-              specialtyIconKey={scheduleSpecialty?.icon}
-              serviceName={scheduleService?.name}
-              durationLabel={
-                scheduleService?.durationMinutes
-                  ? `${scheduleService.durationMinutes} minutos`
-                  : undefined
-              }
-              professionalName={
-                selectedProfessionalRecord
-                  ? `${selectedProfessionalRecord.firstName} ${selectedProfessionalRecord.lastName}`
-                  : 'Primero disponible'
-              }
-              professionalLicense={selectedProfessionalRecord?.licenseNumber}
-              professionalPhotoUrl={selectedProfessionalRecord?.avatarUrl ?? null}
-              dateLabel={selectedDate ? formatLongDate(selectedDate) : undefined}
-              timeRangeLabel={selectedTime ? `${selectedTime} hrs` : undefined}
-              location="Sede San Isidro"
-              locationAddress="Av. Emilio Cavenecia 225, San Isidro, Lima"
-              price={selectedService?.price ?? 150}
-              currency={selectedService?.currency ?? 'PEN'}
-              onEditBooking={() => handleEditStep(7)}
-              onTimerExpired={() => {
-                setFormError('El tiempo para completar la reserva ha vencido. Por favor selecciona tu horario nuevamente.');
-                setStep(4);
-              }}
-            />
-          )}
-
-          {/* PASO 10: Completa tu pago / Confirmación de reserva */}
-          {step === 10 && (
+          {/* PASO 5: Pago y Confirmación de reserva */}
+          {step === 5 && (
             <AppointmentCheckoutStep
               paymentMethod={paymentMethod}
+              onSelectPaymentMethod={setPaymentMethod}
               selectedSubMethod={onlineSubMethod}
               onSelectSubMethod={setOnlineSubMethod}
               cardValues={cardValues}
@@ -657,16 +525,16 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
                   : undefined
               }
               isProcessing={isSubmitting}
-              onEditBooking={() => handleEditStep(7)}
+              onEditBooking={() => handleEditStep(4)}
               onTimerExpired={() => {
                 setFormError('El tiempo para completar la reserva ha vencido. Por favor selecciona tu horario nuevamente.');
-                setStep(4);
+                setStep(2);
               }}
             />
           )}
 
-          {/* PASO 11: Confirmación de reserva y comprobante */}
-          {step === 11 && (
+          {/* PASO 6: Confirmación de reserva y comprobante */}
+          {step === 6 && (
             <div className="confirmation-success-box">
               <div className="success-icon-badge" aria-hidden="true">
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -714,7 +582,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
         </div>
 
         {/* Navigation Footer */}
-        {step <= 10 && (
+        {step <= 5 && (
           <AppointmentNavigation
             onBack={step === 1 ? onBackToHome : handleBack}
             onNext={handleNext}
@@ -725,40 +593,28 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
                 : resolveNextLabel(step, paymentMethod, selectedService?.price ?? 150)
             }
             nextDisabled={
-              (step === 1 && !selectedSpecialty) ||
-              (step === 2 && !selectedService) ||
-              (step === 3 && !selectedProfessionalId) ||
-              (step === 4 && !selectedDate) ||
-              (step === 5 && (!selectedDate || !selectedTime)) ||
-              (step === 6 && !patientValidation.isValid) ||
-              (step === 7 && !reviewValidation.isReady) ||
-              (step === 8 && (!acceptCancellationPolicy || !acceptDataProtection)) ||
+              (step === 1 && (!selectedSpecialty || !selectedService)) ||
+              (step === 2 && (!selectedDate || !selectedTime)) ||
+              (step === 3 && !patientValidation.isValid) ||
+              (step === 4 && (!reviewValidation.isReady || !acceptCancellationPolicy || !acceptDataProtection)) ||
               isSubmitting
             }
-            /* Step 7 owns its primary action inside the payment summary. */
-            showNext={step !== 7}
             note={
-              step === 7
+              step === 4
                 ? 'Tus datos están protegidos y serán utilizados únicamente para gestionar tu atención.'
                 : undefined
             }
             isBusy={isSubmitting}
             hint={
               step === 1
-                ? specialtyHint
+                ? serviceHint
                 : step === 2
-                  ? serviceHint
+                  ? scheduleHint
                   : step === 3
-                    ? professionalHint
-                    : step === 4
-                      ? dateHint
-                      : step === 5
-                        ? scheduleHint
-                        : step === 6
-                          ? patientValidation.isValid
-                            ? 'Datos completos'
-                            : 'Completa los campos obligatorios'
-                          : undefined
+                    ? patientValidation.isValid
+                      ? 'Datos completos'
+                      : 'Completa los campos obligatorios'
+                    : undefined
             }
           />
         )}

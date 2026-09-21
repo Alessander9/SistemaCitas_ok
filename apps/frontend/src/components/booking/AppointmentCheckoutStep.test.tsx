@@ -3,7 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AppointmentCheckoutStep } from './AppointmentCheckoutStep';
 
-describe('AppointmentCheckoutStep (Step 10)', () => {
+describe('AppointmentCheckoutStep (Step 5)', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -28,7 +28,7 @@ describe('AppointmentCheckoutStep (Step 10)', () => {
     );
 
     // Title & subtitle
-    expect(screen.getByText('10. Completa tu pago')).toBeInTheDocument();
+    expect(screen.getByText('5. Completa tu pago')).toBeInTheDocument();
     expect(
       screen.getByText('Realiza el pago de forma segura para confirmar tu reserva.'),
     ).toBeInTheDocument();
@@ -105,7 +105,7 @@ describe('AppointmentCheckoutStep (Step 10)', () => {
     );
 
     // Title & subtitle
-    expect(screen.getByText('10. Confirma tu reserva')).toBeInTheDocument();
+    expect(screen.getByText('5. Confirma tu reserva')).toBeInTheDocument();
     expect(
       screen.getByText(
         'Tu cita quedará reservada y podrás realizar el pago directamente en la clínica.',

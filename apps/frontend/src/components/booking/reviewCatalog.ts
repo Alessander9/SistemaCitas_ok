@@ -45,13 +45,13 @@ export interface BuildBookingReviewParams {
   locationAddress?: string;
 }
 
-/** Wizard steps that own each block, so "Editar" always lands on the real step. */
+/** Wizard steps that own each block in the 5-step streamlined flow. */
 export const REVIEW_EDIT_STEPS = {
   specialty: 1,
-  service: 2,
-  professional: 3,
-  datetime: 4,
-  patient: 6,
+  service: 1,
+  professional: 1,
+  datetime: 2,
+  patient: 3,
 } as const;
 
 /** Mandatory patient fields; the review flags the block when any is missing. */
