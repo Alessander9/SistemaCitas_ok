@@ -94,24 +94,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Live Status Pill */}
           <div className="hero-pill-badge">
             <span className="live-pulse-dot" />
-            <span>Consultorios y Especialistas Disponibles Hoy</span>
+            <span>Especialistas Disponibles Hoy en Nuestras Sedes</span>
             <span className="pill-divider">•</span>
             <span className="pill-highlight">Reserva 100% Online</span>
           </div>
 
           <h1 className="hero-title">
-            Atención Médica y Fisioterapia de Alta Especialidad <span>en un Solo Lugar</span>
+            Clínica de Rehabilitación Física y Fisioterapia <span>en Lima</span>
           </h1>
 
           <p className="hero-subtitle">
-            Reserva tu cita médica o sesión terapéutica en menos de 2 minutos, accede a tu historial
-            clínico digital y recibe atención personalizada con profesionales colegiados de primer nivel.
+            En VitalSalud recuperamos tu movilidad y tratamos el dolor en su raíz con planes de fisioterapia
+            personalizados. Reserva tu evaluación inicial en menos de 2 minutos con terapeutas colegiados.
           </p>
 
           {/* Quick Hero Interactive Booking Card */}
           <div className="hero-booking-card">
             <div className="hero-booking-card-header">
-              <span className="hero-booking-card-title">⚡ Agenda Rápida en Línea</span>
+              <span className="hero-booking-card-title">⚡ Agenda tu Evaluación en Línea</span>
               <span className="hero-booking-card-sub">Sin llamadas ni esperas telefónicas</span>
             </div>
             <form onSubmit={handleHeroQuickSearch} className="hero-booking-form">
@@ -178,7 +178,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span className="perk-check">✓</span> Pagos seguros con Yape, Plin y Tarjetas
               </div>
               <div className="quick-perk-item">
-                <span className="perk-check">✓</span> Cancelación flexible sin penalidad
+                <span className="perk-check">✓</span> Reprogramación sin costo hasta 24 h antes
               </div>
             </div>
           </div>
@@ -203,14 +203,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="stat-icon-wrap">🛡️</div>
               <div className="stat-content">
                 <h4>100%</h4>
-                <p>Citas Confirmadas</p>
+                <p>Especialistas Colegiados</p>
               </div>
             </div>
             <div className="stat-item">
               <div className="stat-icon-wrap">⏱️</div>
               <div className="stat-content">
-                <h4>0 Min</h4>
-                <p>Colas y Esperas</p>
+                <h4>15+</h4>
+                <p>Años de Experiencia</p>
               </div>
             </div>
           </div>
@@ -221,9 +221,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section id="como-funciona" className="section-wrapper section-how-it-works">
         <div className="section-header-center">
           <span className="section-badge">Paso a Paso</span>
-          <h2 className="section-title">Tu Cita Médica en 3 Simples Pasos</h2>
+          <h2 className="section-title">Tu Recuperación en 3 Simples Pasos</h2>
           <p className="section-subtitle">
-            Hemos digitalizado todo el proceso clínico para que tu experiencia sea ágil, cómoda y transparente.
+            Un proceso simple y transparente para que comiences tu tratamiento sin trámites ni demoras.
           </p>
         </div>
 
@@ -231,9 +231,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="step-card">
             <div className="step-number-badge">01</div>
             <div className="step-icon">🩺</div>
-            <h3 className="step-title">Elige Especialidad y Médico</h3>
+            <h3 className="step-title">Agenda tu Evaluación Inicial</h3>
             <p className="step-desc">
-              Explora nuestros tratamientos y revisa el perfil, colegiatura y trayectoria de cada especialista.
+              Reserva en línea tu primera consulta; no necesitas orden médica previa para comenzar tu tratamiento.
             </p>
           </div>
 
@@ -241,10 +241,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="step-card">
             <div className="step-number-badge">02</div>
-            <div className="step-icon">📅</div>
-            <h3 className="step-title">Selecciona Fecha y Hora</h3>
+            <div className="step-icon">📋</div>
+            <h3 className="step-title">Recibe tu Diagnóstico y Plan</h3>
             <p className="step-desc">
-              Visualiza en tiempo real los turnos disponibles en nuestros consultorios y elige el horario ideal para ti.
+              Tu especialista evalúa tu condición y diseña un plan de recuperación personalizado con metas claras.
             </p>
           </div>
 
@@ -252,10 +252,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="step-card">
             <div className="step-number-badge">03</div>
-            <div className="step-icon">📲</div>
-            <h3 className="step-title">Recibe Confirmación y Asiste</h3>
+            <div className="step-icon">💪</div>
+            <h3 className="step-title">Inicia tu Recuperación</h3>
             <p className="step-desc">
-              Te enviamos tu código de reserva por WhatsApp y recordatorios automáticos para que nunca olvides tu cita.
+              Comienza tus sesiones con seguimiento constante y reportes de progreso hasta tu alta funcional.
             </p>
           </div>
         </div>
@@ -264,7 +264,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Especialidades Médicas */}
       <section id="especialidades" className="section-wrapper section-specialties">
         <div className="section-header-center">
-          <span className="section-badge">Catálogo Clínico</span>
+          <span className="section-badge">Áreas de Atención</span>
           <h2 className="section-title">Especialidades Médicas</h2>
           <p className="section-subtitle">
             Equipos multidisciplinarios y tecnología de vanguardia para tu pronta rehabilitación y bienestar integral.
@@ -422,8 +422,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Especialistas / Médicos */}
       <section id="profesionales" className="section-wrapper section-doctors">
         <div className="section-header-center">
-          <span className="section-badge">Staff Profesional</span>
-          <h2 className="section-title">Nuestros Médicos y Terapeutas</h2>
+          <span className="section-badge">Equipo Clínico</span>
+          <h2 className="section-title">Nuestros Especialistas</h2>
           <p className="section-subtitle">
             Profesionales colegiados, certificados y altamente comprometidos con tu recuperación y salud integral.
           </p>
@@ -469,8 +469,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Por Qué Elegirnos / Ventajas Clínicas */}
       <section className="section-wrapper section-advantages">
         <div className="section-header-center">
-          <span className="section-badge">Tecnología y Calidad</span>
-          <h2 className="section-title">Por Qué Elegir CitasSistema</h2>
+          <span className="section-badge">Atención Integral</span>
+          <h2 className="section-title">¿Por Qué Elegir VitalSalud?</h2>
           <p className="section-subtitle">
             Unimos la excelencia médica humana con tecnología inteligente para transformar tu cuidado de salud.
           </p>
@@ -479,26 +479,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="advantages-grid">
           <div className="advantage-card">
             <div className="advantage-icon">🚀</div>
-            <h3>Agendamiento Inteligente</h3>
-            <p>Sin llamadas molestas ni tiempo perdido. Elige fecha, hora y doctor en tiempo real con confirmación instantánea.</p>
+            <h3>Reserva sin Esperas</h3>
+            <p>Agenda tu cita en línea en menos de 2 minutos y recibe confirmación inmediata, sin llamadas ni salas de espera.</p>
           </div>
 
           <div className="advantage-card">
             <div className="advantage-icon">📱</div>
-            <h3>Notificaciones WhatsApp y Telegram</h3>
-            <p>Recibe recordatorios oportunos, enlaces de pago e indicaciones previas a tu consulta directamente en tu móvil.</p>
+            <h3>Recordatorios por WhatsApp</h3>
+            <p>Confirmamos tu cita y te enviamos recordatorios e indicaciones previas a cada sesión en tu celular.</p>
           </div>
 
           <div className="advantage-card">
             <div className="advantage-icon">📂</div>
-            <h3>Historia Clínica 100% Digital</h3>
-            <p>Accede a tus diagnósticos, evoluciones, recetas y comprobantes de pago desde cualquier dispositivo las 24 horas.</p>
+            <h3>Seguimiento de tu Progreso</h3>
+            <p>Evaluamos tu evolución sesión a sesión y ajustamos tu plan de tratamiento hasta tu recuperación completa.</p>
           </div>
 
           <div className="advantage-card">
             <div className="advantage-icon">🛡️</div>
-            <h3>Privacidad y Confidencialidad</h3>
-            <p>Tus datos médicos se encuentran cifrados bajo los más estrictos estándares de seguridad y la Ley N° 29733.</p>
+            <h3>Atención Humanizada</h3>
+            <p>El mismo terapeuta te acompaña durante todo el proceso, con trato cercano y planes adaptados a ti.</p>
           </div>
         </div>
       </section>
@@ -563,9 +563,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="locations-card">
           <div className="locations-info">
             <span className="section-badge" style={{ color: '#38bdf8' }}>Atención Presencial</span>
-            <h2 className="locations-title">Visita Nuestras Sedes Clínicas</h2>
+            <h2 className="locations-title">Visítanos en Nuestras Sedes</h2>
             <p className="locations-subtitle">
-              Instalaciones modernas equipadas con la más alta tecnología en rehabilitación y consultorios climatizados.
+              Gimnasios de rehabilitación equipados, consultorios privados climatizados y estacionamiento propio en ambas sedes.
             </p>
 
             <div className="locations-list">
@@ -609,9 +609,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="locations-badge-box">
             <div className="pulse-circle">🏥</div>
-            <h3>Central Telefónica & Soporte</h3>
+            <h3>Reservas e Informes</h3>
             <p className="locations-phone">+51 (01) 480-9900</p>
-            <p className="locations-email">contacto@citassistema.pe</p>
+            <p className="locations-email">contacto@vitalsalud.pe</p>
             <div className="locations-status-pill">
               <span className="live-pulse-dot" /> Abierto ahora
             </div>
@@ -654,13 +654,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section className="section-wrapper section-cta-banner">
         <div className="cta-banner-box">
           <div className="cta-banner-content">
-            <span className="cta-banner-badge">Empieza tu recuperación hoy</span>
+            <span className="cta-banner-badge">Tu recuperación empieza hoy</span>
             <h2 className="cta-banner-title">
-              ¿Listo para recuperar tu bienestar y vivir sin dolor?
+              ¿Listo para vivir sin dolor y recuperar tu movilidad?
             </h2>
             <p className="cta-banner-sub">
-              Agenda tu evaluación médica o sesión de fisioterapia en menos de 2 minutos.
-              Horarios flexibles y atención de primer nivel.
+              Agenda tu evaluación inicial con un especialista en fisioterapia en menos de 2 minutos.
+              Horarios flexibles de lunes a sábado.
             </p>
           </div>
           <div className="cta-banner-actions">

@@ -4,6 +4,7 @@ import { Specialty, MedicalService, Professional } from '@citassistema/shared-ty
 import { fetchSpecialties, fetchServices, fetchProfessionals, createAppointment } from '../../services/api';
 import {
   ANY_AVAILABLE_PROFESSIONAL_ID,
+  AppointmentCheckoutStep,
   AppointmentConsentStep,
   AppointmentHeader,
   AppointmentNavigation,
@@ -16,6 +17,11 @@ import {
   AppointmentTimeStep,
   AppointmentSpecialtyStep,
   AppointmentStepper,
+  CardPaymentFormValues,
+  OnlinePaymentMethodId,
+  PlinPaymentFormValues,
+  TransferPaymentFormValues,
+  YapePaymentFormValues,
   buildBookingValidation,
   buildSelectedSpecialtySummary,
   buildServiceCards,
@@ -107,10 +113,32 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   // Only set to true on a failed submit attempt so the alert stays hidden initially.
   const [consentSubmitAttempted, setConsentSubmitAttempted] = useState<boolean>(false);
 
-  // Payment (Step 9)
+  // Payment Selection (Step 9)
   const [paymentMethod, setPaymentMethod] = useState<'CLINICA' | 'TARJETA'>('CLINICA');
 
-  // Confirmation Details (Step 10 & 11)
+  // Checkout Data (Step 10)
+  const [onlineSubMethod, setOnlineSubMethod] = useState<OnlinePaymentMethodId>('CARD');
+  const [cardValues, setCardValues] = useState<CardPaymentFormValues>({
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardHolder: '',
+    saveCard: false,
+  });
+  const [yapeValues, setYapeValues] = useState<YapePaymentFormValues>({
+    phoneNumber: '',
+    approvalCode: '',
+  });
+  const [plinValues, setPlinValues] = useState<PlinPaymentFormValues>({
+    phoneNumber: '',
+    otpCode: '',
+  });
+  const [transferValues, setTransferValues] = useState<TransferPaymentFormValues>({
+    bankName: 'BCP',
+    operationNumber: '',
+  });
+
+  // Confirmation Details (Step 11)
   const [bookingCode, setBookingCode] = useState<string>('CIT-2026-8491');
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -262,7 +290,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       // Reset attempt flag when both are accepted and the step advances.
       setConsentSubmitAttempted(false);
     }
-    if (step === 9) {
+    if (step === 10) {
       setIsSubmitting(true);
       try {
         const appointmentRes = await createAppointment({
@@ -271,8 +299,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             professionalsList[0]?.id ||
             'e0000000-0000-4000-a000-000000000001',
           serviceId: selectedService?.id || servicesList[0]?.id || 'd0000000-0000-4000-a000-000000000001',
-          appointmentDate: selectedDate,
-          startTime: selectedTime,
+          appointmentDate: selectedDate || '2026-09-24',
+          startTime: selectedTime || '05:30 PM',
           patientDocType,
           patientDocNumber,
           patientFirstName,
@@ -358,10 +386,10 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   const handleEditStep = (targetStep: number) => {
     setFormError(null);
     setReturnToReview(true);
-    setStep(Math.min(Math.max(targetStep, 1), 11));
+    setStep(targetStep);
   };
 
-  const progressPercentage = resolveProgressPercent(step);
+  const progressPercentage = resolveProgressPercent(step, APPOINTMENT_TOTAL_STEPS);
   const specialtyHint = selectedSpecialty
     ? `Especialidad: ${selectedSpecialty.name}`
     : 'Selecciona una especialidad para continuar';
@@ -479,7 +507,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             />
           )}
 
-          {/* PASO 6: Datos del paciente — formulario premium + resumen sticky */}
+          {/* PASO 6: Datos del paciente */}
           {step === 6 && (
             <AppointmentPatientStep
               values={patientValues}
@@ -589,8 +617,56 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             />
           )}
 
-          {/* PASO 10: Confirmación */}
+          {/* PASO 10: Completa tu pago / Confirmación de reserva */}
           {step === 10 && (
+            <AppointmentCheckoutStep
+              paymentMethod={paymentMethod}
+              selectedSubMethod={onlineSubMethod}
+              onSelectSubMethod={setOnlineSubMethod}
+              cardValues={cardValues}
+              onCardChange={setCardValues}
+              yapeValues={yapeValues}
+              onYapeChange={setYapeValues}
+              plinValues={plinValues}
+              onPlinChange={setPlinValues}
+              transferValues={transferValues}
+              onTransferChange={setTransferValues}
+              price={selectedService?.price ?? 150}
+              currency={selectedService?.currency ?? 'PEN'}
+              specialtyName={scheduleSpecialty?.name ?? 'Traumatología y Ortopedia'}
+              serviceName={scheduleService?.name ?? 'Consulta Médica Traumatológica'}
+              durationLabel={
+                scheduleService?.durationMinutes
+                  ? `${scheduleService.durationMinutes} minutos`
+                  : '30 minutos'
+              }
+              professionalName={
+                selectedProfessionalRecord
+                  ? `${selectedProfessionalRecord.firstName} ${selectedProfessionalRecord.lastName}`
+                  : 'Dr. Carlos Mendoza Ruiz'
+              }
+              professionalLicense={selectedProfessionalRecord?.licenseNumber ?? 'CMP-51294'}
+              professionalPhotoUrl={selectedProfessionalRecord?.avatarUrl ?? null}
+              dateLabel={selectedDate ? formatLongDate(selectedDate) : 'Jueves, 24 de septiembre de 2026'}
+              timeRangeLabel={selectedTime ? `${selectedTime} hrs` : '05:30 PM – 06:00 PM'}
+              location="Sede San Isidro"
+              locationAddress="Av. Emilio Cavenecia 225, San Isidro, Lima"
+              patientName={
+                patientFirstName || patientLastName
+                  ? `${patientFirstName} ${patientLastName}`.trim()
+                  : undefined
+              }
+              isProcessing={isSubmitting}
+              onEditBooking={() => handleEditStep(7)}
+              onTimerExpired={() => {
+                setFormError('El tiempo para completar la reserva ha vencido. Por favor selecciona tu horario nuevamente.');
+                setStep(4);
+              }}
+            />
+          )}
+
+          {/* PASO 11: Confirmación de reserva y comprobante */}
+          {step === 11 && (
             <div className="confirmation-success-box">
               <div className="success-icon-badge" aria-hidden="true">
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -599,7 +675,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
               </div>
               <h2>¡Tu Cita ha sido Reservada con Éxito!</h2>
               <p style={{ color: 'var(--slate-300)', marginTop: '0.5rem' }}>
-                Hemos enviado un correo de confirmación a <strong>{patientEmail}</strong> con todos los detalles.
+                Hemos enviado un correo de confirmación a <strong>{patientEmail || 'tu correo registrado'}</strong> con todos los detalles.
               </p>
 
               <div className="booking-code-card">
@@ -608,18 +684,10 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
               </div>
 
               <div style={{ maxWidth: '480px', margin: '0 auto', fontSize: '0.9rem', color: 'var(--slate-400)' }}>
-                <span>📅 {selectedDate} a las {selectedTime} hrs</span> • <span>🩺 {selectedService?.name}</span>
+                <span>📅 {selectedDate || '2026-09-24'} a las {selectedTime || '05:30 PM'} hrs</span> • <span>🩺 {selectedService?.name || 'Consulta Médica'}</span>
               </div>
-            </div>
-          )}
 
-          {/* PASO 11: Acciones Post-Reserva */}
-          {step === 11 && (
-            <div className="confirmation-success-box">
-              <h2>11. Acciones y Recordatorios</h2>
-              <p style={{ color: 'var(--slate-300)' }}>Guarda tu cita o agrégala a tu calendario personal.</p>
-
-              <div className="post-booking-actions">
+              <div className="post-booking-actions" style={{ marginTop: '1.5rem' }}>
                 <button
                   type="button"
                   className="btn-secondary-action"
@@ -651,7 +719,11 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             onBack={step === 1 ? onBackToHome : handleBack}
             onNext={handleNext}
             backLabel={resolveBackLabel(step)}
-            nextLabel={returnToReview ? 'Volver a la revisión' : resolveNextLabel(step, paymentMethod)}
+            nextLabel={
+              returnToReview
+                ? 'Volver a la revisión'
+                : resolveNextLabel(step, paymentMethod, selectedService?.price ?? 150)
+            }
             nextDisabled={
               (step === 1 && !selectedSpecialty) ||
               (step === 2 && !selectedService) ||
@@ -660,7 +732,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
               (step === 5 && (!selectedDate || !selectedTime)) ||
               (step === 6 && !patientValidation.isValid) ||
               (step === 7 && !reviewValidation.isReady) ||
-              (step === 8 && (!acceptCancellationPolicy || !acceptDataProtection))
+              (step === 8 && (!acceptCancellationPolicy || !acceptDataProtection)) ||
+              isSubmitting
             }
             /* Step 7 owns its primary action inside the payment summary. */
             showNext={step !== 7}

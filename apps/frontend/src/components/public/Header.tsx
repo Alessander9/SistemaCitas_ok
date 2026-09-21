@@ -48,9 +48,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, activeView }) => {
           </div>
           <div className="brand-text-col">
             <span className="brand-name">
-              Citas<span>Sistema</span>
+              Vital<span>Salud</span>
             </span>
-            <span className="brand-tagline">Centro Médico & Terapéutico</span>
+            <span className="brand-tagline">Clínica de Rehabilitación Física</span>
           </div>
         </div>
 

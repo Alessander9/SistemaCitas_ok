@@ -15,12 +15,12 @@ export const Footer: React.FC = () => {
               </svg>
             </div>
             <h3>
-              Citas<span>Sistema</span>
+              Vital<span>Salud</span>
             </h3>
           </div>
           <p>
-            Plataforma integral de vanguardia para clínicas, centros de rehabilitación física,
-            fisioterapia y consultorios médicos de alta especialidad.
+            Clínica especializada en rehabilitación física, fisioterapia y recuperación funcional.
+            Más de 15 años devolviendo movimiento y calidad de vida a nuestros pacientes.
           </p>
           <div className="footer-compliance-badges">
             <span className="badge-ssl">🔒 SSL 256-bit</span>
@@ -86,8 +86,8 @@ export const Footer: React.FC = () => {
       </div>
 
       <div className="footer-bottom">
-        <span>© {new Date().getFullYear()} CitasSistema — Todos los derechos reservados.</span>
-        <span>Software Médico de Última Generación</span>
+        <span>© {new Date().getFullYear()} VitalSalud — Todos los derechos reservados.</span>
+        <span>Clínica de Rehabilitación Física — San Isidro y Miraflores, Lima</span>
       </div>
     </footer>
   );

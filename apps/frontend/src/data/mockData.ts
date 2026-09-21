@@ -197,6 +197,6 @@ export const MOCK_FAQS = [
   },
   {
     q: '¿Mis datos médicos están seguros?',
-    a: 'Sí, CitasSistema implementa cifrado de grado médico y cumple estrictamente con la Ley N° 29733 de Protección de Datos Personales del Perú.',
+    a: 'Sí, en VitalSalud protegemos tu historia clínica con cifrado de grado médico y cumplimos estrictamente con la Ley N° 29733 de Protección de Datos Personales del Perú.',
   },
 ];

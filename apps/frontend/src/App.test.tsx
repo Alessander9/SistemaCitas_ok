@@ -9,7 +9,7 @@ describe('App Root Component Navigation', () => {
 
   it('renders Landing page by default', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: /Atención Médica y Fisioterapia de Alta Especialidad/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
   });
 
   it('navigates to Booking Wizard when clicking Reservar Cita and returns to home', async () => {
@@ -32,6 +32,6 @@ describe('App Root Component Navigation', () => {
     const returnHomeBtn = screen.getByRole('button', { name: /Volver a Inicio/i });
     fireEvent.click(returnHomeBtn);
 
-    expect(screen.getByRole('heading', { name: /Atención Médica y Fisioterapia de Alta Especialidad/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
   });
 });

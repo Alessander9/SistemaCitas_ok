@@ -32,7 +32,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
     {
       id: 'msg-welcome',
       sender: 'bot',
-      text: '¡Hola! 👋 Soy tu asistente médico virtual de CitasSistema.\n\nPuedo orientarte con respecto a nuestros servicios, precios, especialistas y ayudarte a agendar tu cita en solo 2 minutos.',
+      text: '¡Hola! 👋 Soy el asistente virtual de la Clínica VitalSalud.\n\nPuedo orientarte sobre nuestras terapias, precios, especialistas y ayudarte a agendar tu evaluación inicial en solo 2 minutos.',
       time: 'Justo ahora',
       suggestedActions: [
         { label: '💰 Ver Precios y Servicios', actionType: 'view_faq' },
@@ -196,7 +196,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
               <div className="ai-bot-avatar">🤖</div>
               <div>
                 <span className="ai-bot-name">Asistente Médico IA</span>
-                <span className="ai-online-status">● En línea · CitasSistema</span>
+                <span className="ai-online-status">● En línea · VitalSalud</span>
               </div>
             </div>
             <button

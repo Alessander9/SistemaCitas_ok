@@ -169,6 +169,24 @@ export type { ReservationTimerProps } from './ReservationTimer';
 export { WhatHappensNext } from './WhatHappensNext';
 export type { WhatHappensNextProps } from './WhatHappensNext';
 
+export { OnlineCardForm } from './OnlineCardForm';
+export type { OnlineCardFormProps } from './OnlineCardForm';
+
+export { OnlineYapeForm } from './OnlineYapeForm';
+export type { OnlineYapeFormProps } from './OnlineYapeForm';
+
+export { OnlinePlinForm } from './OnlinePlinForm';
+export type { OnlinePlinFormProps } from './OnlinePlinForm';
+
+export { OnlineTransferForm } from './OnlineTransferForm';
+export type { OnlineTransferFormProps } from './OnlineTransferForm';
+
+export { CashPaymentConfirmation } from './CashPaymentConfirmation';
+export type { CashPaymentConfirmationProps } from './CashPaymentConfirmation';
+
+export { AppointmentCheckoutStep } from './AppointmentCheckoutStep';
+export type { AppointmentCheckoutStepProps } from './AppointmentCheckoutStep';
+
 export * from './appointmentTypes';
 export * from './appointmentFlow';
 export * from './specialtyCatalog';
@@ -178,4 +196,5 @@ export * from './availabilityCatalog';
 export * from './patientCatalog';
 export * from './reviewCatalog';
 export * from './dateUtils';
+
 

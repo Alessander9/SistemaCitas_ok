@@ -24,7 +24,7 @@ describe('AiChatWidget', () => {
     fireEvent.click(fabBtn!);
 
     expect(screen.getByText('Asistente Médico IA')).toBeTruthy();
-    expect(screen.getByText(/¡Hola! 👋 Soy tu asistente médico virtual/)).toBeTruthy();
+    expect(screen.getByText(/¡Hola! 👋 Soy el asistente virtual/i)).toBeTruthy();
   });
 
   it('should enforce medical containment guardrail when user asks about symptoms/pain', () => {

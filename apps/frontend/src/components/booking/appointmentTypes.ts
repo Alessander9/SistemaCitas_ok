@@ -282,3 +282,43 @@ export interface ConsentPayload {
   acceptedAt: string;
 }
 
+// =============================================================================
+// Step 9 & 10 — Métodos de Pago y Checkout / Confirmación
+// =============================================================================
+
+export type PaymentTiming = 'ONLINE' | 'AT_CLINIC';
+
+export type OnlinePaymentMethodId = 'CARD' | 'YAPE' | 'PLIN' | 'TRANSFER';
+
+export type PaymentLifecycleStatus =
+  | 'IDLE'
+  | 'PROCESSING'
+  | 'SUCCESS'
+  | 'PENDING'
+  | 'FAILED'
+  | 'CANCELLED'
+  | 'EXPIRED';
+
+export interface CardPaymentFormValues {
+  cardNumber: string;
+  expiryDate: string;
+  cvv: string;
+  cardHolder: string;
+  saveCard: boolean;
+}
+
+export interface YapePaymentFormValues {
+  phoneNumber: string;
+  approvalCode: string;
+}
+
+export interface PlinPaymentFormValues {
+  phoneNumber: string;
+  otpCode: string;
+}
+
+export interface TransferPaymentFormValues {
+  bankName: string;
+  operationNumber: string;
+}
+

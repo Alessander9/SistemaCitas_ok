@@ -6301,4 +6301,1030 @@
   }
 }
 
+/* =============================================================================
+   Step 10: Completa tu pago / Confirmación de reserva
+   ============================================================================= */
+
+.apx-checkout {
+  width: 100%;
+  padding-bottom: 2rem;
+}
+
+.apx-checkout__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
+  gap: 2.25rem;
+  align-items: start;
+}
+
+.apx-checkout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.apx-checkout__header {
+  margin-bottom: 0.25rem;
+}
+
+.apx-checkout__title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.35rem;
+}
+
+.apx-checkout__subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Timer Banner */
+.apx-checkout__timer {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1.25rem;
+  background: #f0fdf4;
+  border-radius: 12px;
+  color: #166534;
+}
+
+.apx-checkout__timer--expired {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.apx-checkout__timer-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.apx-checkout__timer-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+}
+
+.apx-checkout__timer-text strong {
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.apx-checkout__timer-text span {
+  opacity: 0.9;
+}
+
+/* Mobile Summary Toggle */
+.apx-checkout__mobile-summary-toggle {
+  display: none;
+  width: 100%;
+  padding: 0.85rem 1.2rem;
+  background: #f8fafc;
+  border: 1px solid var(--apx-border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.apx-checkout__mobile-summary-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Submethods Selection Tabs (4 tabs) */
+.apx-submethods-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.apx-submethod-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1rem 0.95rem;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.apx-submethod-tab:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.apx-submethod-tab--active {
+  border-color: #0d9488 !important;
+  background: #f0fdfa !important;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.08);
+}
+
+.apx-submethod-tab__icon {
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.apx-submethod-tab__icon--card {
+  background: #ccfbf1;
+  color: #0d9488;
+}
+
+.apx-submethod-tab__icon--yape {
+  background: #f3e8ff;
+  color: #742284;
+}
+
+.apx-submethod-tab__icon--plin {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.apx-submethod-tab__icon--transfer {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.apx-yape-glyph {
+  font-weight: 800;
+  font-size: 0.82rem;
+  color: #742284;
+  letter-spacing: -0.04em;
+}
+
+.apx-plin-glyph {
+  font-weight: 800;
+  font-size: 0.82rem;
+  color: #0284c7;
+  letter-spacing: -0.04em;
+}
+
+.apx-submethod-tab__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.apx-submethod-tab__name {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.apx-submethod-tab__sub {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.apx-submethod-tab__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0d9488;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Online Card Form */
+.apx-card-form {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.apx-card-form__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.apx-card-form__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.apx-card-form__secure-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #059669;
+}
+
+.apx-card-form__secure-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.apx-card-form__secure-label {
+  font-weight: 700;
+}
+
+.apx-card-form__secure-sub {
+  color: #64748b;
+}
+
+.apx-card-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.apx-card-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.apx-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.apx-input-wrapper--with-brands input {
+  padding-right: 120px;
+}
+
+.apx-card-brands {
+  position: absolute;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.apx-brand-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.apx-brand-pill--visa {
+  background: #1a1f71;
+  color: #ffffff;
+}
+
+.apx-brand-pill--mc {
+  background: #eb001b;
+  color: #ffffff;
+}
+
+.apx-brand-pill--amex {
+  background: #007bc1;
+  color: #ffffff;
+}
+
+.apx-field__label-with-help {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.apx-cvv-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: help;
+}
+
+.apx-card-save-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.apx-card-save-toggle__input {
+  width: 18px;
+  height: 18px;
+  accent-color: #0d9488;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.apx-card-save-toggle__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.apx-card-save-toggle__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.apx-card-save-toggle__subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Wallets Form (Yape / Plin) */
+.apx-wallet-form {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.apx-wallet-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+}
+
+.apx-wallet-badge--yape {
+  background: #faf5ff;
+  color: #6b21a8;
+}
+
+.apx-wallet-badge--plin {
+  background: #f0f9ff;
+  color: #0369a1;
+}
+
+.apx-wallet-badge__logo {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.03em;
+}
+
+.apx-wallet-badge__text {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.apx-wallet-form__grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.apx-wallet-qr-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.apx-wallet-qr-frame {
+  width: 120px;
+  height: 120px;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.apx-wallet-qr-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.apx-wallet-qr-amount {
+  font-size: 0.75rem;
+  color: #475569;
+  text-align: center;
+}
+
+.apx-wallet-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.apx-input--code {
+  letter-spacing: 0.25em;
+  font-weight: 700;
+}
+
+.apx-wallet-instructions {
+  font-size: 0.76rem;
+  color: #64748b;
+  line-height: 1.45;
+  background: #f8fafc;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+}
+
+.apx-wallet-instructions p {
+  margin: 0.15rem 0;
+}
+
+/* Bank Transfer Form */
+.apx-transfer-form {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.apx-transfer-form__header {
+  margin: 0;
+}
+
+.apx-transfer-form__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.25rem;
+}
+
+.apx-transfer-form__desc {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.apx-transfer-accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.apx-transfer-card {
+  padding: 0.9rem 1.1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.apx-transfer-card:hover {
+  border-color: #cbd5e1;
+}
+
+.apx-transfer-card--selected {
+  border-color: #0d9488 !important;
+  background: #f0fdfa !important;
+}
+
+.apx-transfer-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.apx-transfer-card__bank {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.apx-transfer-card__badge {
+  font-size: 0.7rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+.apx-transfer-card__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.apx-transfer-card__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+
+.apx-transfer-card__label {
+  color: #64748b;
+  min-width: 90px;
+}
+
+.apx-transfer-card__val {
+  font-family: monospace;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.apx-copy-btn {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #0d9488;
+  background: transparent;
+  border: 1px solid #ccfbf1;
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.apx-copy-btn:hover {
+  background: #ccfbf1;
+}
+
+/* Clinic Cash Confirmation */
+.apx-clinic-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.apx-clinic-confirm__status-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.4rem;
+  background: #f0fdf4;
+  border-radius: 14px;
+}
+
+.apx-clinic-confirm__icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.apx-clinic-confirm__status-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #15803d;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.apx-clinic-confirm__title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem;
+}
+
+.apx-clinic-confirm__desc {
+  font-size: 0.85rem;
+  color: #475569;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.apx-clinic-breakdown {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+}
+
+.apx-clinic-breakdown__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.85rem;
+}
+
+.apx-clinic-breakdown__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.apx-clinic-breakdown__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.apx-clinic-breakdown__label {
+  color: #64748b;
+}
+
+.apx-clinic-breakdown__value {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.apx-clinic-breakdown__value--zero {
+  color: #059669;
+}
+
+.apx-clinic-breakdown__item--highlight {
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.95rem;
+}
+
+.apx-clinic-breakdown__value--pending {
+  color: #0f766e;
+  font-weight: 800;
+}
+
+.apx-clinic-methods {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+}
+
+.apx-clinic-methods__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.85rem;
+}
+
+.apx-clinic-methods__list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.apx-clinic-methods__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.apx-clinic-methods__icon {
+  color: #0d9488;
+  margin-top: 2px;
+}
+
+.apx-clinic-methods__name {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.apx-clinic-methods__hint {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0.15rem 0 0;
+}
+
+.apx-clinic-instructions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.apx-clinic-instructions svg {
+  color: #0d9488;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.apx-clinic-instructions p {
+  margin: 0;
+}
+
+/* 3 Trust Badges at Bottom */
+.apx-checkout__trust-badges {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+.apx-trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.apx-trust-badge__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f0fdfa;
+  color: #0d9488;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.apx-trust-badge__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.apx-trust-badge__text strong {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.apx-trust-badge__text span {
+  font-size: 0.7rem;
+  color: #64748b;
+  line-height: 1.25;
+}
+
+/* Sticky Summary Card (Right Column) */
+.apx-checkout__sidebar {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.apx-summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+}
+
+.apx-summary-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.apx-summary-card__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0d9488;
+}
+
+.apx-summary-card__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.apx-summary-card__edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: transparent;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0284c7;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.apx-summary-card__edit-btn:hover {
+  background: #e0f2fe;
+}
+
+.apx-summary-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.15rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.apx-summary-card__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.apx-summary-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.apx-summary-card__icon--teal {
+  background: #f0fdfa;
+  color: #0d9488;
+}
+
+.apx-summary-card__icon--emerald {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.apx-summary-card__prof-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.apx-summary-card__prof-initials {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #0d9488;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.apx-summary-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.apx-summary-card__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.apx-summary-card__value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.apx-summary-card__sub {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.apx-summary-card__pricing {
+  padding-top: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.apx-summary-card__price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.88rem;
+}
+
+.apx-summary-card__price-label {
+  color: #64748b;
+}
+
+.apx-summary-card__price-num {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Total Box */
+.apx-summary-card__total-box {
+  padding: 1rem 1.15rem;
+  background: #ecfdf5;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.apx-summary-card__total-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.apx-summary-card__total-amount {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #065f46;
+  letter-spacing: -0.02em;
+}
+
+.apx-summary-card__taxes-note {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.apx-summary-card__taxes-note svg {
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .apx-checkout__layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .apx-submethods-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .apx-checkout__trust-badges {
+    grid-template-columns: 1fr;
+  }
+
+  .apx-checkout__mobile-summary-toggle {
+    display: flex;
+  }
+
+  .apx-checkout__sidebar {
+    display: none;
+    position: static;
+  }
+
+  .apx-checkout__sidebar--mobile-open {
+    display: block;
+  }
+}
+
+
 

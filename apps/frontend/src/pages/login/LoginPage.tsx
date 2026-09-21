@@ -173,7 +173,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
           <div>
             <div className="brand-badge">
               <span className="brand-badge-dot" />
-              <span>Plataforma Médica Multi-Clínica</span>
+              <span>Portal del Personal Clínico</span>
             </div>
 
             <div className="brand-header-logo">
@@ -195,14 +195,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
               </div>
               <div>
                 <h1 className="brand-title">
-                  Citas<span>Sistema</span>
+                  Vital<span>Salud</span>
                 </h1>
-                <span className="brand-subtitle-tag">SaaS Médico de Alto Rendimiento</span>
+                <span className="brand-subtitle-tag">Clínica de Rehabilitación Física</span>
               </div>
             </div>
 
             <p className="brand-desc">
-              Acceso seguro y unificado para profesionales de la salud, administradores de sede y pacientes.
+              Acceso exclusivo para nuestro equipo de especialistas, personal de recepción y administración de sede.
             </p>
 
             {/* Live Trust Metrics Strip */}
@@ -212,10 +212,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                 <span>99.9% Uptime</span>
               </div>
               <div className="trust-metric-pill">
-                <span>🛡️ RLS Multi-Tenant</span>
+                <span>🛡️ Datos Protegidos (Ley 29733)</span>
               </div>
               <div className="trust-metric-pill">
-                <span>🇵🇪 Ley 29733 MINSA</span>
+                <span>🇵🇪 Lima, Perú</span>
               </div>
             </div>
 
@@ -223,24 +223,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
               <div className="prop-item">
                 <div className="prop-icon-box blue">🛡️</div>
                 <div className="prop-text">
-                  <h4>Aislamiento Multi-Tenant</h4>
-                  <p>Historias clínicas y datos de pacientes 100% segregados con políticas RLS inmutables.</p>
+                  <h4>Historia Clínica Protegida</h4>
+                  <p>La información de cada paciente se registra y custodia bajo estándares clínicos y la Ley N° 29733.</p>
                 </div>
               </div>
 
               <div className="prop-item">
                 <div className="prop-icon-box teal">⚡</div>
                 <div className="prop-text">
-                  <h4>Agenda Médica Inteligente</h4>
-                  <p>Control de citas en tiempo real con prevención de doble reserva y recordatorios automáticos.</p>
+                  <h4>Agenda Clínica en Tiempo Real</h4>
+                  <p>Coordinamos sesiones y consultas sin traslapes, con recordatorios para que no pierdas tu cita.</p>
                 </div>
               </div>
 
               <div className="prop-item">
                 <div className="prop-icon-box purple">🎙️</div>
                 <div className="prop-text">
-                  <h4>Dictado Clínico por Voz & EVA</h4>
-                  <p>Transcripción en tiempo real, escalas de dolor e informes médicos con firma digital.</p>
+                  <h4>Evaluación y Seguimiento Clínico</h4>
+                  <p>Registramos tu evolución sesión a sesión con escalas de dolor e informes de progreso firmados por tu especialista.</p>
                 </div>
               </div>
             </div>
@@ -249,7 +249,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
           <div className="sidebar-footer">
             <div className="footer-status-pill">
               <span className="live-status-dot" />
-              <span>Servidores en Línea (Sede Sanitas Lima)</span>
+              <span>Atención al Paciente — Sede San Isidro</span>
             </div>
             <span className="version-tag">v0.4.0 Enterprise</span>
           </div>
@@ -279,8 +279,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
             </button>
           )}
           <div className="form-header">
-            <h2>Acceso a la Plataforma</h2>
-            <p>Ingresa tus credenciales para acceder a tu panel de atención.</p>
+            <h2>Acceso al Personal VitalSalud</h2>
+            <p>Ingresa tus credenciales para gestionar citas, sesiones y atención de pacientes.</p>
           </div>
 
           {/* Quick-Fill Demo Roles */}
@@ -343,7 +343,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
               {/* Clinic Tenant Field */}
               <div className="input-group">
                 <label htmlFor="clinicSlug" className="input-label">
-                  Identificador de Clínica (Tenant)
+                  Sede / Clínica
                 </label>
                 <div className="input-wrapper">
                   <span className="input-icon" aria-hidden="true">
@@ -465,7 +465,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                   </>
                 ) : (
                   <>
-                    <span>Ingresar a la Plataforma</span>
+                    <span>Ingresar al Sistema</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                       <path d="M5 12h14" />
                       <path d="m12 5 7 7-7 7" />
@@ -494,7 +494,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
             </div>
             <span>•</span>
             <div className="security-badge-item">
-              <span>Aislamiento Tenant</span>
+              <span>Acceso Seguro</span>
             </div>
           </div>
         </section>

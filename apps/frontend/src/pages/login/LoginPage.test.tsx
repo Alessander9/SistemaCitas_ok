@@ -5,8 +5,8 @@ import { LoginPage } from './LoginPage';
 describe('LoginPage Component', () => {
   it('renders login title and brand elements', () => {
     render(<LoginPage />);
-    expect(screen.getByRole('heading', { name: /Citas Sistema/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Acceso a la Plataforma/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Vital Salud/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Acceso al Personal VitalSalud/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Correo Electrónico/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Contraseña$/i)).toBeInTheDocument();
   });
@@ -36,7 +36,7 @@ describe('LoginPage Component', () => {
 
   it('shows error message if form is submitted with empty fields', () => {
     render(<LoginPage />);
-    const form = screen.getByRole('button', { name: /Ingresar a la Plataforma/i }).closest('form')!;
+    const form = screen.getByRole('button', { name: /Ingresar al Sistema/i }).closest('form')!;
     fireEvent.submit(form);
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
