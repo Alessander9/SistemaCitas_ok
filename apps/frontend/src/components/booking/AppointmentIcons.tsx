@@ -167,11 +167,7 @@ export const IconSort: React.FC<AppointmentIconProps> = (props) => (
   </BaseIcon>
 );
 
-export const IconChevronDown: React.FC<AppointmentIconProps> = (props) => (
-  <BaseIcon {...props}>
-    <polyline points="6 9 12 15 18 9" />
-  </BaseIcon>
-);
+
 
 export const IconChevronLeft: React.FC<AppointmentIconProps> = (props) => (
   <BaseIcon {...props}>
