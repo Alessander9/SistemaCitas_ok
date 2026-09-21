@@ -161,7 +161,7 @@ describe('AppointmentReviewStep (Step 4 — Revisa tu reserva y acepta las polí
 
     expect(screen.getByText('Falta información')).toBeInTheDocument();
     expect(screen.getByText(/Revisa los datos marcados antes de continuar/i)).toBeInTheDocument();
-    expect(screen.getByText(/Reserva incompleta/i)).toBeInTheDocument();
+    expect(screen.getByText(/Acción requerida/i)).toBeInTheDocument();
     // The patient block keeps the data that exists and flags what does not.
     expect(screen.getByText('Fernandez')).toBeInTheDocument();
     expect(screen.getByText('Documento pendiente')).toBeInTheDocument();

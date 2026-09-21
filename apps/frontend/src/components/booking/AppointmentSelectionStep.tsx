@@ -12,7 +12,7 @@ import {
 } from './appointmentTypes';
 import {
   buildSpecialtyCards,
-  filterSpecialties,
+  filterSpecialtyCards,
 } from './specialtyCatalog';
 import { applyServiceToolbar, buildServiceCards } from './serviceCatalog';
 import {
@@ -55,7 +55,7 @@ export const AppointmentSelectionStep: React.FC<AppointmentSelectionStepProps> =
   );
 
   const visibleSpecialtyCards = useMemo(
-    () => filterSpecialties(allSpecialtyCards, specialtyQuery),
+    () => filterSpecialtyCards(allSpecialtyCards, specialtyQuery),
     [allSpecialtyCards, specialtyQuery],
   );
 
