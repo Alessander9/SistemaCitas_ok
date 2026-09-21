@@ -13,7 +13,7 @@ export interface SpecialtySearchProps {
 
 /** Filter box for the specialty grid (name, treatment or alias). */
 export const SpecialtySearch: React.FC<SpecialtySearchProps> = ({
-  value,
+  value = '',
   onChange,
   placeholder = 'Buscar especialidad o tratamiento...',
   resultCount,
@@ -25,13 +25,13 @@ export const SpecialtySearch: React.FC<SpecialtySearchProps> = ({
     <input
       type="text"
       className="apx-search__input"
-      value={value}
+      value={value || ''}
       placeholder={placeholder}
       aria-label="Buscar especialidad o tratamiento"
       autoComplete="off"
       onChange={(event) => onChange(event.target.value)}
     />
-    {value.length > 0 && (
+    {Boolean(value && value.length > 0) && (
       <button
         type="button"
         className="apx-search__clear"
