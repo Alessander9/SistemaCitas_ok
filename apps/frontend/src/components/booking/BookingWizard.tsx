@@ -599,6 +599,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
               (step === 4 && (!reviewValidation.isReady || !acceptCancellationPolicy || !acceptDataProtection)) ||
               isSubmitting
             }
+            showNext={step !== 4}
             note={
               step === 4
                 ? 'Tus datos están protegidos y serán utilizados únicamente para gestionar tu atención.'
