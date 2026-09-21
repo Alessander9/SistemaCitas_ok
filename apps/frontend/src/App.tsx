@@ -7,7 +7,7 @@ import { SpeedDialFAB } from './components/layout/SpeedDialFAB';
 import { SkeletonLoader } from './components/common/SkeletonLoader';
 
 // Lazy-loaded heavy pages and dashboards for optimized bundle splitting
-const BookingWizard = lazy(() => import('./components/booking/BookingWizard').then((m) => ({ default: m.BookingWizard })));
+import { BookingWizard } from './components/booking/BookingWizard';
 const ClinicalConsultationView = lazy(() => import('./pages/clinical/ClinicalConsultationView').then((m) => ({ default: m.ClinicalConsultationView })));
 const CashRegisterPage = lazy(() => import('./pages/admin/CashRegisterPage').then((m) => ({ default: m.CashRegisterPage })));
 const InventoryPage = lazy(() => import('./pages/admin/InventoryPage').then((m) => ({ default: m.InventoryPage })));
@@ -23,7 +23,34 @@ const PatientDashboard = lazy(() => import('./pages/dashboards/PatientDashboard'
 
 export const App: React.FC = () => {
   const [activeRole, setActiveRole] = useState<'SUPER_ADMIN' | 'ADMIN_CLINIC' | 'PROFESIONAL' | 'RECEPCION' | 'PACIENTE'>('ADMIN_CLINIC');
-  const [currentView, setCurrentView] = useState<
+  const getInitialView = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlView = params.get('view');
+      const hashView = window.location.hash.replace('#', '');
+      const candidate = urlView || hashView;
+      const validViews = [
+        'landing',
+        'booking',
+        'login',
+        'dashboard',
+        'doctor-schedule',
+        'reception-booking',
+        'clinical-consultation',
+        'cash-register',
+        'inventory',
+        'communications',
+        'telegram-bot',
+        'patient-portal',
+      ];
+      if (candidate && validViews.includes(candidate)) {
+        return candidate as any;
+      }
+    }
+    return 'landing';
+  };
+
+  const [currentView, setCurrentViewState] = useState<
     | 'landing'
     | 'booking'
     | 'login'
@@ -36,7 +63,20 @@ export const App: React.FC = () => {
     | 'communications'
     | 'telegram-bot'
     | 'patient-portal'
-  >('landing');
+  >(getInitialView);
+
+  const setCurrentView = (view: typeof currentView) => {
+    setCurrentViewState(view);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (view === 'landing') {
+        url.searchParams.delete('view');
+      } else {
+        url.searchParams.set('view', view);
+      }
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
 
   const [bookingPreselect, setBookingPreselect] = useState<{
     specialtyId?: string;

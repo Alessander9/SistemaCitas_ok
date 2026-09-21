@@ -9,7 +9,7 @@
       "@modules/*": ["src/modules/*"],
       "@common/*": ["src/common/*"],
       "@config/*": ["src/config/*"],
-      "@citassistema/shared-types": ["../../packages/shared-types/src"]
+      "@citassistema/shared-types": ["../../packages/shared-types/dist"]
     }
   },
   "include": ["src/**/*"]

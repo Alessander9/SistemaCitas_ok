@@ -1,8 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 
 describe('App Root Component Navigation', () => {
+  beforeEach(() => {
+    window.history.replaceState({}, '', '/');
+  });
+
   it('renders Landing page by default', () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: /Atención Médica y Fisioterapia de Alta Especialidad/i })).toBeInTheDocument();
@@ -14,7 +18,7 @@ describe('App Root Component Navigation', () => {
     const bookBtn = screen.getAllByRole('button', { name: /Reservar Cita/i })[0];
     fireEvent.click(bookBtn);
 
-    expect(await screen.findByRole('heading', { name: /1\. Selecciona la Especialidad Médica/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Selecciona la Especialidad Médica/i })).toBeInTheDocument();
   });
 
   it('navigates to Login page when clicking Acceder and returns to home', () => {

@@ -30,8 +30,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       await this.pool.query('SELECT 1');
       console.log('✅ Database connected successfully');
     } catch (error) {
-      console.error('❌ Database connection failed:', error);
-      throw error;
+      console.warn('⚠️ Database connection warning (PostgreSQL unreachable):', (error as Error).message);
+      if (process.env.NODE_ENV === 'production') {
+        throw error;
+      }
     }
   }
 
