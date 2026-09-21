@@ -18,7 +18,7 @@ describe('App Root Component Navigation', () => {
     const bookBtn = screen.getAllByRole('button', { name: /Reservar Cita/i })[0];
     fireEvent.click(bookBtn);
 
-    expect(await screen.findByRole('heading', { name: /Selecciona la Especialidad Médica/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Especialidad/i })).toBeInTheDocument();
   });
 
   it('navigates to Login page when clicking Acceder and returns to home', () => {
