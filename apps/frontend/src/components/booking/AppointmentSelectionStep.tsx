@@ -112,19 +112,24 @@ export const AppointmentSelectionStep: React.FC<AppointmentSelectionStepProps> =
         </div>
 
         <SpecialtySearch
-          query={specialtyQuery}
-          matchCount={visibleSpecialtyCards.length}
+          value={specialtyQuery}
+          resultCount={visibleSpecialtyCards.length}
           onChange={setSpecialtyQuery}
-          onClear={() => setSpecialtyQuery('')}
         />
 
         <SpecialtyGrid
-          specialties={visibleSpecialtyCards}
+          cards={visibleSpecialtyCards}
           selectedSpecialtyId={selectedSpecialtyId}
           onSelect={(id) => {
             const spec = specialties.find((s) => s.id === id);
             if (spec) onSelectSpecialty(spec);
           }}
+          onViewTreatments={(card) => {
+            const spec = specialties.find((s) => s.id === card.specialtyId);
+            if (spec) onSelectSpecialty(spec);
+          }}
+          query={specialtyQuery}
+          onClearSearch={() => setSpecialtyQuery('')}
         />
       </div>
 

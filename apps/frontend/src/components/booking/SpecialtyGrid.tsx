@@ -24,7 +24,7 @@ function resolveColumnCount(element: HTMLElement): number {
 }
 
 export const SpecialtyGrid: React.FC<SpecialtyGridProps> = ({
-  cards,
+  cards = [],
   selectedSpecialtyId,
   onSelect,
   onViewTreatments,
@@ -59,7 +59,7 @@ export const SpecialtyGrid: React.FC<SpecialtyGridProps> = ({
     }
   }, []);
 
-  if (cards.length === 0) {
+  if (!cards || cards.length === 0) {
     return (
       <div className="apx-empty" role="status">
         <span className="apx-empty__icon">
