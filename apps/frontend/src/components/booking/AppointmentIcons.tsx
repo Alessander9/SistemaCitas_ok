@@ -118,6 +118,24 @@ export const IconCheck: React.FC<AppointmentIconProps> = (props) => (
   </BaseIcon>
 );
 
+export const IconChevronDown: React.FC<AppointmentIconProps> = (props) => (
+  <BaseIcon strokeWidth={2.2} {...props}>
+    <polyline points="6 9 12 15 18 9" />
+  </BaseIcon>
+);
+
+export const IconChevronUp: React.FC<AppointmentIconProps> = (props) => (
+  <BaseIcon strokeWidth={2.2} {...props}>
+    <polyline points="18 15 12 9 6 15" />
+  </BaseIcon>
+);
+
+export const IconEdit2: React.FC<AppointmentIconProps> = (props) => (
+  <BaseIcon strokeWidth={2} {...props}>
+    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+  </BaseIcon>
+);
+
 export const IconHourglass: React.FC<AppointmentIconProps> = (props) => (
   <BaseIcon strokeWidth={1.8} {...props}>
     <path d="M5 22h14" />

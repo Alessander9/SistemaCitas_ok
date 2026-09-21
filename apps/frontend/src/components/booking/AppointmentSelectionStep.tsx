@@ -19,6 +19,7 @@ import {
   buildAnyProfessionalOption,
   buildProfessionalCards,
 } from './professionalCatalog';
+import { IconCheck, IconChevronDown, IconChevronUp } from './AppointmentIcons';
 import './AppointmentStep.css';
 
 export interface AppointmentSelectionStepProps {
@@ -48,9 +49,16 @@ export const AppointmentSelectionStep: React.FC<AppointmentSelectionStepProps> =
   const [serviceFilter, setServiceFilter] = useState<ServiceFilterOption>('all');
   const [serviceSort, setServiceSort] = useState<ServiceSortOption>('relevance');
 
+  // Accordion active section: 'specialty' | 'service' | 'professional' | null
+  const [openSection, setOpenSection] = useState<'specialty' | 'service' | 'professional' | null>(() => {
+    if (!selectedSpecialtyId) return 'specialty';
+    if (!selectedServiceId) return 'service';
+    return 'professional';
+  });
+
   // Specialty Cards
   const allSpecialtyCards = useMemo(
-    () => buildSpecialtyCards({ specialties, professionals, services }),
+    () => buildSpecialtyCards({ specialties: specialties || [], professionals: professionals || [], services: services || [] }),
     [specialties, professionals, services],
   );
 
@@ -60,14 +68,19 @@ export const AppointmentSelectionStep: React.FC<AppointmentSelectionStepProps> =
   );
 
   const selectedSpecialty = useMemo(
-    () => specialties.find((s) => s.id === selectedSpecialtyId) || null,
+    () => (specialties || []).find((s) => s.id === selectedSpecialtyId) || null,
     [specialties, selectedSpecialtyId],
   );
 
   // Filtered Services for the chosen specialty
   const specialtyServices = useMemo(
-    () => (selectedSpecialtyId ? services.filter((s) => s.specialtyId === selectedSpecialtyId) : services),
+    () => (selectedSpecialtyId ? (services || []).filter((s) => s.specialtyId === selectedSpecialtyId) : (services || [])),
     [services, selectedSpecialtyId],
+  );
+
+  const selectedService = useMemo(
+    () => (services || []).find((s) => s.id === selectedServiceId) || null,
+    [services, selectedServiceId],
   );
 
   const serviceCards = useMemo(() => buildServiceCards(specialtyServices), [specialtyServices]);
@@ -80,13 +93,24 @@ export const AppointmentSelectionStep: React.FC<AppointmentSelectionStepProps> =
   const doctorCards = useMemo(
     () =>
       buildProfessionalCards({
-        professionals,
+        professionals: professionals || [],
         specialtyName: selectedSpecialty?.name,
       }),
     [professionals, selectedSpecialty],
   );
 
   const anyDoctorOption = useMemo(() => buildAnyProfessionalOption(), []);
+
+  const selectedDoctorSummary = useMemo(() => {
+    if (!selectedProfessionalId || selectedProfessionalId === ANY_AVAILABLE_PROFESSIONAL_ID) {
+      return 'Cualquier profesional disponible (Mayor disponibilidad)';
+    }
+    const prof = (professionals || []).find((p) => p.id === selectedProfessionalId);
+    if (prof?.user) {
+      return `Dr(a). ${prof.user.firstName} ${prof.user.lastName}`;
+    }
+    return 'Profesional seleccionado';
+  }, [professionals, selectedProfessionalId]);
 
   return (
     <section className="apx-step apx-selection-step" aria-labelledby="selection-step-title">
@@ -96,98 +120,244 @@ export const AppointmentSelectionStep: React.FC<AppointmentSelectionStepProps> =
             1. Especialidad, Servicio y Profesional
           </h2>
           <p className="apx-step__desc">
-            Elige la especialidad médica, el tipo de consulta o terapia y el especialista de tu preferencia.
+            Elige la especialidad médica, el tratamiento o consulta y el especialista. Las secciones se minimizan automáticamente para mayor comodidad.
           </p>
         </div>
       </div>
 
-      {/* Specialty Picker */}
-      <div className="apx-selection-block">
-        <div className="apx-selection-block__head">
-          <span className="apx-selection-block__number">1.1</span>
-          <div>
-            <h3 className="apx-selection-block__title">Selecciona la Especialidad</h3>
-            <p className="apx-selection-block__sub">Área médica en la que deseas recibir atención</p>
-          </div>
-        </div>
-
-        <SpecialtySearch
-          value={specialtyQuery}
-          resultCount={visibleSpecialtyCards.length}
-          onChange={setSpecialtyQuery}
-        />
-
-        <SpecialtyGrid
-          cards={visibleSpecialtyCards}
-          selectedSpecialtyId={selectedSpecialtyId}
-          onSelect={(id) => {
-            const spec = specialties.find((s) => s.id === id);
-            if (spec) onSelectSpecialty(spec);
-          }}
-          onViewTreatments={(card) => {
-            const spec = specialties.find((s) => s.id === card.specialtyId);
-            if (spec) onSelectSpecialty(spec);
-          }}
-          query={specialtyQuery}
-          onClearSearch={() => setSpecialtyQuery('')}
-        />
-      </div>
-
-      {/* Service Picker */}
-      {selectedSpecialty && (
-        <div className="apx-selection-block apx-selection-block--highlight">
+      {/* 1.1 Especialidad Block */}
+      <div
+        className={`apx-selection-block ${
+          openSection === 'specialty' ? 'apx-selection-block--expanded' : 'apx-selection-block--collapsed'
+        }`}
+      >
+        <button
+          type="button"
+          className="apx-selection-block__header-btn"
+          onClick={() => setOpenSection(openSection === 'specialty' ? null : 'specialty')}
+          aria-expanded={openSection === 'specialty'}
+        >
           <div className="apx-selection-block__head">
-            <span className="apx-selection-block__number">1.2</span>
-            <div>
-              <h3 className="apx-selection-block__title">
-                Selecciona el Servicio en {selectedSpecialty.name}
-              </h3>
-              <p className="apx-selection-block__sub">Elige el tratamiento o consulta requerida</p>
+            <span className="apx-selection-block__number">1.1</span>
+            <div className="apx-selection-block__title-col">
+              <h3 className="apx-selection-block__title">Especialidad Médica</h3>
+              {openSection === 'specialty' ? (
+                <p className="apx-selection-block__sub">Área médica en la que deseas recibir atención</p>
+              ) : selectedSpecialty ? (
+                <span className="apx-selection-summary-text">{selectedSpecialty.name}</span>
+              ) : (
+                <span className="apx-selection-summary-text apx-selection-summary-text--pending">
+                  Pendiente de selección
+                </span>
+              )}
             </div>
           </div>
 
-          <ServiceToolbar
-            count={visibleServiceCards.length}
-            filter={serviceFilter}
-            sort={serviceSort}
-            onFilterChange={setServiceFilter}
-            onSortChange={setServiceSort}
-          />
+          <div className="apx-selection-block__header-actions">
+            {selectedSpecialty && (
+              <span className="apx-selection-summary-badge">
+                <IconCheck size={13} className="apx-selection-summary-check" />
+                <span className="apx-selection-summary-label">{selectedSpecialty.name}</span>
+              </span>
+            )}
+            <span className="apx-selection-toggle-pill">
+              {openSection === 'specialty' ? (
+                <>
+                  <span>Minimizar</span>
+                  <IconChevronUp size={15} />
+                </>
+              ) : (
+                <>
+                  <span>{selectedSpecialty ? 'Cambiar' : 'Seleccionar'}</span>
+                  <IconChevronDown size={15} />
+                </>
+              )}
+            </span>
+          </div>
+        </button>
 
-          <ServiceGrid
-            services={visibleServiceCards}
-            selectedServiceId={selectedServiceId}
-            onSelect={(serviceId) => {
-              const serv = specialtyServices.find((s) => s.id === serviceId);
-              if (serv) onSelectService(serv);
-            }}
-            onResetFilters={() => {
-              setServiceFilter('all');
-              setServiceSort('relevance');
-            }}
-          />
+        {openSection === 'specialty' && (
+          <div className="apx-selection-block__body">
+            <SpecialtySearch
+              value={specialtyQuery}
+              resultCount={visibleSpecialtyCards.length}
+              onChange={setSpecialtyQuery}
+            />
+
+            <SpecialtyGrid
+              cards={visibleSpecialtyCards}
+              selectedSpecialtyId={selectedSpecialtyId}
+              onSelect={(id) => {
+                const spec = (specialties || []).find((s) => s.id === id);
+                if (spec) {
+                  onSelectSpecialty(spec);
+                  // Auto-collapse specialty & auto-expand service
+                  setOpenSection('service');
+                }
+              }}
+              onViewTreatments={(card) => {
+                const spec = (specialties || []).find((s) => s.id === card.specialtyId);
+                if (spec) {
+                  onSelectSpecialty(spec);
+                  setOpenSection('service');
+                }
+              }}
+              query={specialtyQuery}
+              onClearSearch={() => setSpecialtyQuery('')}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* 1.2 Servicio Block */}
+      {selectedSpecialty && (
+        <div
+          className={`apx-selection-block apx-selection-block--highlight ${
+            openSection === 'service' ? 'apx-selection-block--expanded' : 'apx-selection-block--collapsed'
+          }`}
+        >
+          <button
+            type="button"
+            className="apx-selection-block__header-btn"
+            onClick={() => setOpenSection(openSection === 'service' ? null : 'service')}
+            aria-expanded={openSection === 'service'}
+          >
+            <div className="apx-selection-block__head">
+              <span className="apx-selection-block__number">1.2</span>
+              <div className="apx-selection-block__title-col">
+                <h3 className="apx-selection-block__title">
+                  Servicio en {selectedSpecialty.name}
+                </h3>
+                {openSection === 'service' ? (
+                  <p className="apx-selection-block__sub">Elige el tratamiento o consulta requerida</p>
+                ) : selectedService ? (
+                  <span className="apx-selection-summary-text">
+                    {selectedService.name} · S/ {selectedService.price.toFixed(2)}
+                  </span>
+                ) : (
+                  <span className="apx-selection-summary-text apx-selection-summary-text--pending">
+                    Pendiente de selección
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="apx-selection-block__header-actions">
+              {selectedService && (
+                <span className="apx-selection-summary-badge">
+                  <IconCheck size={13} className="apx-selection-summary-check" />
+                  <span className="apx-selection-summary-label">
+                    {selectedService.name} · S/ {selectedService.price.toFixed(2)} ({selectedService.durationMinutes} min)
+                  </span>
+                </span>
+              )}
+              <span className="apx-selection-toggle-pill">
+                {openSection === 'service' ? (
+                  <>
+                    <span>Minimizar</span>
+                    <IconChevronUp size={15} />
+                  </>
+                ) : (
+                  <>
+                    <span>{selectedService ? 'Cambiar' : 'Seleccionar'}</span>
+                    <IconChevronDown size={15} />
+                  </>
+                )}
+              </span>
+            </div>
+          </button>
+
+          {openSection === 'service' && (
+            <div className="apx-selection-block__body">
+              <ServiceToolbar
+                count={visibleServiceCards.length}
+                filter={serviceFilter}
+                sort={serviceSort}
+                onFilterChange={setServiceFilter}
+                onSortChange={setServiceSort}
+              />
+
+              <ServiceGrid
+                services={visibleServiceCards}
+                selectedServiceId={selectedServiceId}
+                onSelect={(serviceId) => {
+                  const serv = specialtyServices.find((s) => s.id === serviceId);
+                  if (serv) {
+                    onSelectService(serv);
+                    // Auto-collapse service & auto-expand professional
+                    setOpenSection('professional');
+                  }
+                }}
+                onResetFilters={() => {
+                  setServiceFilter('all');
+                  setServiceSort('relevance');
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
-      {/* Professional Picker */}
+      {/* 1.3 Profesional Block */}
       {selectedSpecialty && selectedServiceId && (
-        <div className="apx-selection-block">
-          <div className="apx-selection-block__head">
-            <span className="apx-selection-block__number">1.3</span>
-            <div>
-              <h3 className="apx-selection-block__title">Selecciona el Profesional Médico</h3>
-              <p className="apx-selection-block__sub">
-                Puedes elegir un especialista colegiado o seleccionar autoasignación para mayor disponibilidad.
-              </p>
+        <div
+          className={`apx-selection-block ${
+            openSection === 'professional' ? 'apx-selection-block--expanded' : 'apx-selection-block--collapsed'
+          }`}
+        >
+          <button
+            type="button"
+            className="apx-selection-block__header-btn"
+            onClick={() => setOpenSection(openSection === 'professional' ? null : 'professional')}
+            aria-expanded={openSection === 'professional'}
+          >
+            <div className="apx-selection-block__head">
+              <span className="apx-selection-block__number">1.3</span>
+              <div className="apx-selection-block__title-col">
+                <h3 className="apx-selection-block__title">Profesional Médico</h3>
+                {openSection === 'professional' ? (
+                  <p className="apx-selection-block__sub">
+                    Puedes elegir un especialista colegiado o autoasignación para mayor disponibilidad.
+                  </p>
+                ) : (
+                  <span className="apx-selection-summary-text">{selectedDoctorSummary}</span>
+                )}
+              </div>
             </div>
-          </div>
 
-          <ProfessionalGrid
-            anyOption={anyDoctorOption}
-            professionals={doctorCards}
-            selectedProfessionalId={selectedProfessionalId || ANY_AVAILABLE_PROFESSIONAL_ID}
-            onSelect={onSelectProfessional}
-          />
+            <div className="apx-selection-block__header-actions">
+              <span className="apx-selection-summary-badge">
+                <IconCheck size={13} className="apx-selection-summary-check" />
+                <span className="apx-selection-summary-label">{selectedDoctorSummary}</span>
+              </span>
+              <span className="apx-selection-toggle-pill">
+                {openSection === 'professional' ? (
+                  <>
+                    <span>Minimizar</span>
+                    <IconChevronUp size={15} />
+                  </>
+                ) : (
+                  <>
+                    <span>Cambiar</span>
+                    <IconChevronDown size={15} />
+                  </>
+                )}
+              </span>
+            </div>
+          </button>
+
+          {openSection === 'professional' && (
+            <div className="apx-selection-block__body">
+              <ProfessionalGrid
+                anyOption={anyDoctorOption}
+                professionals={doctorCards}
+                selectedProfessionalId={selectedProfessionalId || ANY_AVAILABLE_PROFESSIONAL_ID}
+                onSelect={(profId) => {
+                  onSelectProfessional(profId);
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </section>
