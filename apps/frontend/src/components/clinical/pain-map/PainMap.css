@@ -1832,6 +1832,28 @@
   border: 1px solid #334155;
 }
 
+/* En modo aislamiento (disección anatómica 3D), se ancla a la izquierda bajo el título */
+.human-atlas-camera-dock.dock-isolated {
+  top: 110px;
+  left: 22px;
+  right: auto;
+  z-index: 14;
+  background: rgba(11, 15, 25, 0.9);
+  border: 1px solid rgba(45, 212, 191, 0.32);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+@media (max-width: 768px) {
+  .human-atlas-camera-dock.dock-isolated {
+    top: 90px;
+    left: 14px;
+    right: auto;
+    transform: scale(0.88);
+    transform-origin: top left;
+  }
+}
+
 .human-atlas-cam-btn {
   width: 32px;
   height: 30px;

@@ -720,9 +720,16 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
         Math.min(window.devicePixelRatio || 1, el.clientWidth < 768 ? 1.5 : 2),
       );
       camera.aspect = el.clientWidth / el.clientHeight;
+      if (latestSceneStateRef.current.isolate && el.clientWidth > 980) {
+        camera.setViewOffset(el.clientWidth, el.clientHeight, -190, 0, el.clientWidth, el.clientHeight);
+      } else {
+        camera.clearViewOffset();
+      }
       camera.updateProjectionMatrix();
       renderer.setSize(el.clientWidth, el.clientHeight);
-      fit(latestSceneStateRef.current.view, amount);
+      if (!latestSceneStateRef.current.isolate) {
+        fit(latestSceneStateRef.current.view, amount);
+      }
     };
 
     const observer =
@@ -803,7 +810,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
 
     const move = (e: PointerEvent) => {
       tap.move(e.pointerId, e.clientX, e.clientY);
-      if (e.buttons || e.pointerType === 'touch' || !ready) {
+      if (e.buttons || e.pointerType === 'touch' || !ready || latestSceneStateRef.current.isolate) {
         hover.hidden = true;
         return;
       }
@@ -997,6 +1004,11 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
         : '';
       if (isolateKey !== lastIsolate || (s.isolate && moving)) {
         if (s.isolate) {
+          if (el.clientWidth > 980) {
+            camera.setViewOffset(el.clientWidth, el.clientHeight, -190, 0, el.clientWidth, el.clientHeight);
+          } else {
+            camera.clearViewOffset();
+          }
           const box = new T.Box3();
           atlas.parts.forEach((p, i) => {
             if (dissectionPartSet.has(p.id)) {
@@ -1010,11 +1022,14 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
           if (!box.isEmpty()) {
             const center = box.getCenter(new T.Vector3());
             const size = box.getSize(new T.Vector3());
+            const effectiveAspect = el.clientWidth > 980
+              ? (el.clientWidth - 380) / el.clientHeight
+              : camera.aspect;
             const distance = Math.max(
-              0.12,
-              (Math.max(size.y, size.x / camera.aspect, size.z) /
+              0.15,
+              (Math.max(size.y, size.x / effectiveAspect, size.z) /
                 (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2)))) *
-                (dView?.cameraPreset?.distanceMultiplier || 1.4),
+                (dView?.cameraPreset?.distanceMultiplier || 1.5),
             );
             controls.target.copy(center);
             camera.position
@@ -1072,6 +1087,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
                     screenAnchors.push({
                       id: item.id,
                       index: item.index,
+                      partIds: item.partIds,
                       name: item.label,
                       detail: item.detail,
                       description: item.description,
@@ -1106,6 +1122,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
                       screenAnchors.push({
                         id: item.id,
                         index: item.index,
+                        partIds: item.partIds,
                         name: item.label,
                         detail: item.detail,
                         description: item.description,
@@ -1349,103 +1366,108 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
 
   return (
     <div className={`human-atlas-clinical-studio ${isExpanded ? 'is-expanded' : ''}`}>
-      {/* 1. Cabecera Superior del Estudio Anatómico 3D */}
-      <div className="human-atlas-topbar">
-        <div className="human-atlas-brand">
-          <span className="human-atlas-live-dot" />
-          <div className="human-atlas-title-row">
-            <strong>Atlas Anatómico Humano 3D</strong>
-            <span className="human-atlas-badge">
-              {visiblePieceCount.toLocaleString()} / {atlas ? atlas.parts.length.toLocaleString() : '2,234'} estructuras
-            </span>
+      {/* 1. Cabecera y Presets: sólo se muestran en vista completa del cuerpo */}
+      {!sceneState.isolate && (
+        <>
+          {/* 1. Cabecera Superior del Estudio Anatómico 3D */}
+          <div className="human-atlas-topbar">
+            <div className="human-atlas-brand">
+              <span className="human-atlas-live-dot" />
+              <div className="human-atlas-title-row">
+                <strong>Atlas Anatómico Humano 3D</strong>
+                <span className="human-atlas-badge">
+                  {visiblePieceCount.toLocaleString()} / {atlas ? atlas.parts.length.toLocaleString() : '2,234'} estructuras
+                </span>
+              </div>
+            </div>
+
+            <div className="human-atlas-toolbar-actions">
+              <button
+                type="button"
+                className={`human-atlas-tool-btn ${activeDrawer === 'layers' ? 'active' : ''}`}
+                onClick={() => setActiveDrawer((d) => (d === 'layers' ? null : 'layers'))}
+                title="Activar o desactivar capas anatómicas (Músculos, Esqueleto, Nervios, Tendones, Órganos)"
+              >
+                <MaterialIcon name="layers" size={16} />
+                <span>Capas ({sceneState.visible.length}/15)</span>
+              </button>
+
+              <button
+                type="button"
+                className={`human-atlas-tool-btn ${activeDrawer === 'search' ? 'active' : ''}`}
+                onClick={() => setActiveDrawer((d) => (d === 'search' ? null : 'search'))}
+                title="Buscar entre las 3,432 estructuras FMA del cuerpo humano"
+              >
+                <MaterialIcon name="search" size={16} />
+                <span>Buscar en Atlas 3D</span>
+              </button>
+
+              <button
+                type="button"
+                className={`human-atlas-tool-btn ${activeDrawer === 'catalog' ? 'active' : ''}`}
+                onClick={() => setActiveDrawer((d) => (d === 'catalog' ? null : 'catalog'))}
+                title="Ver catálogo rápido de puntos gatillo y estructuras EVA"
+              >
+                <MaterialIcon name="my_location" size={16} />
+                <span>Puntos EVA ({clinicalCatalogStructures.length})</span>
+              </button>
+
+              {onToggleExpand && (
+                <button
+                  type="button"
+                  className={`human-atlas-tool-btn ${isExpanded ? 'active' : ''}`}
+                  onClick={onToggleExpand}
+                  title={
+                    isExpanded
+                      ? 'Contraer a vista de dos columnas'
+                      : 'Expandir Atlas 3D a ancho completo (100%)'
+                  }
+                >
+                  <MaterialIcon name={isExpanded ? 'fullscreen_exit' : 'fullscreen'} size={16} />
+                  <span>{isExpanded ? '2 Columnas' : 'Ampliar 100%'}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="human-atlas-tool-btn icon-only"
+                onClick={() => setShowAboutModal((v) => !v)}
+                title="Fuente científica y licencia CC BY 4.0 (BodyParts3D)"
+              >
+                <MaterialIcon name="info" size={16} />
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="human-atlas-toolbar-actions">
-          <button
-            type="button"
-            className={`human-atlas-tool-btn ${activeDrawer === 'layers' ? 'active' : ''}`}
-            onClick={() => setActiveDrawer((d) => (d === 'layers' ? null : 'layers'))}
-            title="Activar o desactivar capas anatómicas (Músculos, Esqueleto, Nervios, Tendones, Órganos)"
-          >
-            <MaterialIcon name="layers" size={16} />
-            <span>Capas ({sceneState.visible.length}/15)</span>
-          </button>
+          {/* 2. Barra Rápida de Presets Clínicos por Especialidad */}
+          <div className="human-atlas-presets-bar">
+            {CLINICAL_LAYER_PRESETS.map((preset) => {
+              const isCurrent =
+                preset.systems.length === sceneState.visible.length &&
+                preset.systems.every((id) => sceneState.visible.includes(id));
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  className={`human-atlas-preset-chip ${isCurrent ? 'active' : ''}`}
+                  onClick={() => applyPreset(preset.systems)}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
 
-          <button
-            type="button"
-            className={`human-atlas-tool-btn ${activeDrawer === 'search' ? 'active' : ''}`}
-            onClick={() => setActiveDrawer((d) => (d === 'search' ? null : 'search'))}
-            title="Buscar entre las 3,432 estructuras FMA del cuerpo humano"
-          >
-            <MaterialIcon name="search" size={16} />
-            <span>Buscar en Atlas 3D</span>
-          </button>
-
-          <button
-            type="button"
-            className={`human-atlas-tool-btn ${activeDrawer === 'catalog' ? 'active' : ''}`}
-            onClick={() => setActiveDrawer((d) => (d === 'catalog' ? null : 'catalog'))}
-            title="Ver catálogo rápido de puntos gatillo y estructuras EVA"
-          >
-            <MaterialIcon name="my_location" size={16} />
-            <span>Puntos EVA ({clinicalCatalogStructures.length})</span>
-          </button>
-
-          {onToggleExpand && (
-            <button
-              type="button"
-              className={`human-atlas-tool-btn ${isExpanded ? 'active' : ''}`}
-              onClick={onToggleExpand}
-              title={
-                isExpanded
-                  ? 'Contraer a vista de dos columnas'
-                  : 'Expandir Atlas 3D a ancho completo (100%)'
-              }
-            >
-              <MaterialIcon name={isExpanded ? 'fullscreen_exit' : 'fullscreen'} size={16} />
-              <span>{isExpanded ? '2 Columnas' : 'Ampliar 100%'}</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            className="human-atlas-tool-btn icon-only"
-            onClick={() => setShowAboutModal((v) => !v)}
-            title="Fuente científica y licencia CC BY 4.0 (BodyParts3D)"
-          >
-            <MaterialIcon name="info" size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Barra Rápida de Presets Clínicos por Especialidad */}
-      <div className="human-atlas-presets-bar">
-        {CLINICAL_LAYER_PRESETS.map((preset) => {
-          const isCurrent =
-            preset.systems.length === sceneState.visible.length &&
-            preset.systems.every((id) => sceneState.visible.includes(id));
-          return (
-            <button
-              key={preset.id}
-              type="button"
-              className={`human-atlas-preset-chip ${isCurrent ? 'active' : ''}`}
-              onClick={() => applyPreset(preset.systems)}
-            >
-              {preset.label}
-            </button>
-          );
-        })}
-
-        <label className="human-atlas-auto-eva-toggle" title="Abrir formulario EVA automáticamente al tocar una estructura 3D">
-          <input
-            type="checkbox"
-            checked={autoOpenEvaOnTap}
-            onChange={(e) => setAutoOpenEvaOnTap(e.target.checked)}
-          />
-          <span>Abrir ficha EVA al tocar</span>
-        </label>
-      </div>
+            <label className="human-atlas-auto-eva-toggle" title="Abrir formulario EVA automáticamente al tocar una estructura 3D">
+              <input
+                type="checkbox"
+                checked={autoOpenEvaOnTap}
+                onChange={(e) => setAutoOpenEvaOnTap(e.target.checked)}
+              />
+              <span>Abrir ficha EVA al tocar</span>
+            </label>
+          </div>
+        </>
+      )}
 
       {/* 3. Lienzo 3D Interactivo + Paneles Superpuestos */}
       <div className="human-atlas-viewport-area">
@@ -1896,61 +1918,63 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
         )}
       </div>
 
-      {/* 4. Dock Inferior: Despiece Anatómico (0%-100%) + Resumen de Pines EVA */}
-      <div className="human-atlas-bottom-dock">
-        <div className="human-atlas-explode-group">
-          <div className="human-atlas-explode-header">
-            <label htmlFor="human-atlas-explode-range">
-              <MaterialIcon name="open_in_full" size={14} />
-              <span>Separar Capas Anatómicas (Despiece):</span>
-            </label>
-            <strong>{Math.round(sceneState.explode * 100)}%</strong>
+      {/* 4. Dock Inferior: Despiece Anatómico (0%-100%) + Resumen de Pines EVA (sólo en vista de cuerpo completo) */}
+      {!sceneState.isolate && (
+        <div className="human-atlas-bottom-dock">
+          <div className="human-atlas-explode-group">
+            <div className="human-atlas-explode-header">
+              <label htmlFor="human-atlas-explode-range">
+                <MaterialIcon name="open_in_full" size={14} />
+                <span>Separar Capas Anatómicas (Despiece):</span>
+              </label>
+              <strong>{Math.round(sceneState.explode * 100)}%</strong>
+            </div>
+            <input
+              id="human-atlas-explode-range"
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={Math.round(sceneState.explode * 100)}
+              onChange={(e) => {
+                const val = Number(e.target.value) / 100;
+                setSceneState((s) => ({
+                  ...s,
+                  explode: val,
+                  view: val > 0.8 ? 'front' : s.view,
+                  rotate: false,
+                }));
+              }}
+              className="human-atlas-explode-slider"
+            />
           </div>
-          <input
-            id="human-atlas-explode-range"
-            type="range"
-            min={0}
-            max={100}
-            step={1}
-            value={Math.round(sceneState.explode * 100)}
-            onChange={(e) => {
-              const val = Number(e.target.value) / 100;
-              setSceneState((s) => ({
-                ...s,
-                explode: val,
-                view: val > 0.8 ? 'front' : s.view,
-                rotate: false,
-              }));
-            }}
-            className="human-atlas-explode-slider"
-          />
-        </div>
 
-        {/* Chips de Puntos EVA Registrados sobre el Modelo 3D */}
-        {points.length > 0 && (
-          <div className="human-atlas-pins-strip">
-            {points.map((pt) => (
-              <button
-                key={pt.id}
-                type="button"
-                className="human-atlas-pin-chip"
-                onClick={() => onSelectPoint?.(pt)}
-                title="Editar este punto de dolor EVA"
-              >
-                <span
-                  className="human-atlas-pin-score"
-                  style={{ backgroundColor: getEvaCssColor(pt.eva) }}
+          {/* Chips de Puntos EVA Registrados sobre el Modelo 3D */}
+          {points.length > 0 && (
+            <div className="human-atlas-pins-strip">
+              {points.map((pt) => (
+                <button
+                  key={pt.id}
+                  type="button"
+                  className="human-atlas-pin-chip"
+                  onClick={() => onSelectPoint?.(pt)}
+                  title="Editar este punto de dolor EVA"
                 >
-                  {pt.eva}
-                </span>
-                <span className="human-atlas-pin-label">
-                  {pt.structureLabel || pt.structureCode}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+                  <span
+                    className="human-atlas-pin-score"
+                    style={{ backgroundColor: getEvaCssColor(pt.eva) }}
+                  >
+                    {pt.eva}
+                  </span>
+                  <span className="human-atlas-pin-label">
+                    {pt.structureLabel || pt.structureCode}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -46,7 +46,10 @@ export const AnatomyLabelsOverlay: React.FC<AnatomyLabelsOverlayProps> = ({
     >
       {labels.map((marker) => {
         const isHovered = hoveredId === marker.id;
-        const isSelected = selectedId === marker.id || marker.isActive;
+        const isSelected =
+          selectedId === marker.id ||
+          Boolean(marker.partIds && selectedId && marker.partIds.includes(selectedId)) ||
+          marker.isActive;
         const isVirtual = !!marker.isVirtual;
         const isFacing = marker.isFacingCamera;
 

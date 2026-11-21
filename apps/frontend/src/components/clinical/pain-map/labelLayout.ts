@@ -4,6 +4,7 @@
 export interface ScreenAnchor {
   id: string;
   index?: number;
+  partIds?: string[];
   name: string;
   detail?: string;
   description?: string;
@@ -20,6 +21,7 @@ export interface ScreenAnchor {
 export interface PlacedMarker {
   id: string;
   index: number;
+  partIds?: string[];
   name: string;
   detail?: string;
   description?: string;
@@ -74,6 +76,7 @@ export function layoutNumericMarkers(
   const markers: PlacedMarker[] = anchors.map((a, i) => ({
     id: a.id,
     index: a.index ?? i + 1,
+    partIds: a.partIds,
     name: a.name,
     detail: a.detail,
     description: a.description,
