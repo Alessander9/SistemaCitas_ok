@@ -22,13 +22,16 @@
     "db:migrate": "npm run db:migrate --workspace=apps/backend",
     "db:seed": "npm run db:seed --workspace=apps/backend",
     "db:reset": "npm run db:reset --workspace=apps/backend",
-    "security:scan-secrets": "node scripts/scan-secrets.js"
+    "security:scan-secrets": "node scripts/scan-secrets.js",
+    "bot:test": "node scripts/brave-e2e-bot.js",
+    "bot:test:headless": "node scripts/brave-e2e-bot.js --headless"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "devDependencies": {
     "prettier": "^3.4.0",
+    "puppeteer-core": "^25.18.1",
     "typescript": "^5.7.0"
   }
 }

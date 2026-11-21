@@ -62,6 +62,7 @@ Thumbs.db
 # Testing & Coverage
 coverage/
 .nyc_output/
+e2e-evidence/
 
 # Supabase
 supabase/.temp/
