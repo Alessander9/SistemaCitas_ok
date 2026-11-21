@@ -1,16 +1,21 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './ClinicalConsultationView.css';
 import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import {
   VoiceConsultationAssistant,
   ParsedClinicalVoiceData,
 } from '../../components/clinical/VoiceConsultationAssistant';
-import { BodyMapPicker } from '../../components/clinical/BodyMapPicker';
+import { PainMapPicker } from '../../components/clinical/pain-map';
+import { PainPoint } from '@citassistema/shared-types';
+import { savePainMap, fetchPainMap } from '../../services/api';
 
 interface ClinicalConsultationViewProps {
   onBack: () => void;
   onNavigateToCash?: () => void;
   onNavigateToBooking?: () => void;
+  patientId?: string;
+  medicalRecordId?: string;
+  sessionId?: string;
 }
 
 const THERAPY_TECHNIQUES = [
@@ -28,6 +33,9 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
   onBack,
   onNavigateToCash,
   onNavigateToBooking,
+  patientId,
+  medicalRecordId,
+  sessionId,
 }) => {
   const [activeTab, setActiveTab] = useState<'evolucion' | 'sesion' | 'receta'>('evolucion');
 
@@ -38,6 +46,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
   const [diagnosis, setDiagnosis] = useState('M54.5 - Lumbalgia mecánica aguda');
   const [treatmentPlan, setTreatmentPlan] = useState('Plan de 10 sesiones de kinesiología y fortalecimiento de core.');
   const [painScale, setPainScale] = useState<number>(7);
+  const [painPoints, setPainPoints] = useState<PainPoint[]>([]);
   const [selectedTechniques, setSelectedTechniques] = useState<string[]>([
     'Terapia Manual Ortopédica',
     'Electroterapia (TENS / EMS)',
@@ -141,8 +150,34 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (patientId) {
+      fetchPainMap(patientId, { recordId: medicalRecordId, sessionId })
+        .then((pts) => {
+          if (pts && pts.length > 0) {
+            setPainPoints(pts);
+            const highest = Math.max(...pts.map((p) => p.eva));
+            setPainScale(highest);
+          }
+        })
+        .catch(() => null);
+    }
+  }, [patientId, medicalRecordId, sessionId]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (patientId && (medicalRecordId || sessionId)) {
+      try {
+        await savePainMap({
+          patientId,
+          medicalRecordId,
+          treatmentSessionId: sessionId,
+          points: painPoints,
+        });
+      } catch (err) {
+        console.warn('Error al guardar mapa de dolor:', err);
+      }
+    }
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3500);
   };
@@ -456,9 +491,11 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                   </div>
                 </div>
 
-                {/* Mapa Corporal Interactivo 2D para Ubicación de Puntos de Dolor */}
-                <BodyMapPicker
+                {/* Mapa Anatómico de Dolor & Puntos Gatillo con Zoom (Opción C) */}
+                <PainMapPicker
+                  initialPoints={painPoints}
                   onChange={(pts) => {
+                    setPainPoints(pts);
                     if (pts.length > 0) {
                       const highestEva = Math.max(...pts.map((p) => p.eva));
                       setPainScale(highestEva);

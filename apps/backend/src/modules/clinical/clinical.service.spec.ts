@@ -259,4 +259,177 @@ describe('ClinicalService (Medical Records, Treatments & Prescriptions)', () => 
       expect(prescription.medications[0].medicationName).toBe('Ibuprofeno');
     });
   });
+
+  describe('Pain Map Points (Opción C: Zoom Anatómico & Evolución)', () => {
+    it('should save pain map points and update maximum EVA score on medical record', async () => {
+      // 1. Patient check
+      db.query.mockResolvedValueOnce({ rows: [{ id: mockPatientId }] });
+
+      // 2. Transaction mock
+      const mockClient = {
+        query: jest.fn().mockImplementation((queryText: string) => {
+          if (queryText.includes('DELETE FROM pain_map_points')) {
+            return Promise.resolve({ rowCount: 1 });
+          }
+          if (queryText.includes('INSERT INTO pain_map_points')) {
+            return Promise.resolve({
+              rows: [
+                {
+                  id: 'point-101',
+                  clinic_id: mockClinicId,
+                  patient_id: mockPatientId,
+                  professional_id: mockProfessionalId,
+                  medical_record_id: 'rec-101',
+                  structure_code: 'HOMBRO.MR.SUPRAESPINOSO',
+                  region_code: 'HOMBRO',
+                  laterality: 'D',
+                  view: 'anterior',
+                  coord_x: 33,
+                  coord_y: 23,
+                  eva: 8,
+                  pain_types: ['punzante'],
+                  trigger_point: 'activo',
+                  depth: 'profundo',
+                  recorded_at: new Date().toISOString(),
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                },
+              ],
+            });
+          }
+          if (queryText.includes('UPDATE medical_records')) {
+            return Promise.resolve({ rowCount: 1 });
+          }
+          return Promise.resolve({ rows: [] });
+        }),
+      };
+
+      db.transaction.mockImplementation((cb: (client: typeof mockClient) => Promise<unknown>) => cb(mockClient));
+
+      const points = await service.savePainMap(mockClinicId, 'user-1', {
+        patientId: mockPatientId,
+        professionalId: mockProfessionalId,
+        medicalRecordId: 'rec-101',
+        points: [
+          {
+            structureCode: 'HOMBRO.MR.SUPRAESPINOSO',
+            regionCode: 'HOMBRO',
+            laterality: 'D',
+            view: 'anterior',
+            coordX: 33,
+            coordY: 23,
+            eva: 8,
+            painTypes: ['punzante'],
+            triggerPoint: 'activo',
+            depth: 'profundo',
+          },
+        ],
+      });
+
+      expect(points).toHaveLength(1);
+      expect(points[0].structureCode).toBe('HOMBRO.MR.SUPRAESPINOSO');
+      expect(points[0].structureLabel).toBe('Tendón / Músculo Supraespinoso');
+      expect(points[0].eva).toBe(8);
+      expect(points[0].triggerPoint).toBe('activo');
+      expect(mockClient.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE medical_records SET pain_scale = $1'),
+        [8, 'rec-101', mockClinicId],
+      );
+    });
+
+    it('should reject invalid structureCode not in taxonomy (R-PAIN-01)', async () => {
+      db.query.mockResolvedValueOnce({ rows: [{ id: mockPatientId }] });
+
+      await expect(
+        service.savePainMap(mockClinicId, 'user-1', {
+          patientId: mockPatientId,
+          professionalId: mockProfessionalId,
+          medicalRecordId: 'rec-101',
+          points: [
+            {
+              structureCode: 'CODIGO_INVENTADO_NO_EXISTE',
+              regionCode: 'HOMBRO',
+              laterality: 'D',
+              view: 'anterior',
+              coordX: 30,
+              coordY: 30,
+              eva: 5,
+            },
+          ],
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject invalid view for a structure (R-PAIN-03)', async () => {
+      db.query.mockResolvedValueOnce({ rows: [{ id: mockPatientId }] });
+
+      // TORAX.PECTORAL_MAYOR solo admite vista 'anterior', no 'posterior'
+      await expect(
+        service.savePainMap(mockClinicId, 'user-1', {
+          patientId: mockPatientId,
+          professionalId: mockProfessionalId,
+          medicalRecordId: 'rec-101',
+          points: [
+            {
+              structureCode: 'TORAX.PECTORAL_MAYOR',
+              regionCode: 'TORAX_ABDOMEN',
+              laterality: 'D',
+              view: 'posterior',
+              coordX: 42,
+              coordY: 27,
+              eva: 5,
+            },
+          ],
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should calculate evolution series grouping by structure and laterality', async () => {
+      db.query.mockResolvedValueOnce({
+        rows: [
+          {
+            id: 'pt-1',
+            clinic_id: mockClinicId,
+            patient_id: mockPatientId,
+            structure_code: 'HOMBRO.MR.SUPRAESPINOSO',
+            region_code: 'HOMBRO',
+            laterality: 'D',
+            view: 'anterior',
+            coord_x: 33,
+            coord_y: 23,
+            eva: 8,
+            medical_record_id: 'rec-1',
+            treatment_session_id: null,
+            recorded_at: '2026-11-01T10:00:00Z',
+          },
+          {
+            id: 'pt-2',
+            clinic_id: mockClinicId,
+            patient_id: mockPatientId,
+            structure_code: 'HOMBRO.MR.SUPRAESPINOSO',
+            region_code: 'HOMBRO',
+            laterality: 'D',
+            view: 'anterior',
+            coord_x: 33,
+            coord_y: 23,
+            eva: 4,
+            medical_record_id: null,
+            treatment_session_id: 'sess-1',
+            session_number: 1,
+            recorded_at: '2026-11-10T10:00:00Z',
+          },
+        ],
+      });
+
+      const series = await service.getPainEvolution(mockClinicId, mockPatientId, 'HOMBRO.MR.SUPRAESPINOSO');
+
+      expect(series).toHaveLength(1);
+      expect(series[0].structureCode).toBe('HOMBRO.MR.SUPRAESPINOSO');
+      expect(series[0].laterality).toBe('D');
+      expect(series[0].initialEva).toBe(8);
+      expect(series[0].currentEva).toBe(4);
+      expect(series[0].delta).toBe(-4); // -4 points (mejora clínica)
+      expect(series[0].history).toHaveLength(2);
+    });
+  });
 });

@@ -191,7 +191,7 @@ sequenceDiagram
 ### 3.3 Consulta Médica, HCE, Mapa Corporal y Voz IA
 - **Historia Clínica Digital Inmutable (`ClinicalModule` + `ClinicalConsultationView.tsx`)**: Registro cronológico append-only con motivo de consulta, anamnesis, examen físico, signos vitales (`vitals` JSONB), diagnóstico y plan terapéutico.
 - **Planes de Tratamiento y Sesiones**: Seguimiento de sesiones totales vs. completadas, técnicas kinesiológicas aplicadas (`techniques_applied`), evolución de dolor en **Escala Visual Analógica EVA (0–10)** (`pain_scale_before` vs. `pain_scale_after`) y cierre automático al completar el plan.
-- **Mapeo Anatómico Interactivo (`BodyMapPicker.tsx`)**: Selección visual de zonas dolorosas en vista anterior y posterior (28 puntos anatómicos predefinidos) con intensidad EVA y notas por punto.
+- **Mapeo Anatómico Jerárquico con Zoom (`pain-map/PainMapPicker.tsx`)**: Exploración corporal multinivel (Cuerpo → Región con zoom SVG `viewBox` → Estructura anatómica) con catálogo de ~170 estructuras clínicas, buscador instantáneo (`Ctrl+K`), lateralidad (D/I/Central), puntos gatillo (activo/latente), profundidad, factores agravantes y persistencia transaccional en `pain_map_points` con evolución entre sesiones.
 - **Asistente Clínico por Voz (`VoiceConsultationAssistant.tsx`)**: Dictado de consulta con extracción estructurada de motivo, examen, dolor EVA inicial/final, diagnóstico, técnicas aplicadas y medicamentos.
 - **Recetas Médicas Digitales (`DigitalPrescriptionModal.tsx`)**: Emisión estructurada de fármacos (dosis, vía, frecuencia, duración) e indicaciones domiciliarias.
 
@@ -222,7 +222,7 @@ sequenceDiagram
 | **`SUPER_ADMIN`** | `SuperAdminDashboard` | Red global multi-clínica, métricas consolidadas, alta/estado de sedes y **Modo Supervisión Master** para operar dentro de cualquier clínica. |
 | **`ADMIN_CLINIC`** | `ClinicAdminDashboard` | KPIs de sede, monitor de staff y consultorios en tiempo real, agenda en vista tabla/Kanban y accesos a caja, inventario, correos y Telegram. |
 | **`RECEPCION`** | `ReceptionDashboard` + `ReceptionBookingPage` | Tablero Kanban de sala (`ReceptionKanbanBoard`), tiempos de espera (`WaitingTimeBadge`), triaje rápido, cobro en ventanilla, reserva express y recordatorios WhatsApp. |
-| **`PROFESIONAL`** | `DoctorDashboard` + `ClinicalConsultationView` | Cola de pacientes del día con tendencia EVA, agenda semanal, bloqueo de horarios, consulta HCE, `BodyMapPicker`, dictado por voz y recetas digitales. |
+| **`PROFESIONAL`** | `DoctorDashboard` + `ClinicalConsultationView` | Cola de pacientes del día con tendencia EVA, agenda semanal, bloqueo de horarios, consulta HCE, `PainMapPicker` con zoom anatómico, dictado por voz y recetas digitales. |
 | **`PACIENTE`** | `PatientDashboard` + `PatientPortal` | Próximas citas, reprogramación/cancelación, historial clínico, evolución EVA, tratamientos activos, recetas y comprobantes. |
 
 La interfaz incluye además `AppShell`, `MobileBottomNav`, `SpeedDialFAB`, `AccessibilityFontScaler`, escáner móvil (`MobileCameraScannerModal`), `SkeletonLoader` y soporte completo de tema claro/oscuro (`ThemeContext`).

@@ -6,6 +6,8 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ClinicalService } from './clinical.service';
@@ -13,13 +15,17 @@ import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { CreateTreatmentSessionDto } from './dto/create-treatment-session.dto';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
-import { CurrentTenant, Roles } from '../../common/decorators';
+import { SavePainMapDto } from './dto/save-pain-map.dto';
+import { CurrentTenant, CurrentUser, Roles } from '../../common/decorators';
 import { JwtAuthGuard, TenantGuard, RolesGuard } from '../../common/guards';
 import {
   MedicalRecord,
   Treatment,
   TreatmentSession,
   Prescription,
+  PainPoint,
+  PainEvolutionSeries,
+  AuthenticatedUser,
   UserRole,
 } from '@citassistema/shared-types';
 
@@ -145,5 +151,44 @@ export class ClinicalController {
     @Param('id') id: string,
   ): Promise<Prescription> {
     return this.clinicalService.getPrescriptionById(clinicId, id);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pain Map Points & Evolution
+  // ---------------------------------------------------------------------------
+
+  @Put('pain-map')
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL)
+  @HttpCode(HttpStatus.OK)
+  async savePainMap(
+    @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: SavePainMapDto,
+  ): Promise<PainPoint[]> {
+    return this.clinicalService.savePainMap(clinicId, user?.id, dto);
+  }
+
+  @Get('patients/:patientId/pain-map')
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.PACIENTE)
+  async getPainMap(
+    @CurrentTenant() clinicId: string,
+    @Param('patientId') patientId: string,
+    @Query('recordId') recordId?: string,
+    @Query('sessionId') sessionId?: string,
+  ): Promise<PainPoint[]> {
+    return this.clinicalService.getPainMap(clinicId, patientId, {
+      recordId,
+      sessionId,
+    });
+  }
+
+  @Get('patients/:patientId/pain-map/evolution')
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL)
+  async getPainEvolution(
+    @CurrentTenant() clinicId: string,
+    @Param('patientId') patientId: string,
+    @Query('structureCode') structureCode?: string,
+  ): Promise<PainEvolutionSeries[]> {
+    return this.clinicalService.getPainEvolution(clinicId, patientId, structureCode);
   }
 }

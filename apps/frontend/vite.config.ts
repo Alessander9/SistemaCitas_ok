@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@citassistema/shared-types': path.resolve(__dirname, '../../packages/shared-types/src'),
+      '@citassistema/shared-types': path.resolve(__dirname, '../../packages/shared-types/src/index.ts'),
     },
   },
   server: {

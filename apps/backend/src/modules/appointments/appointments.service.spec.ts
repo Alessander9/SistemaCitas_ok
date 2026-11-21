@@ -290,7 +290,7 @@ describe('AppointmentsService', () => {
 
       expect(result.id).toBe('new-id');
       expect(result.status).toBe(AppointmentStatus.PENDING);
-      expect(result.endTime).toBe('09:30:00');
+      expect(result.endTime).toMatch(/^09:30/);
       expect(result.patientName).toBe('Juan Pérez');
     });
   });

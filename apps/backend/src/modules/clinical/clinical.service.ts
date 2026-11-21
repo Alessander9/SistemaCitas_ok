@@ -8,12 +8,20 @@ import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { CreateTreatmentSessionDto } from './dto/create-treatment-session.dto';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
+import { SavePainMapDto } from './dto/save-pain-map.dto';
 import {
   MedicalRecord,
   Treatment,
   TreatmentSession,
   Prescription,
   PrescriptionItem,
+  PainPoint,
+  PainEvolutionSeries,
+  Laterality,
+  PainView,
+  TriggerPointStatus,
+  PainDepth,
+  getNode,
 } from '@citassistema/shared-types';
 
 interface MedicalRecordDbRow {
@@ -423,4 +431,295 @@ export class ClinicalService {
 
     return rows.map((r) => this.mapPrescriptionRow(r));
   }
+
+  // ---------------------------------------------------------------------------
+  // 4. MAPAS ANATÓMICOS DE DOLOR (PAIN MAP POINTS)
+  // ---------------------------------------------------------------------------
+
+  private mapPainPointRow(r: PainMapPointDbRow): PainPoint {
+    const node = getNode(r.structure_code);
+    const regionNode = getNode(r.region_code);
+    return {
+      id: r.id,
+      clinicId: r.clinic_id,
+      patientId: r.patient_id,
+      professionalId: r.professional_id,
+      medicalRecordId: r.medical_record_id,
+      treatmentSessionId: r.treatment_session_id,
+      structureCode: r.structure_code,
+      structureLabel: node ? node.label : r.structure_code,
+      regionCode: r.region_code,
+      regionLabel: regionNode ? regionNode.label : r.region_code,
+      laterality: r.laterality,
+      view: r.view,
+      coordX: Number(r.coord_x),
+      coordY: Number(r.coord_y),
+      eva: Number(r.eva),
+      painTypes: r.pain_types || [],
+      triggerPoint: r.trigger_point,
+      depth: r.depth,
+      aggravatingFactors: r.aggravating_factors || [],
+      referredArea: r.referred_area,
+      notes: r.notes || undefined,
+      recordedAt: r.recorded_at,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  }
+
+  async savePainMap(
+    clinicId: string,
+    userId: string,
+    dto: SavePainMapDto,
+  ): Promise<PainPoint[]> {
+    if (!dto.medicalRecordId && !dto.treatmentSessionId) {
+      throw new BadRequestException(
+        'Se requiere medicalRecordId o treatmentSessionId para asociar los puntos de dolor.',
+      );
+    }
+
+    // Resolver professional_id
+    let professionalId = dto.professionalId;
+    if (!professionalId) {
+      const { rows: profRows } = await this.db.query<{ id: string }>(
+        `SELECT id FROM professionals WHERE user_id = $1 AND clinic_id = $2 AND is_active = true LIMIT 1`,
+        [userId, clinicId],
+      );
+      if (profRows.length > 0) {
+        professionalId = profRows[0].id;
+      } else {
+        const { rows: anyProf } = await this.db.query<{ id: string }>(
+          `SELECT id FROM professionals WHERE clinic_id = $1 AND is_active = true ORDER BY created_at ASC LIMIT 1`,
+          [clinicId],
+        );
+        if (anyProf.length > 0) {
+          professionalId = anyProf[0].id;
+        } else {
+          throw new BadRequestException(
+            'No se encontró un profesional activo asignado a esta clínica.',
+          );
+        }
+      }
+    }
+
+    // Verificar existencia del paciente
+    const { rows: patRows } = await this.db.query(
+      `SELECT id FROM patients WHERE id = $1 AND clinic_id = $2 AND deleted_at IS NULL`,
+      [dto.patientId, clinicId],
+    );
+    if (patRows.length === 0) {
+      throw new NotFoundException(`Paciente ${dto.patientId} no encontrado.`);
+    }
+
+    // Validar R-PAIN-01, R-PAIN-02, R-PAIN-03 en cada punto
+    for (const p of dto.points) {
+      const node = getNode(p.structureCode);
+      if (!node) {
+        throw new BadRequestException(
+          `El código de estructura anatómica '${p.structureCode}' no es válido en el catálogo.`,
+        );
+      }
+      if (!node.lateral && p.laterality !== 'central') {
+        p.laterality = 'central';
+      } else if (node.lateral && p.laterality === 'central') {
+        throw new BadRequestException(
+          `La estructura '${node.label}' es lateral y requiere especificar lateralidad (D, I o bilateral).`,
+        );
+      }
+      if (!node.views.includes(p.view)) {
+        throw new BadRequestException(
+          `La vista '${p.view}' no es válida para la estructura '${node.label}'. Vistas permitidas: ${node.views.join(', ')}.`,
+        );
+      }
+    }
+
+    // Ejecutar reemplazo transaccional
+    return this.db.transaction(async (client) => {
+      if (dto.medicalRecordId) {
+        await client.query(
+          `DELETE FROM pain_map_points WHERE clinic_id = $1 AND medical_record_id = $2`,
+          [clinicId, dto.medicalRecordId],
+        );
+      }
+      if (dto.treatmentSessionId) {
+        await client.query(
+          `DELETE FROM pain_map_points WHERE clinic_id = $1 AND treatment_session_id = $2`,
+          [clinicId, dto.treatmentSessionId],
+        );
+      }
+
+      const insertedRows: PainMapPointDbRow[] = [];
+
+      for (const p of dto.points) {
+        const { rows } = await client.query<PainMapPointDbRow>(
+          `INSERT INTO pain_map_points (
+            clinic_id, patient_id, professional_id, medical_record_id, treatment_session_id,
+            structure_code, region_code, laterality, view, coord_x, coord_y, eva,
+            pain_types, trigger_point, depth, aggravating_factors, referred_area, notes
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+          RETURNING *`,
+          [
+            clinicId,
+            dto.patientId,
+            professionalId,
+            dto.medicalRecordId || null,
+            dto.treatmentSessionId || null,
+            p.structureCode,
+            p.regionCode,
+            p.laterality,
+            p.view,
+            p.coordX,
+            p.coordY,
+            p.eva,
+            p.painTypes || [],
+            p.triggerPoint || null,
+            p.depth || null,
+            p.aggravatingFactors || [],
+            p.referredArea ? JSON.stringify(p.referredArea) : null,
+            p.notes || null,
+          ],
+        );
+        insertedRows.push(rows[0]);
+      }
+
+      // Sincronizar pain_scale con el máximo EVA si aplica
+      if (dto.points.length > 0) {
+        const maxEva = Math.max(...dto.points.map((p) => p.eva));
+        if (dto.medicalRecordId) {
+          await client.query(
+            `UPDATE medical_records SET pain_scale = $1, updated_at = NOW() WHERE id = $2 AND clinic_id = $3`,
+            [maxEva, dto.medicalRecordId, clinicId],
+          );
+        }
+        if (dto.treatmentSessionId) {
+          await client.query(
+            `UPDATE treatment_sessions SET pain_scale_after = $1, updated_at = NOW() WHERE id = $2 AND clinic_id = $3`,
+            [maxEva, dto.treatmentSessionId, clinicId],
+          );
+        }
+      }
+
+      return insertedRows.map((r) => this.mapPainPointRow(r));
+    });
+  }
+
+  async getPainMap(
+    clinicId: string,
+    patientId: string,
+    query: { recordId?: string; sessionId?: string },
+  ): Promise<PainPoint[]> {
+    let whereClause = `clinic_id = $1 AND patient_id = $2 AND deleted_at IS NULL`;
+    const params: unknown[] = [clinicId, patientId];
+
+    if (query.recordId) {
+      params.push(query.recordId);
+      whereClause += ` AND medical_record_id = $${params.length}`;
+    }
+    if (query.sessionId) {
+      params.push(query.sessionId);
+      whereClause += ` AND treatment_session_id = $${params.length}`;
+    }
+
+    const { rows } = await this.db.query<PainMapPointDbRow>(
+      `SELECT * FROM pain_map_points
+       WHERE ${whereClause}
+       ORDER BY recorded_at ASC, created_at ASC`,
+      params,
+    );
+
+    return rows.map((r) => this.mapPainPointRow(r));
+  }
+
+  async getPainEvolution(
+    clinicId: string,
+    patientId: string,
+    structureCode?: string,
+  ): Promise<PainEvolutionSeries[]> {
+    let query = `
+      SELECT p.*, s.session_number
+      FROM pain_map_points p
+      LEFT JOIN treatment_sessions s ON s.id = p.treatment_session_id
+      WHERE p.clinic_id = $1 AND p.patient_id = $2 AND p.deleted_at IS NULL
+    `;
+    const params: unknown[] = [clinicId, patientId];
+
+    if (structureCode) {
+      params.push(structureCode);
+      query += ` AND p.structure_code = $${params.length}`;
+    }
+
+    query += ` ORDER BY p.recorded_at ASC, p.created_at ASC`;
+
+    interface EvolutionRow extends PainMapPointDbRow {
+      session_number?: number;
+    }
+
+    const { rows } = await this.db.query<EvolutionRow>(query, params);
+
+    const seriesMap = new Map<string, PainEvolutionSeries>();
+
+    for (const r of rows) {
+      const key = `${r.structure_code}__${r.laterality}`;
+      const node = getNode(r.structure_code);
+      const regionNode = getNode(r.region_code);
+
+      if (!seriesMap.has(key)) {
+        seriesMap.set(key, {
+          structureCode: r.structure_code,
+          structureLabel: node ? node.label : r.structure_code,
+          regionCode: r.region_code,
+          regionLabel: regionNode ? regionNode.label : r.region_code,
+          laterality: r.laterality,
+          history: [],
+          initialEva: Number(r.eva),
+          currentEva: Number(r.eva),
+          delta: 0,
+        });
+      }
+
+      const series = seriesMap.get(key)!;
+      const eva = Number(r.eva);
+      series.history.push({
+        id: r.id,
+        recordedAt: r.recorded_at,
+        eva,
+        laterality: r.laterality,
+        triggerPoint: r.trigger_point,
+        source: r.medical_record_id ? 'medical_record' : 'treatment_session',
+        referenceId: r.medical_record_id || r.treatment_session_id || '',
+        sessionNumber: r.session_number ? Number(r.session_number) : undefined,
+        notes: r.notes || undefined,
+      });
+      series.currentEva = eva;
+      series.delta = series.currentEva - series.initialEva;
+    }
+
+    return Array.from(seriesMap.values());
+  }
+}
+
+interface PainMapPointDbRow {
+  id: string;
+  clinic_id: string;
+  patient_id: string;
+  professional_id: string;
+  medical_record_id?: string;
+  treatment_session_id?: string;
+  structure_code: string;
+  region_code: string;
+  laterality: Laterality;
+  view: PainView;
+  coord_x: number | string;
+  coord_y: number | string;
+  eva: number | string;
+  pain_types?: string[];
+  trigger_point?: TriggerPointStatus;
+  depth?: PainDepth;
+  aggravating_factors?: string[];
+  referred_area?: Record<string, unknown>;
+  notes?: string;
+  recorded_at: string;
+  created_at: string;
+  updated_at: string;
 }

@@ -9,3 +9,5 @@ export * from './inventory';
 export * from './email';
 export * from './telegram';
 export * from './ai';
+export * from './anatomy-catalog';
+export * from './pain-map';

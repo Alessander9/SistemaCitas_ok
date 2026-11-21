@@ -1,0 +1,1296 @@
+/* =============================================================================
+   PainMap.css — Estilos Clínicos Especializados para Mapeo de Dolor (Opción C)
+   ============================================================================= */
+
+.pain-map-wrapper {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  font-family: inherit;
+  color: #0f172a;
+}
+
+/* -----------------------------------------------------------------------------
+   Barra Superior / Encabezado
+   ----------------------------------------------------------------------------- */
+.pain-map-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 1rem;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.pain-map-title-area {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.pain-map-header-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+}
+
+.pain-map-main-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.pain-map-subtitle {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin: 0.15rem 0 0;
+  font-weight: 500;
+}
+
+.pain-map-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+/* Selector de Vistas: Anterior / Posterior / Lateral */
+.pain-view-segmented-toggle {
+  display: inline-flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.pain-view-toggle-btn {
+  border: none;
+  background: transparent;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pain-view-toggle-btn:hover {
+  color: #0f172a;
+}
+
+.pain-view-toggle-btn.active {
+  background: #ffffff;
+  color: #0284c7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Botón Buscador Directo */
+.pain-quick-search-trigger {
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 160ms ease;
+}
+
+.pain-quick-search-trigger:hover {
+  border-color: #0284c7;
+  color: #0284c7;
+  background: #f0f9ff;
+}
+
+.pain-kbd-badge {
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.7rem;
+  font-family: monospace;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+}
+
+/* -----------------------------------------------------------------------------
+   Migas de Pan (Breadcrumb)
+   ----------------------------------------------------------------------------- */
+.pain-breadcrumb-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.pain-breadcrumb-items {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+
+.pain-breadcrumb-btn {
+  background: transparent;
+  border: none;
+  color: #0284c7;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pain-breadcrumb-btn:hover {
+  text-decoration: underline;
+}
+
+.pain-breadcrumb-btn.active {
+  color: #0f172a;
+  cursor: default;
+  text-decoration: none;
+}
+
+.pain-breadcrumb-separator {
+  color: #94a3b8;
+  font-weight: bold;
+}
+
+.pain-breadcrumb-text {
+  color: #475569;
+  font-weight: 600;
+}
+
+.pain-breadcrumb-current {
+  color: #0284c7;
+  font-weight: 800;
+}
+
+.pain-breadcrumb-back-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pain-breadcrumb-back-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* -----------------------------------------------------------------------------
+   Layout Principal: Vista Anatómica + Lista/Ficha
+   ----------------------------------------------------------------------------- */
+.pain-main-columns-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .pain-main-columns-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Silueta Nivel 1 (BodyOverview)
+   ----------------------------------------------------------------------------- */
+.pain-body-overview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  position: relative;
+}
+
+.pain-svg-viewport-wrapper {
+  width: 100%;
+  max-width: 290px;
+  aspect-ratio: 200 / 420;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pain-body-silhouette-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.body-part-silhouette {
+  fill: #cbd5e1;
+  stroke: #94a3b8;
+  stroke-width: 1.25;
+  transition: fill 200ms ease;
+}
+
+/* Regiones Clicables */
+.pain-region-hitbox {
+  fill: #0284c7;
+  fill-opacity: 0.05;
+  stroke: transparent;
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.pain-region-hitbox:hover,
+.pain-region-hitbox.hovered {
+  fill-opacity: 0.22;
+  stroke: #0284c7;
+  stroke-dasharray: 4, 3;
+}
+
+/* Pines Registrados en Nivel 1 */
+.registered-pain-pin-marker {
+  cursor: pointer;
+  transition: transform 140ms ease;
+}
+
+.registered-pain-pin-marker:hover {
+  transform: scale(1.25);
+}
+
+.pain-pin-pulse-circle {
+  animation: painPulseAnim 2s infinite ease-out;
+}
+
+@keyframes painPulseAnim {
+  0% {
+    r: 6.5px;
+    opacity: 0.7;
+  }
+  100% {
+    r: 16px;
+    opacity: 0;
+  }
+}
+
+.pain-overview-footer-hint {
+  margin-top: 1rem;
+  font-size: 0.76rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+/* -----------------------------------------------------------------------------
+   Vista Zoom Nivel 2 (RegionDetailView)
+   ----------------------------------------------------------------------------- */
+.pain-region-detail-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+@media (max-width: 800px) {
+  .pain-region-detail-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pain-region-zoom-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pain-region-zoom-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pain-region-title-badge {
+  font-size: 0.88rem;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pain-btn-zoom-out {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pain-btn-zoom-out:hover {
+  background: #f1f5f9;
+  color: #0284c7;
+}
+
+.pain-zoomed-svg-card {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 0.75rem;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.pain-zoomed-svg-element {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.struct-anchor-group {
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+
+.struct-anchor-group:hover,
+.struct-anchor-group.selected {
+  transform: scale(1.2);
+}
+
+.struct-anchor-circle {
+  transition: fill 150ms ease;
+}
+
+.zoomed-pain-pin {
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+
+.zoomed-pain-pin:hover {
+  transform: scale(1.25);
+}
+
+.pain-zoomed-instruction {
+  font-size: 0.75rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.35;
+}
+
+/* -----------------------------------------------------------------------------
+   Panel de Estructuras (StructureList)
+   ----------------------------------------------------------------------------- */
+.pain-structure-list-container {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 480px;
+}
+
+.pain-structure-list-header {
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border-bottom: 1.5px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pain-structure-list-title {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.pain-structure-accordion-scroll {
+  overflow-y: auto;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pain-subregion-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pain-subregion-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.25rem;
+}
+
+.pain-subregion-count-badge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+}
+
+.pain-structures-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pain-structure-item-btn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+  transition: all 140ms ease;
+}
+
+.pain-structure-item-btn:hover {
+  background: #f0f9ff;
+  border-color: #0284c7;
+}
+
+.pain-structure-item-btn.selected {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.pain-struct-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pain-struct-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.pain-struct-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pain-kind-pill {
+  font-size: 0.66rem;
+  text-transform: capitalize;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 600;
+}
+
+.pain-structure-item-btn.selected .pain-kind-pill {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.pain-lateral-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.pain-struct-eva-badge {
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+/* -----------------------------------------------------------------------------
+   Ficha Clínica del Punto (PainPointForm)
+   ----------------------------------------------------------------------------- */
+.pain-point-form-card {
+  background: #ffffff;
+  border: 1.5px solid #0284c7;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pain-form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.pain-form-breadcrumb-trail {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.pain-form-title {
+  margin: 0.15rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pain-form-icd10-badge {
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #7c3aed;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.pain-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.pain-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pain-field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pain-field-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.pain-eva-indicator-badge {
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.pain-eva-selector {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 3px;
+}
+
+.pain-eva-btn {
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 0.45rem 0;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #334155;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.pain-eva-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.pain-segmented-control {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.pain-segment-btn {
+  border: none;
+  background: transparent;
+  padding: 0.45rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 140ms ease;
+  text-align: center;
+}
+
+.pain-segment-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.pain-segment-btn.active.trigger-active {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.pain-segment-btn.active.trigger-latent {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.pain-form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .pain-form-row-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pain-chips-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.pain-chip {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 120ms ease;
+}
+
+.pain-chip:hover {
+  background: #f1f5f9;
+}
+
+.pain-chip.selected {
+  background: #e0f2fe;
+  border-color: #38bdf8;
+  color: #0369a1;
+  font-weight: 700;
+}
+
+.pain-form-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.pain-form-textarea:focus {
+  outline: none;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.pain-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1.5px solid #f1f5f9;
+}
+
+.pain-form-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.pain-btn-secondary {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+}
+
+.pain-btn-secondary:hover {
+  background: #f1f5f9;
+}
+
+.pain-btn-primary {
+  border: none;
+  background: #0284c7;
+  color: #ffffff;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+}
+
+.pain-btn-primary:hover {
+  background: #0369a1;
+}
+
+.pain-btn-danger {
+  border: 1px solid #fca5a5;
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pain-btn-danger:hover {
+  background: #fecaca;
+}
+
+/* -----------------------------------------------------------------------------
+   Lista de Puntos Registrados (PainPointList)
+   ----------------------------------------------------------------------------- */
+.pain-point-list-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pain-point-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pain-point-list-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pain-point-list-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.pain-list-max-eva-badge {
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.pain-point-empty-state {
+  padding: 2rem 1rem;
+  text-align: center;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.pain-point-empty-state p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.pain-point-empty-state span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.pain-point-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.pain-point-card-item {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 140ms ease;
+  position: relative;
+}
+
+.pain-point-card-item:hover {
+  background: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.pain-point-eva-square {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.pain-point-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-grow: 1;
+}
+
+.pain-point-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 1.5rem;
+}
+
+.pain-point-card-label {
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+.pain-point-card-laterality {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #0284c7;
+}
+
+.pain-point-card-details {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.pain-point-view-tag {
+  font-size: 0.68rem;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.pain-trigger-pill {
+  font-size: 0.68rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.pain-trigger-pill.trigger-active {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.pain-trigger-pill.trigger-latent {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.pain-depth-pill {
+  font-size: 0.68rem;
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.pain-point-card-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.pain-type-tag {
+  font-size: 0.66rem;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.pain-point-card-notes {
+  margin: 3px 0 0;
+  font-size: 0.74rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.pain-point-card-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pain-point-card-delete-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* -----------------------------------------------------------------------------
+   Modal de Búsqueda (AnatomySearch)
+   ----------------------------------------------------------------------------- */
+.pain-search-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10vh;
+}
+
+.pain-search-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 580px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border: 1.5px solid #cbd5e1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalFadeIn 160ms ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pain-search-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+
+.pain-search-input {
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  flex-grow: 1;
+  background: transparent;
+}
+
+.pain-search-close-btn {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+}
+
+.pain-search-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.pain-search-body {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+
+.pain-search-empty-hints {
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pain-search-hint-title {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pain-search-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pain-search-chip {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+}
+
+.pain-search-chip:hover {
+  background: #e0f2fe;
+  border-color: #38bdf8;
+  color: #0284c7;
+}
+
+.pain-search-no-results {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pain-search-no-results p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.pain-search-no-results span {
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
+.pain-search-results-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pain-search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.pain-search-item:hover,
+.pain-search-item.selected {
+  background: #f0f9ff;
+}
+
+.pain-search-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pain-search-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pain-search-item-name {
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+.pain-kind-badge {
+  font-size: 0.65rem;
+  text-transform: capitalize;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 700;
+}
+
+.pain-kind-badge.kind-musculo { background: #fee2e2; color: #b91c1c; }
+.pain-kind-badge.kind-tendon { background: #ffedd5; color: #c2410c; }
+.pain-kind-badge.kind-articulacion { background: #e0f2fe; color: #0369a1; }
+.pain-kind-badge.kind-ligamento { background: #fef3c7; color: #b45309; }
+.pain-kind-badge.kind-nervio { background: #f3e8ff; color: #7e22ce; }
+.pain-kind-badge.kind-fascia { background: #ecfdf5; color: #047857; }
+
+.pain-lateral-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.pain-search-item-path {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.pain-icd10-hint {
+  font-size: 0.7rem;
+  color: #7c3aed;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pain-search-footer {
+  padding: 0.5rem 1.25rem;
+  background: #f8fafc;
+  border-top: 1.5px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.pain-search-footer kbd {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 0.68rem;
+  font-family: monospace;
+}

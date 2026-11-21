@@ -1,4 +1,12 @@
-import { AvailabilitySlot, Specialty, MedicalService, Professional } from '@citassistema/shared-types';
+import {
+  AvailabilitySlot,
+  Specialty,
+  MedicalService,
+  Professional,
+  PainPoint,
+  SavePainMapPayload,
+  PainEvolutionSeries,
+} from '@citassistema/shared-types';
 import { MOCK_SPECIALTIES, MOCK_SERVICES, MOCK_PROFESSIONALS } from '../data/mockData';
 import { buildMockWeekAvailability } from '../data/mockAvailability';
 
@@ -366,5 +374,87 @@ export async function confirmPasswordReset(token: string, newPassword: string): 
       success: false,
       message: 'Error de red al actualizar la contraseña.',
     };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Mapeo de Puntos Anatómicos de Dolor & Evolución Clínica
+// -----------------------------------------------------------------------------
+
+function getAuthHeaders(): HeadersInit {
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+  const clinicId = localStorage.getItem('clinic_id') || 'clinica-demo';
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'x-clinic-id': clinicId,
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+export async function savePainMap(payload: SavePainMapPayload): Promise<PainPoint[]> {
+  try {
+    const res = await fetch(`${API_BASE}/clinical/pain-map`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  } catch (error) {
+    console.warn('Error al guardar puntos del mapa de dolor en backend:', error);
+    throw error;
+  }
+}
+
+export async function fetchPainMap(
+  patientId: string,
+  options?: { recordId?: string; sessionId?: string },
+): Promise<PainPoint[]> {
+  try {
+    const params = new URLSearchParams();
+    if (options?.recordId) params.append('recordId', options.recordId);
+    if (options?.sessionId) params.append('sessionId', options.sessionId);
+
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetch(
+      `${API_BASE}/clinical/patients/${encodeURIComponent(patientId)}/pain-map${qs}`,
+      {
+        headers: getAuthHeaders(),
+      },
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (error) {
+    console.warn('Error al obtener mapa de dolor:', error);
+    return [];
+  }
+}
+
+export async function fetchPainEvolution(
+  patientId: string,
+  structureCode?: string,
+): Promise<PainEvolutionSeries[]> {
+  try {
+    const params = new URLSearchParams();
+    if (structureCode) params.append('structureCode', structureCode);
+
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetch(
+      `${API_BASE}/clinical/patients/${encodeURIComponent(patientId)}/pain-map/evolution${qs}`,
+      {
+        headers: getAuthHeaders(),
+      },
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (error) {
+    console.warn('Error al obtener serie de evolución del dolor:', error);
+    return [];
   }
 }
