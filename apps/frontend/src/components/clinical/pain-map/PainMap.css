@@ -68,6 +68,40 @@
   flex-wrap: wrap;
 }
 
+/* Alternador de Modo: 3D Interactivo vs 2D Jerárquico */
+.pain-mode-segmented-toggle {
+  display: inline-flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+}
+
+.pain-mode-toggle-btn {
+  border: none;
+  background: transparent;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pain-mode-toggle-btn:hover {
+  color: #0f172a;
+}
+
+.pain-mode-toggle-btn.active {
+  background: #0f766e;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.25);
+}
+
 /* Selector de Vistas: Anterior / Posterior / Lateral */
 .pain-view-segmented-toggle {
   display: inline-flex;

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MaterialIcon } from '../../ui/MaterialIcon';
 import { PainPoint } from '@citassistema/shared-types';
 import { usePainMapState } from './usePainMapState';
@@ -8,6 +8,7 @@ import { RegionDetailView } from './RegionDetailView';
 import { PainPointForm } from './PainPointForm';
 import { PainPointList } from './PainPointList';
 import { AnatomySearch } from './AnatomySearch';
+import { PainMap3DViewer } from './PainMap3DViewer';
 import './PainMap.css';
 
 export interface PainMapPickerProps {
@@ -21,6 +22,7 @@ export const PainMapPicker: React.FC<PainMapPickerProps> = ({
   onChange,
   readOnly: _readOnly = false,
 }) => {
+  const [displayMode, setDisplayMode] = useState<'2d' | '3d'>('2d');
   const {
     state,
     setView,
@@ -93,7 +95,29 @@ export const PainMapPicker: React.FC<PainMapPickerProps> = ({
         </div>
 
         <div className="pain-map-actions-row">
-          {/* Selector de Vistas: Anterior, Posterior, Lateral */}
+          {/* Alternador de Modo: 3D Interactivo vs 2D Jerárquico */}
+          <div className="pain-mode-segmented-toggle" role="group" aria-label="Modo de visualización anatómica">
+            <button
+              type="button"
+              className={`pain-mode-toggle-btn ${displayMode === '3d' ? 'active' : ''}`}
+              onClick={() => setDisplayMode('3d')}
+              title="Visualizador 3D interactivo con modelo femenino y rotación 360°"
+            >
+              <MaterialIcon name="view_in_ar" size={15} />
+              <span>3D Modelo 360°</span>
+            </button>
+            <button
+              type="button"
+              className={`pain-mode-toggle-btn ${displayMode === '2d' ? 'active' : ''}`}
+              onClick={() => setDisplayMode('2d')}
+              title="Esquema anatómico 2D jerárquico con zoom de subregiones"
+            >
+              <MaterialIcon name="grid_view" size={15} />
+              <span>2D Jerárquico</span>
+            </button>
+          </div>
+
+          {/* Selector de Vistas: Anterior, Posterior, Lateral (visible cuando está en modo 2D o para filtros) */}
           <div className="pain-view-segmented-toggle" role="tablist" aria-label="Seleccionar vista corporal">
             <button
               type="button"
@@ -154,9 +178,20 @@ export const PainMapPicker: React.FC<PainMapPickerProps> = ({
 
       {/* 3. Layout de Columnas: Visualizador Anatómico + Panel de Puntos/Ficha */}
       <div className="pain-main-columns-layout">
-        {/* Columna Izquierda: Silueta General o Detalle Zoom */}
+        {/* Columna Izquierda: Visualizador 3D Interactivo, Silueta General 2D o Detalle Zoom */}
         <div className="pain-visualizer-column">
-          {state.level === 'body' && (
+          {state.level === 'body' && displayMode === '3d' && (
+            <PainMap3DViewer
+              modelUrl="/models/female_anatomy_eva.glb"
+              points={state.points}
+              hoveredRegionCode={state.hoveredRegionCode}
+              onHoverRegion={setHoveredRegion}
+              onSelectRegion={selectRegion}
+              onSelectPoint={editPoint}
+            />
+          )}
+
+          {state.level === 'body' && displayMode === '2d' && (
             <BodyOverview
               view={state.activeView}
               points={state.points}
