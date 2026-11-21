@@ -1,0 +1,265 @@
+# Reporte de Cobertura Anatómica BodyParts3D 4.0
+
+Generado automáticamente: 21/11/2026, 5:42:01 a. m.
+
+### Estadísticas Generales
+- **Total de Mallas 3D:** 2234
+- **Músculos con Porciones/Cabezas individualizadas:** 256
+
+### Músculos con Sub-piezas Detectadas:
+- **Left choroid** (2 piezas): Left choroid, Left choroid
+- **Left optic nerve** (2 piezas): Left optic nerve, Left optic nerve
+- **Short ciliary nerve** (2 piezas): Short ciliary nerve, Short ciliary nerve
+- **Right choroid** (2 piezas): Right choroid, Right choroid
+- **Right optic nerve** (2 piezas): Right optic nerve, Right optic nerve
+- **Lateral right flexor hallucis brevis** (2 piezas): Lateral head of right flexor hallucis brevis, Medial head of right flexor hallucis brevis
+- **Lateral left flexor hallucis brevis** (2 piezas): Lateral head of left flexor hallucis brevis, Medial head of left flexor hallucis brevis
+- **Lateral right gastrocnemius** (2 piezas): Lateral head of right gastrocnemius, Medial head of right gastrocnemius
+- **Lateral left gastrocnemius** (2 piezas): Lateral head of left gastrocnemius, Medial head of left gastrocnemius
+- **Long right biceps femoris** (2 piezas): Long head of right biceps femoris, Short head of right biceps femoris
+- **Long left biceps femoris** (2 piezas): Long head of left biceps femoris, Short head of left biceps femoris
+- **Oblique right adductor hallucis** (2 piezas): Oblique head of right adductor hallucis, Transverse head of right adductor hallucis
+- **Oblique left adductor hallucis** (2 piezas): Oblique head of left adductor hallucis, Transverse head of left adductor hallucis
+- ** of right pectoralis major** (3 piezas): Abdominal part of right pectoralis major, Clavicular part of right pectoralis major, Sternocostal part of right pectoralis major
+- ** of left pectoralis major** (3 piezas): Abdominal part of left pectoralis major, Clavicular part of left pectoralis major, Sternocostal part of left pectoralis major
+- **Left coccygeus** (2 piezas): Left coccygeus, Left coccygeus
+- **Left iliococcygeus** (2 piezas): Left iliococcygeus, Left iliococcygeus
+- **Left pubococcygeus** (2 piezas): Left pubococcygeus, Left pubococcygeus
+- **Left puborectalis** (2 piezas): Left puborectalis, Left puborectalis
+- **tendinous arch of levator ani** (3 piezas): tendinous arch of levator ani, Tendinous arch of levator ani, Tendinous arch of levator ani
+- ** of right deltoid** (3 piezas): Acromial part of right deltoid, Clavicular part of right deltoid, Spinal part of right deltoid
+- ** of left deltoid** (3 piezas): Acromial part of left deltoid, Clavicular part of left deltoid, Spinal part of left deltoid
+- **Left flexor pollicis brevis** (2 piezas): Left flexor pollicis brevis, Superficial head of left flexor pollicis brevis
+- **Right extensor carpi ulnaris** (2 piezas): Right extensor carpi ulnaris, Right extensor carpi ulnaris
+- **Left extensor carpi ulnaris** (2 piezas): Left extensor carpi ulnaris, Left extensor carpi ulnaris
+- **Humeral right flexor carpi ulnaris** (2 piezas): Humeral head of right flexor carpi ulnaris, Ulnar head of right flexor carpi ulnaris
+- **Humeral left flexor carpi ulnaris** (2 piezas): Humeral head of left flexor carpi ulnaris, Ulnar head of left flexor carpi ulnaris
+- **Humeral right pronator teres** (2 piezas): Humeral head of right pronator teres, Ulnar head of right pronator teres
+- **Humeral left pronator teres** (2 piezas): Humeral head of left pronator teres, Ulnar head of left pronator teres
+- **Right flexor digitorum superficialis** (2 piezas): Right flexor digitorum superficialis, Right flexor digitorum superficialis
+- **Left flexor digitorum superficialis** (2 piezas): Left flexor digitorum superficialis, Left flexor digitorum superficialis
+- **Lateral right triceps brachii** (3 piezas): Lateral head of right triceps brachii, Long head of right triceps brachii, Medial head of right triceps brachii
+- **Lateral left triceps brachii** (3 piezas): Lateral head of left triceps brachii, Long head of left triceps brachii, Medial head of left triceps brachii
+- **Long right biceps brachii** (2 piezas): Long head of right biceps brachii, Short head of right biceps brachii
+- **Long left biceps brachii** (2 piezas): Long head of left biceps brachii, Short head of left biceps brachii
+- **Oblique right adductor pollicis** (2 piezas): Oblique head of right adductor pollicis, Transverse head of right adductor pollicis
+- **Oblique left adductor pollicis** (2 piezas): Oblique head of left adductor pollicis, Transverse head of left adductor pollicis
+- ** of right trapezius** (2 piezas): Ascending part of right trapezius, Descending part of right trapezius
+- ** of left trapezius** (2 piezas): Ascending part of left trapezius, Descending part of left trapezius
+- **Left digastric** (3 piezas): Left digastric, Left digastric, Left digastric
+- **Right digastric** (2 piezas): Right digastric, Right digastric
+- **Insular part of right middle cerebral artery** (2 piezas): Insular part of right middle cerebral artery, Insular part of right middle cerebral artery
+- **Insular part of left middle cerebral artery** (2 piezas): Insular part of left middle cerebral artery, Insular part of left middle cerebral artery
+- **Anterolateral central branch of right middle cerebral artery** (2 piezas): Anterolateral central branch of right middle cerebral artery, Anterolateral central branch of right middle cerebral artery
+- **Anterolateral central branch of left middle cerebral artery** (2 piezas): Anterolateral central branch of left middle cerebral artery, Anterolateral central branch of left middle cerebral artery
+- **artery of central sulcus** (2 piezas): artery of central sulcus, artery of central sulcus
+- **Artery of central sulcus** (2 piezas): Artery of central sulcus, Artery of central sulcus
+- **Artery of right precentral sulcus** (3 piezas): Artery of right precentral sulcus, Artery of right precentral sulcus, Artery of right precentral sulcus
+- **Artery of left precentral sulcus** (3 piezas): Artery of left precentral sulcus, Artery of left precentral sulcus, Artery of left precentral sulcus
+- **Basilar artery** (2 piezas): Basilar artery, Basilar artery
+- **Right splenial artery** (2 piezas): Right splenial artery, Right splenial artery
+- **Left splenial artery** (2 piezas): Left splenial artery, Left splenial artery
+- **Right lateral frontobasal artery** (2 piezas): Right lateral frontobasal artery, Right lateral frontobasal artery
+- **Left lateral frontobasal artery** (2 piezas): Left lateral frontobasal artery, Left lateral frontobasal artery
+- **Paracentral branch of right callosomarginal artery** (3 piezas): Paracentral branch of right callosomarginal artery, Paracentral branch of right callosomarginal artery, Paracentral branch of right callosomarginal artery
+- **Paracentral branch of left callosomarginal artery** (3 piezas): Paracentral branch of left callosomarginal artery, Paracentral branch of left callosomarginal artery, Paracentral branch of left callosomarginal artery
+- **Right posterior inferior cerebellar artery** (13 piezas): Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery, Right posterior inferior cerebellar artery
+- **Left posterior inferior cerebellar artery** (13 piezas): Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery, Left posterior inferior cerebellar artery
+- **Choroid plexus of cerebral hemisphere** (2 piezas): Choroid plexus of cerebral hemisphere, Choroid plexus of cerebral hemisphere
+- **Hypothalamus** (2 piezas): Hypothalamus, Hypothalamus
+- **Interpeduncular fossa** (2 piezas): Interpeduncular fossa, Interpeduncular fossa
+- **Lamina terminalis** (2 piezas): Lamina terminalis, Lamina terminalis
+- **Mammillary body** (2 piezas): Mammillary body, Mammillary body
+- **Medulla oblongata** (2 piezas): Medulla oblongata, Medulla oblongata
+- **Midbrain** (2 piezas): Midbrain, Midbrain
+- **Optic chiasm** (2 piezas): Optic chiasm, Optic chiasm
+- **Peduncle of midbrain** (2 piezas): Peduncle of midbrain, Peduncle of midbrain
+- **Pons** (2 piezas): Pons, Pons
+- **Tuber cinereum** (2 piezas): Tuber cinereum, Tuber cinereum
+- **Cerebellum** (2 piezas): Cerebellum, Cerebellum
+- **Orbital gyrus** (2 piezas): Orbital gyrus, Orbital gyrus
+- **Celiac artery** (2 piezas): Celiac artery, Celiac artery
+- **Left portal vein** (2 piezas): Left portal vein, Left portal vein
+- **Right portal vein** (2 piezas): Right portal vein, Right portal vein
+- **Caudate lobe branch of right hepatic artery** (2 piezas): Caudate lobe branch of right hepatic artery, Caudate lobe branch of right hepatic artery
+- **Right lobe branch of right hepatic artery** (2 piezas): Right lobe branch of right hepatic artery, Right lobe branch of right hepatic artery
+- **Superior mesenteric artery** (2 piezas): Superior mesenteric artery, Superior mesenteric artery
+- **Posterior intercostal arteries** (2 piezas): Posterior intercostal arteries, Posterior intercostal arteries
+- **Set of anterior intercostal veins** (2 piezas): Set of anterior intercostal veins, Set of anterior intercostal veins
+- **Right anterior segmental artery** (2 piezas): Right anterior segmental artery, Right anterior segmental artery
+- **Posterior segmental branch of left renal artery** (2 piezas): Posterior segmental branch of left renal artery, Posterior segmental branch of left renal artery
+- **Distal perforating artery** (2 piezas): Distal perforating artery, Distal perforating artery
+- **Dorsal venous arch of left foot** (2 piezas): Dorsal venous arch of left foot, Dorsal venous arch of left foot
+- **Dorsal venous arch of right foot** (2 piezas): Dorsal venous arch of right foot, Dorsal venous arch of right foot
+- **Dorsal digital artery of foot** (2 piezas): Dorsal digital artery of foot, Dorsal digital artery of foot
+- **Set of perforating arteries** (4 piezas): Set of perforating arteries, Set of perforating arteries, Set of perforating arteries, Set of perforating arteries
+- **Set of calcaneal branches of posterior tibial artery** (2 piezas): Set of calcaneal branches of posterior tibial artery, Set of calcaneal branches of posterior tibial artery
+- **Set of common plantar digital arteries** (2 piezas): Set of common plantar digital arteries, Set of common plantar digital arteries
+- **Set of dorsal digital arteries** (4 piezas): Set of dorsal digital arteries, Set of dorsal digital arteries, Set of dorsal digital arteries, Set of dorsal digital arteries
+- **Set of plantar digital arteries proper** (3 piezas): Set of plantar digital arteries proper, Set of plantar digital arteries proper, Set of plantar digital arteries proper
+- **Plantar metatarsal artery** (2 piezas): Plantar metatarsal artery, Plantar metatarsal artery
+- **Left anterior tibial vein** (2 piezas): Left anterior tibial vein, Left anterior tibial vein
+- **Set of perforating veins** (5 piezas): Set of perforating veins, Set of perforating veins, Set of perforating veins, Set of perforating veins, Set of perforating veins
+- **Left genicular vein** (4 piezas): Left genicular vein, Left genicular vein, Left genicular vein, Left genicular vein
+- **Tributary of plantar venous arch** (4 piezas): Tributary of plantar venous arch, Tributary of plantar venous arch, Tributary of plantar venous arch, Tributary of plantar venous arch
+- **Set of plantar digital veins** (2 piezas): Set of plantar digital veins, Set of plantar digital veins
+- **Right anterior tibial vein** (2 piezas): Right anterior tibial vein, Right anterior tibial vein
+- **Right genicular vein** (4 piezas): Right genicular vein, Right genicular vein, Right genicular vein, Right genicular vein
+- **Left fibular vein** (2 piezas): Left fibular vein, Left fibular vein
+- **Set of dorsal digital veins** (2 piezas): Set of dorsal digital veins, Set of dorsal digital veins
+- **Dorsal metacarpal vein** (2 piezas): Dorsal metacarpal vein, Dorsal metacarpal vein
+- **Right fibular vein** (3 piezas): Right fibular vein, Right fibular vein, Right fibular vein
+- **Plantar metatarsal vein** (2 piezas): Plantar metatarsal vein, Plantar metatarsal vein
+- **Left palmar metacarpal vein** (3 piezas): Left palmar metacarpal vein, Left palmar metacarpal vein, Left palmar metacarpal vein
+- **Left posterior circumflex humeral artery** (2 piezas): Left posterior circumflex humeral artery, Left posterior circumflex humeral artery
+- **Right palmar metacarpal vein** (3 piezas): Right palmar metacarpal vein, Right palmar metacarpal vein, Right palmar metacarpal vein
+- **Right posterior circumflex humeral artery** (2 piezas): Right posterior circumflex humeral artery, Right posterior circumflex humeral artery
+- **Left arteria radialis indicis** (2 piezas): Left arteria radialis indicis, Left arteria radialis indicis
+- **Proper palmar digital vein of left little finger** (3 piezas): Proper palmar digital vein of left little finger, Proper palmar digital vein of left little finger, Proper palmar digital vein of left little finger
+- **Common palmar digital vein** (2 piezas): Common palmar digital vein, Common palmar digital vein
+- **Proper palmar digital vein of left index finger** (2 piezas): Proper palmar digital vein of left index finger, Proper palmar digital vein of left index finger
+- **Proper palmar digital vein of left middle finger** (2 piezas): Proper palmar digital vein of left middle finger, Proper palmar digital vein of left middle finger
+- **Proper palmar digital vein of left ring finger** (2 piezas): Proper palmar digital vein of left ring finger, Proper palmar digital vein of left ring finger
+- **Left arteria princeps pollicis** (2 piezas): Left arteria princeps pollicis, Left arteria princeps pollicis
+- **Right arteria radialis indicis** (2 piezas): Right arteria radialis indicis, Right arteria radialis indicis
+- **Set of dorsal metacarpal arteries** (2 piezas): Set of dorsal metacarpal arteries, Set of dorsal metacarpal arteries
+- **Proper palmar digital vein of right little finger** (3 piezas): Proper palmar digital vein of right little finger, Proper palmar digital vein of right little finger, Proper palmar digital vein of right little finger
+- **Proper palmar digital vein of right index finger** (2 piezas): Proper palmar digital vein of right index finger, Proper palmar digital vein of right index finger
+- **Proper palmar digital vein of right middle finger** (2 piezas): Proper palmar digital vein of right middle finger, Proper palmar digital vein of right middle finger
+- **Proper palmar digital vein of right ring finger** (2 piezas): Proper palmar digital vein of right ring finger, Proper palmar digital vein of right ring finger
+- **Right arteria princeps pollicis** (2 piezas): Right arteria princeps pollicis, Right arteria princeps pollicis
+- **Cricoid cartilage** (2 piezas): Cricoid cartilage, Cricoid cartilage
+- **Inferior lingular bronchial tree** (2 piezas): Inferior lingular bronchial tree, Inferior lingular bronchial tree
+- **Left medial basal segmental bronchial tree** (2 piezas): Left medial basal segmental bronchial tree, Left medial basal segmental bronchial tree
+- **Left anterior segmental bronchial tree** (8 piezas): Left anterior segmental bronchial tree, Left anterior segmental bronchial tree, Left anterior segmental bronchial tree, Left anterior segmental bronchial tree, Left anterior segmental bronchial tree, Left anterior segmental bronchial tree, Left anterior segmental bronchial tree, Left anterior segmental bronchial tree
+- **Left apical segmental bronchial tree** (6 piezas): Left apical segmental bronchial tree, Left apical segmental bronchial tree, Left apical segmental bronchial tree, Left apical segmental bronchial tree, Left apical segmental bronchial tree, Left apical segmental bronchial tree
+- **Left lateral basal segmental bronchial tree** (4 piezas): Left lateral basal segmental bronchial tree, Left lateral basal segmental bronchial tree, Left lateral basal segmental bronchial tree, Left lateral basal segmental bronchial tree
+- **Left posterior basal segmental bronchial tree** (6 piezas): Left posterior basal segmental bronchial tree, Left posterior basal segmental bronchial tree, Left posterior basal segmental bronchial tree, Left posterior basal segmental bronchial tree, Left posterior basal segmental bronchial tree, Left posterior basal segmental bronchial tree
+- **Left posterior segmental bronchial tree** (3 piezas): Left posterior segmental bronchial tree, Left posterior segmental bronchial tree, Left posterior segmental bronchial tree
+- **Left superior segmental bronchial tree** (7 piezas): Left superior segmental bronchial tree, Left superior segmental bronchial tree, Left superior segmental bronchial tree, Left superior segmental bronchial tree, Left superior segmental bronchial tree, Left superior segmental bronchial tree, Left superior segmental bronchial tree
+- **Lateral segmental bronchial tree** (4 piezas): Lateral segmental bronchial tree, Lateral segmental bronchial tree, Lateral segmental bronchial tree, Lateral segmental bronchial tree
+- **Medial segmental bronchial tree** (4 piezas): Medial segmental bronchial tree, Medial segmental bronchial tree, Medial segmental bronchial tree, Medial segmental bronchial tree
+- **Right anterior basal segmental bronchial tree** (3 piezas): Right anterior basal segmental bronchial tree, Right anterior basal segmental bronchial tree, Right anterior basal segmental bronchial tree
+- **Right anterior segmental bronchial tree** (7 piezas): Right anterior segmental bronchial tree, Right anterior segmental bronchial tree, Right anterior segmental bronchial tree, Right anterior segmental bronchial tree, Right anterior segmental bronchial tree, Right anterior segmental bronchial tree, Right anterior segmental bronchial tree
+- **Right apical segmental bronchial tree** (8 piezas): Right apical segmental bronchial tree, Right apical segmental bronchial tree, Right apical segmental bronchial tree, Right apical segmental bronchial tree, Right apical segmental bronchial tree, Right apical segmental bronchial tree, Right apical segmental bronchial tree, Right apical segmental bronchial tree
+- **Right lateral basal segmental bronchial tree** (4 piezas): Right lateral basal segmental bronchial tree, Right lateral basal segmental bronchial tree, Right lateral basal segmental bronchial tree, Right lateral basal segmental bronchial tree
+- **Right medial basal segmental bronchial tree** (2 piezas): Right medial basal segmental bronchial tree, Right medial basal segmental bronchial tree
+- **Right posterior basal segmental bronchial tree** (6 piezas): Right posterior basal segmental bronchial tree, Right posterior basal segmental bronchial tree, Right posterior basal segmental bronchial tree, Right posterior basal segmental bronchial tree, Right posterior basal segmental bronchial tree, Right posterior basal segmental bronchial tree
+- **Right posterior segmental bronchial tree** (6 piezas): Right posterior segmental bronchial tree, Right posterior segmental bronchial tree, Right posterior segmental bronchial tree, Right posterior segmental bronchial tree, Right posterior segmental bronchial tree, Right posterior segmental bronchial tree
+- **Right superior segmental bronchial tree** (9 piezas): Right superior segmental bronchial tree, Right superior segmental bronchial tree, Right superior segmental bronchial tree, Right superior segmental bronchial tree, Right superior segmental bronchial tree, Right superior segmental bronchial tree, Right superior segmental bronchial tree, Right superior segmental bronchial tree, Right superior segmental bronchial tree
+- **Superior lingular bronchial tree** (4 piezas): Superior lingular bronchial tree, Superior lingular bronchial tree, Superior lingular bronchial tree, Superior lingular bronchial tree
+- **Left anterior basal segmental bronchial tree** (3 piezas): Left anterior basal segmental bronchial tree, Left anterior basal segmental bronchial tree, Left anterior basal segmental bronchial tree
+- **External anal sphincter** (2 piezas): External anal sphincter, External anal sphincter
+- **Splenic artery** (4 piezas): Splenic artery, Splenic artery, Splenic artery, Splenic artery
+- **Proximal part of ileum** (10 piezas): Proximal part of ileum, Proximal part of ileum, Proximal part of ileum, Proximal part of ileum, Proximal part of ileum, Proximal part of ileum, Proximal part of ileum, Proximal part of ileum, Proximal part of ileum, Proximal part of ileum
+- **Middle part of ileum** (10 piezas): Middle part of ileum, Middle part of ileum, Middle part of ileum, Middle part of ileum, Middle part of ileum, Middle part of ileum, Middle part of ileum, Middle part of ileum, Middle part of ileum, Middle part of ileum
+- **Distal part of ileum** (11 piezas): Distal part of ileum, Distal part of ileum, Distal part of ileum, Distal part of ileum, Distal part of ileum, Distal part of ileum, Distal part of ileum, Distal part of ileum, Distal part of ileum, Distal part of ileum, Distal part of ileum
+- **Proximal part of jejunum** (8 piezas): Proximal part of jejunum, Proximal part of jejunum, Proximal part of jejunum, Proximal part of jejunum, Proximal part of jejunum, Proximal part of jejunum, Proximal part of jejunum, Proximal part of jejunum
+- **Middle part of jejunum** (5 piezas): Middle part of jejunum, Middle part of jejunum, Middle part of jejunum, Middle part of jejunum, Middle part of jejunum
+- **Distal part of jejunum** (10 piezas): Distal part of jejunum, Distal part of jejunum, Distal part of jejunum, Distal part of jejunum, Distal part of jejunum, Distal part of jejunum, Distal part of jejunum, Distal part of jejunum, Distal part of jejunum, Distal part of jejunum
+- **First right anterior branch of anterior interventricular branch of left coronary artery** (2 piezas): First right anterior branch of anterior interventricular branch of left coronary artery, First right anterior branch of anterior interventricular branch of left coronary artery
+- **Diagonal branch of anterior descending branch of left coronary artery** (10 piezas): Diagonal branch of anterior descending branch of left coronary artery, Diagonal branch of anterior descending branch of left coronary artery, Diagonal branch of anterior descending branch of left coronary artery, Diagonal branch of anterior descending branch of left coronary artery, Diagonal branch of anterior descending branch of left coronary artery, Diagonal branch of anterior descending branch of left coronary artery, Diagonal branch of anterior descending branch of left coronary artery, Diagonal branch of anterior descending branch of left coronary artery, Diagonal branch of anterior descending branch of left coronary artery, Diagonal branch of anterior descending branch of left coronary artery
+- **Third right anterior branch of anterior interventricular branch of left coronary artery** (2 piezas): Third right anterior branch of anterior interventricular branch of left coronary artery, Third right anterior branch of anterior interventricular branch of left coronary artery
+- **Conus branch of anterior interventricular branch of left coronary artery** (2 piezas): Conus branch of anterior interventricular branch of left coronary artery, Conus branch of anterior interventricular branch of left coronary artery
+- **Circumflex branch of left coronary artery** (6 piezas): Circumflex branch of left coronary artery, Circumflex branch of left coronary artery, Circumflex branch of left coronary artery, Circumflex branch of left coronary artery, Circumflex branch of left coronary artery, Circumflex branch of left coronary artery
+- **Anterior interventricular vein** (9 piezas): Anterior interventricular vein, Anterior interventricular vein, Anterior interventricular vein, Anterior interventricular vein, Anterior interventricular vein, Anterior interventricular vein, Anterior interventricular vein, Anterior interventricular vein, Anterior interventricular vein
+- **Marginal branch of right coronary artery** (5 piezas): Marginal branch of right coronary artery, Marginal branch of right coronary artery, Marginal branch of right coronary artery, Marginal branch of right coronary artery, Marginal branch of right coronary artery
+- **Right conus artery** (2 piezas): Right conus artery, Right conus artery
+- **First anterior ventricular branch of right coronary artery** (3 piezas): First anterior ventricular branch of right coronary artery, First anterior ventricular branch of right coronary artery, First anterior ventricular branch of right coronary artery
+- **Middle cardiac vein** (14 piezas): Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein, Middle cardiac vein
+- **Posterior interventricular branch of right coronary artery** (9 piezas): Posterior interventricular branch of right coronary artery, Posterior interventricular branch of right coronary artery, Posterior interventricular branch of right coronary artery, Posterior interventricular branch of right coronary artery, Posterior interventricular branch of right coronary artery, Posterior interventricular branch of right coronary artery, Posterior interventricular branch of right coronary artery, Posterior interventricular branch of right coronary artery, Posterior interventricular branch of right coronary artery
+- **Posterior vein of left ventricle** (10 piezas): Posterior vein of left ventricle, Posterior vein of left ventricle, Posterior vein of left ventricle, Posterior vein of left ventricle, Posterior vein of left ventricle, Posterior vein of left ventricle, Posterior vein of left ventricle, Posterior vein of left ventricle, Posterior vein of left ventricle, Posterior vein of left ventricle
+- **Left marginal vein** (3 piezas): Left marginal vein, Left marginal vein, Left marginal vein
+- **First posterior ventricular branch of right coronary artery** (9 piezas): First posterior ventricular branch of right coronary artery, First posterior ventricular branch of right coronary artery, First posterior ventricular branch of right coronary artery, First posterior ventricular branch of right coronary artery, First posterior ventricular branch of right coronary artery, First posterior ventricular branch of right coronary artery, First posterior ventricular branch of right coronary artery, First posterior ventricular branch of right coronary artery, First posterior ventricular branch of right coronary artery
+- **Small cardiac vein** (2 piezas): Small cardiac vein, Small cardiac vein
+- **Anterior cardiac vein** (2 piezas): Anterior cardiac vein, Anterior cardiac vein
+- **Right marginal vein** (3 piezas): Right marginal vein, Right marginal vein, Right marginal vein
+- **Septal branch of anterior interventricular artery** (3 piezas): Septal branch of anterior interventricular artery, Septal branch of anterior interventricular artery, Septal branch of anterior interventricular artery
+- **Hyoid bone** (2 piezas): Hyoid bone, Hyoid bone
+- **Left thyro-arytenoid** (2 piezas): Left thyro-arytenoid, Left thyro-arytenoid
+- **Right thyro-arytenoid** (2 piezas): Right thyro-arytenoid, Right thyro-arytenoid
+- **Hepatovenous segment VIII** (2 piezas): Hepatovenous segment VIII, Hepatovenous segment VIII
+- **Left posterior basal segmental artery** (6 piezas): Left posterior basal segmental artery, Left posterior basal segmental artery, Left posterior basal segmental artery, Left posterior basal segmental artery, Left posterior basal segmental artery, Left posterior basal segmental artery
+- **Left lateral basal segmental artery** (4 piezas): Left lateral basal segmental artery, Left lateral basal segmental artery, Left lateral basal segmental artery, Left lateral basal segmental artery
+- **Left anterior basal segmental artery** (3 piezas): Left anterior basal segmental artery, Left anterior basal segmental artery, Left anterior basal segmental artery
+- **Left medial basal segmental artery** (2 piezas): Left medial basal segmental artery, Left medial basal segmental artery
+- **Left superior segmental artery** (7 piezas): Left superior segmental artery, Left superior segmental artery, Left superior segmental artery, Left superior segmental artery, Left superior segmental artery, Left superior segmental artery, Left superior segmental artery
+- **Inferior lingular artery** (2 piezas): Inferior lingular artery, Inferior lingular artery
+- **Superior lingular artery** (4 piezas): Superior lingular artery, Superior lingular artery, Superior lingular artery, Superior lingular artery
+- **Left anterior segmental artery** (8 piezas): Left anterior segmental artery, Left anterior segmental artery, Left anterior segmental artery, Left anterior segmental artery, Left anterior segmental artery, Left anterior segmental artery, Left anterior segmental artery, Left anterior segmental artery
+- **Left posterior segmental artery** (3 piezas): Left posterior segmental artery, Left posterior segmental artery, Left posterior segmental artery
+- **Left apical segmental artery** (4 piezas): Left apical segmental artery, Left apical segmental artery, Left apical segmental artery, Left apical segmental artery
+- **Left superior pulmonary vein** (2 piezas): Left superior pulmonary vein, Left superior pulmonary vein
+- **Left posterior segmental vein** (10 piezas): Left posterior segmental vein, Left posterior segmental vein, Left posterior segmental vein, Left posterior segmental vein, Left posterior segmental vein, Left posterior segmental vein, Left posterior segmental vein, Left posterior segmental vein, Left posterior segmental vein, Left posterior segmental vein
+- **Left anterior segmental vein** (3 piezas): Left anterior segmental vein, Left anterior segmental vein, Left anterior segmental vein
+- **Inferior lingular vein** (2 piezas): Inferior lingular vein, Inferior lingular vein
+- **Left apical segmental vein** (7 piezas): Left apical segmental vein, Left apical segmental vein, Left apical segmental vein, Left apical segmental vein, Left apical segmental vein, Left apical segmental vein, Left apical segmental vein
+- **Superior lingular vein** (2 piezas): Superior lingular vein, Superior lingular vein
+- **Left inferior pulmonary vein** (3 piezas): Left inferior pulmonary vein, Left inferior pulmonary vein, Left inferior pulmonary vein
+- **Left posterior basal segmental vein** (4 piezas): Left posterior basal segmental vein, Left posterior basal segmental vein, Left posterior basal segmental vein, Left posterior basal segmental vein
+- **Left lateral basal segmental vein** (4 piezas): Left lateral basal segmental vein, Left lateral basal segmental vein, Left lateral basal segmental vein, Left lateral basal segmental vein
+- **Left anterior basal segmental vein** (4 piezas): Left anterior basal segmental vein, Left anterior basal segmental vein, Left anterior basal segmental vein, Left anterior basal segmental vein
+- **Apical part of right apical segmental artery** (4 piezas): Apical part of right apical segmental artery, Apical part of right apical segmental artery, Apical part of right apical segmental artery, Apical part of right apical segmental artery
+- **Apical part of right posterior segmental artery** (3 piezas): Apical part of right posterior segmental artery, Apical part of right posterior segmental artery, Apical part of right posterior segmental artery
+- **Posterior part of right posterior segmental artery** (3 piezas): Posterior part of right posterior segmental artery, Posterior part of right posterior segmental artery, Posterior part of right posterior segmental artery
+- **Posterior branch of right anterior segmental artery** (3 piezas): Posterior branch of right anterior segmental artery, Posterior branch of right anterior segmental artery, Posterior branch of right anterior segmental artery
+- **Anterior branch of right anterior segmental artery** (4 piezas): Anterior branch of right anterior segmental artery, Anterior branch of right anterior segmental artery, Anterior branch of right anterior segmental artery, Anterior branch of right anterior segmental artery
+- **Anterior part of right apical segmental artery** (4 piezas): Anterior part of right apical segmental artery, Anterior part of right apical segmental artery, Anterior part of right apical segmental artery, Anterior part of right apical segmental artery
+- **Anterior branch of lateral segmental artery** (2 piezas): Anterior branch of lateral segmental artery, Anterior branch of lateral segmental artery
+- **Posterior branch of lateral segmental artery** (2 piezas): Posterior branch of lateral segmental artery, Posterior branch of lateral segmental artery
+- **Superior branch of medial segmental artery** (2 piezas): Superior branch of medial segmental artery, Superior branch of medial segmental artery
+- **Inferior branch of medial segmental artery** (2 piezas): Inferior branch of medial segmental artery, Inferior branch of medial segmental artery
+- **Lateral branch of right superior segmental artery** (3 piezas): Lateral branch of right superior segmental artery, Lateral branch of right superior segmental artery, Lateral branch of right superior segmental artery
+- **Medial branch of right superior segmental artery** (3 piezas): Medial branch of right superior segmental artery, Medial branch of right superior segmental artery, Medial branch of right superior segmental artery
+- **Superior branch of right superior segmental artery** (3 piezas): Superior branch of right superior segmental artery, Superior branch of right superior segmental artery, Superior branch of right superior segmental artery
+- **Basal branch of right anterior basal segmental artery** (2 piezas): Basal branch of right anterior basal segmental artery, Basal branch of right anterior basal segmental artery
+- **Lateral branch of right lateral basal segmental artery** (4 piezas): Lateral branch of right lateral basal segmental artery, Lateral branch of right lateral basal segmental artery, Lateral branch of right lateral basal segmental artery, Lateral branch of right lateral basal segmental artery
+- **Mediobasal branch of right posterior basal segmental artery** (2 piezas): Mediobasal branch of right posterior basal segmental artery, Mediobasal branch of right posterior basal segmental artery
+- **Accessory subsuperior branch of right posterior basal segmental artery** (2 piezas): Accessory subsuperior branch of right posterior basal segmental artery, Accessory subsuperior branch of right posterior basal segmental artery
+- **Laterobasal branch of right posterior basal segmental artery** (2 piezas): Laterobasal branch of right posterior basal segmental artery, Laterobasal branch of right posterior basal segmental artery
+- **Inferior part of right anterior segmental vein** (4 piezas): Inferior part of right anterior segmental vein, Superior part of right anterior segmental vein, Right anterior segmental vein, Right anterior segmental vein
+- **Right posterior segmental vein** (7 piezas): Right posterior segmental vein, Right posterior segmental vein, Right posterior segmental vein, Right posterior segmental vein, Right posterior segmental vein, Right posterior segmental vein, Right posterior segmental vein
+- **Superior part of medial segmental vein** (3 piezas): Superior part of medial segmental vein, Inferior part of medial segmental vein, Inferior part of medial segmental vein
+- **Anterior part of lateral segmental vein** (3 piezas): Anterior part of lateral segmental vein, Anterior part of lateral segmental vein, Anterior part of lateral segmental vein
+- **Posterior part of lateral segmental vein** (3 piezas): Posterior part of lateral segmental vein, Posterior part of lateral segmental vein, Posterior part of lateral segmental vein
+- **Right posterior basal segmental vein** (9 piezas): Right posterior basal segmental vein, Right posterior basal segmental vein, Right posterior basal segmental vein, Right posterior basal segmental vein, Right posterior basal segmental vein, Right posterior basal segmental vein, Right posterior basal segmental vein, Right posterior basal segmental vein, Right posterior basal segmental vein
+- **Anterior part of right apical segmental vein** (2 piezas): Anterior part of right apical segmental vein, Anterior part of right apical segmental vein
+- **Right anterior basal segmental vein** (2 piezas): Right anterior basal segmental vein, Right anterior basal segmental vein
+- **Right superior segmental vein** (6 piezas): Right superior segmental vein, Right superior segmental vein, Right superior segmental vein, Right superior segmental vein, Right superior segmental vein, Right superior segmental vein
+- **Right medial basal segmental vein** (2 piezas): Right medial basal segmental vein, Right medial basal segmental vein
+- **Right lateral basal segmental vein** (4 piezas): Right lateral basal segmental vein, Right lateral basal segmental vein, Right lateral basal segmental vein, Right lateral basal segmental vein
+- **Apical part of right apical segmental vein** (3 piezas): Apical part of right apical segmental vein, Apical part of right apical segmental vein, Apical part of right apical segmental vein
+- **Anterior inferior segmental tributary of middle hepatic vein** (2 piezas): Anterior inferior segmental tributary of middle hepatic vein, Anterior inferior segmental tributary of middle hepatic vein
+- **Medial inferior segmental tributary of middle hepatic vein** (2 piezas): Medial inferior segmental tributary of middle hepatic vein, Medial inferior segmental tributary of middle hepatic vein
+- **Lateral superior tributary of left hepatic biliary tree** (2 piezas): Lateral superior tributary of left hepatic biliary tree, Lateral superior tributary of left hepatic biliary tree
+- **Lateral superior segmental hepatic artery** (2 piezas): Lateral superior segmental hepatic artery, Lateral superior segmental hepatic artery
+- **Lateral inferior segmental tributary of left hepatic vein** (3 piezas): Lateral inferior segmental tributary of left hepatic vein, Lateral inferior segmental tributary of left hepatic vein, Lateral inferior segmental tributary of left hepatic vein
+- **Medial superior tributary of left hepatic biliary tree** (2 piezas): Medial superior tributary of left hepatic biliary tree, Medial superior tributary of left hepatic biliary tree
+- **Posterior superior tributary of right hepatic biliary tree** (2 piezas): Posterior superior tributary of right hepatic biliary tree, Posterior superior tributary of right hepatic biliary tree
+- **Posterior superior segmental branch of right portal vein** (2 piezas): Posterior superior segmental branch of right portal vein, Posterior superior segmental branch of right portal vein
+- **Posterior superior segmental hepatic artery** (2 piezas): Posterior superior segmental hepatic artery, Posterior superior segmental hepatic artery
+- **Posterior inferior segmental tributary of right hepatic vein** (2 piezas): Posterior inferior segmental tributary of right hepatic vein, Posterior inferior segmental tributary of right hepatic vein
+- **Sesamoid bone of left foot** (2 piezas): Sesamoid bone of left foot, Sesamoid bone of left foot
+- **Sesamoid bone of right foot** (2 piezas): Sesamoid bone of right foot, Sesamoid bone of right foot
+- **Left colic vein** (3 piezas): Left colic vein, Left colic vein, Left colic vein
+- **Ileocolic vein** (2 piezas): Ileocolic vein, Ileocolic vein
+- **Inferior vena cava** (2 piezas): Inferior vena cava, Inferior vena cava
+- **Inferior phrenic vein** (6 piezas): Inferior phrenic vein, Inferior phrenic vein, Inferior phrenic vein, Inferior phrenic vein, Inferior phrenic vein, Inferior phrenic vein
+- **Anterior division of left renal artery** (6 piezas): Anterior division of left renal artery, Anterior division of left renal artery, Anterior division of left renal artery, Anterior division of left renal artery, Anterior division of left renal artery, Anterior division of left renal artery
+- **Left internal iliac vein** (3 piezas): Left internal iliac vein, Left internal iliac vein, Left internal iliac vein
+- **Posterior division of left renal artery** (3 piezas): Posterior division of left renal artery, Posterior division of left renal artery, Posterior division of left renal artery
+- **Left renal vein** (2 piezas): Left renal vein, Left renal vein
+- **Left external iliac vein** (4 piezas): Left external iliac vein, Left external iliac vein, Left external iliac vein, Left external iliac vein
+- **Left dorsal artery of penis** (2 piezas): Left dorsal artery of penis, Left dorsal artery of penis
+- **Left inferior phrenic artery** (7 piezas): Left inferior phrenic artery, Left inferior phrenic artery, Left inferior phrenic artery, Left inferior phrenic artery, Left inferior phrenic artery, Left inferior phrenic artery, Left inferior phrenic artery
+- **Pancreaticoduodenal vein** (3 piezas): Pancreaticoduodenal vein, Pancreaticoduodenal vein, Pancreaticoduodenal vein
+- **Anterior division of right renal artery** (6 piezas): Anterior division of right renal artery, Anterior division of right renal artery, Anterior division of right renal artery, Anterior division of right renal artery, Anterior division of right renal artery, Anterior division of right renal artery
+- **Right internal iliac vein** (6 piezas): Right internal iliac vein, Right internal iliac vein, Right internal iliac vein, Right internal iliac vein, Right internal iliac vein, Right internal iliac vein
+- **Posterior division of right renal artery** (3 piezas): Posterior division of right renal artery, Posterior division of right renal artery, Posterior division of right renal artery
+- **Right renal vein** (2 piezas): Right renal vein, Right renal vein
+- **Ureteric segment of right renal artery** (2 piezas): Ureteric segment of right renal artery, Ureteric segment of right renal artery
+- **Right dorsal artery of penis** (2 piezas): Right dorsal artery of penis, Right dorsal artery of penis
+- **Right inferior phrenic artery** (8 piezas): Right inferior phrenic artery, Right inferior phrenic artery, Right inferior phrenic artery, Right inferior phrenic artery, Right inferior phrenic artery, Right inferior phrenic artery, Right inferior phrenic artery, Right inferior phrenic artery
+- **Lumbar vein** (2 piezas): Lumbar vein, Lumbar vein
+- **Lumbar artery** (2 piezas): Lumbar artery, Lumbar artery
+- **Superior phrenic vein** (7 piezas): Superior phrenic vein, Superior phrenic vein, Superior phrenic vein, Superior phrenic vein, Superior phrenic vein, Superior phrenic vein, Superior phrenic vein

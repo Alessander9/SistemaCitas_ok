@@ -25,6 +25,14 @@ import {
   translateAtlasNameEs,
 } from './humanAtlasEngine';
 import { SelectStructureOptions } from './usePainMapState';
+import { AnatomyLabelsOverlay } from './AnatomyLabelsOverlay';
+import { DissectionPanel } from './DissectionPanel';
+import {
+  AnatomyIndexManifest,
+  DissectionView,
+  resolveDissectionView,
+} from './anatomyHierarchy';
+import { layoutAnatomyLabels, PlacedLabel, ScreenAnchor } from './labelLayout';
 
 export interface PainMap3DViewerProps {
   atlasUrl?: string;
@@ -102,6 +110,14 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
   const [autoOpenEvaOnTap, setAutoOpenEvaOnTap] = useState<boolean>(true);
   const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
 
+  // Estados de Disección Anatómica Estratificada & Etiquetas 3D (Fase 1-6)
+  const [anatomyIndex, setAnatomyIndex] = useState<AnatomyIndexManifest | null>(null);
+  const [dissectionView, setDissectionView] = useState<DissectionView | null>(null);
+  const [hiddenDissectionItems, setHiddenDissectionItems] = useState<Set<string>>(new Set());
+  const [hoveredLabelId, setHoveredLabelId] = useState<string | null>(null);
+  const [placedLabels, setPlacedLabels] = useState<PlacedLabel[]>([]);
+  const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+
   // Referencias para callbacks actualizados dentro del bucle Three.js
   const latestSceneStateRef = useRef<ViewerSceneState>(sceneState);
   latestSceneStateRef.current = sceneState;
@@ -111,6 +127,18 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
 
   const autoOpenRef = useRef<boolean>(autoOpenEvaOnTap);
   autoOpenRef.current = autoOpenEvaOnTap;
+
+  const latestDissectionViewRef = useRef<DissectionView | null>(null);
+  latestDissectionViewRef.current = dissectionView;
+
+  const latestHiddenItemsRef = useRef<Set<string>>(hiddenDissectionItems);
+  latestHiddenItemsRef.current = hiddenDissectionItems;
+
+  const setPlacedLabelsRef = useRef(setPlacedLabels);
+  setPlacedLabelsRef.current = setPlacedLabels;
+
+  const anatomyIndexRef = useRef<AnatomyIndexManifest | null>(null);
+  anatomyIndexRef.current = anatomyIndex;
 
   // 1. Cargar el manifiesto atlas.json de BodyParts3D (ashemag/human-atlas)
   useEffect(() => {
@@ -136,6 +164,32 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
 
     return () => abort.abort();
   }, [atlasUrl]);
+
+  // Cargar índice anatómico precomputado de agrupaciones y anclajes
+  useEffect(() => {
+    fetch('/models/atlas-anatomy-index.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: AnatomyIndexManifest | null) => {
+        if (data) setAnatomyIndex(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Resolver vista de disección estratificada cuando se aísla una pieza
+  useEffect(() => {
+    if (sceneState.isolate && sceneState.selected.length > 0 && atlas) {
+      try {
+        const view = resolveDissectionView(sceneState.selected[0], atlas, anatomyIndex);
+        setDissectionView(view);
+        setHiddenDissectionItems(new Set());
+      } catch {
+        setDissectionView(null);
+      }
+    } else if (!sceneState.isolate) {
+      setDissectionView(null);
+      setPlacedLabels([]);
+    }
+  }, [sceneState.isolate, sceneState.selected, atlas, anatomyIndex]);
 
   // Mapa rápido de piezas por ID
   const partsById = useMemo(
@@ -655,8 +709,11 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
       dirty = true;
     };
 
+    let lastLabelUpdate = 0;
+
     const resize = () => {
       if (!el.clientWidth || !el.clientHeight) return;
+      setContainerSize({ width: el.clientWidth, height: el.clientHeight });
       layoutKey = '';
       lastState = null;
       renderer.setPixelRatio(
@@ -818,8 +875,25 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
       if (changed || moving || lastExtent < 0) {
         const visible = new Set(s.visible);
         const selection = new Set(s.selected);
+        const dView = latestDissectionViewRef.current;
+        const hiddenItems = latestHiddenItemsRef.current;
+
+        const hiddenParts = new Set<string>();
+        if (dView && hiddenItems.size > 0) {
+          dView.layers.forEach((l) => {
+            l.items.forEach((item) => {
+              if (hiddenItems.has(item.id)) {
+                item.partIds.forEach((pid) => hiddenParts.add(pid));
+              }
+            });
+          });
+        }
+        const dissectionPartSet = dView ? new Set(dView.allPartIds) : selection;
+
         const visibleParts = atlas.parts.filter((p) =>
-          s.isolate ? selection.has(p.id) : visible.has(p.system) || selection.has(p.id),
+          s.isolate
+            ? dissectionPartSet.has(p.id) && !hiddenParts.has(p.id)
+            : visible.has(p.system) || selection.has(p.id),
         );
         const nextLayoutKey =
           visibleParts.map((p) => p.id).join(',') + ':' + camera.aspect.toFixed(3);
@@ -862,7 +936,9 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
           }
 
           const selected = selection.has(p.id);
-          const isVis = s.isolate ? selected : visible.has(p.system) || selected;
+          const isVis = s.isolate
+            ? dissectionPartSet.has(p.id) && !hiddenParts.has(p.id)
+            : visible.has(p.system) || selected;
           data.set([dx, dy, dz, isVis ? 1 : 0], i * 4);
           selectedData[i * 4] = selected && !s.isolate ? 255 : 0;
           markerPositions.set(
@@ -912,14 +988,18 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
         fit(amount > 0.5 ? 'front' : s.view, Math.max(0, (amount - 0.3) / 0.7));
       }
 
+      const dView = latestDissectionViewRef.current;
+      const hiddenItems = latestHiddenItemsRef.current;
+      const dissectionPartSet = dView ? new Set(dView.allPartIds) : new Set(s.selected);
+
       const isolateKey = s.isolate
-        ? s.selected.join(',') + ':' + s.reset + ':' + camera.aspect
+        ? (dView ? dView.id : s.selected.join(',')) + ':' + s.reset + ':' + camera.aspect
         : '';
       if (isolateKey !== lastIsolate || (s.isolate && moving)) {
         if (s.isolate) {
           const box = new T.Box3();
           atlas.parts.forEach((p, i) => {
-            if (s.selected.includes(p.id)) {
+            if (dissectionPartSet.has(p.id)) {
               box.union(
                 bounds[i]
                   .clone()
@@ -934,7 +1014,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
               0.12,
               (Math.max(size.y, size.x / camera.aspect, size.z) /
                 (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2)))) *
-                1.65,
+                (dView?.cameraPreset?.distanceMultiplier || 1.4),
             );
             controls.target.copy(center);
             camera.position
@@ -948,6 +1028,109 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
           fit(s.view, amount);
         }
         lastIsolate = isolateKey;
+      }
+
+      // Proyección en tiempo real de etiquetas 3D con líneas guía
+      if (s.isolate && dView && el) {
+        const now = performance.now();
+        if (now - lastLabelUpdate > 30) {
+          lastLabelUpdate = now;
+          const cw = el.clientWidth;
+          const ch = el.clientHeight;
+          if (cw > 0 && ch > 0) {
+            const screenAnchors: ScreenAnchor[] = [];
+
+            // Centro de la región para ubicar referencias virtuales
+            const regionCenter = new T.Vector3();
+            let countParts = 0;
+            dView.allPartIds.forEach((pid) => {
+              if (indexMap.has(pid)) {
+                const idx = indexMap.get(pid)!;
+                regionCenter.add(centers[idx]);
+                countParts++;
+              }
+            });
+            if (countParts > 0) regionCenter.divideScalar(countParts);
+
+            dView.layers.forEach((layer) => {
+              layer.items.forEach((item) => {
+                if (hiddenItems.has(item.id)) return;
+
+                if (item.isVirtual && item.virtualOffset) {
+                  const vPos = regionCenter
+                    .clone()
+                    .add(new T.Vector3(...item.virtualOffset));
+                  const screenPos = vPos.clone().project(camera);
+                  if (screenPos.z > -1 && screenPos.z < 1) {
+                    const x = (screenPos.x * 0.5 + 0.5) * cw;
+                    const y = (-screenPos.y * 0.5 + 0.5) * ch;
+                    let isFacing = true;
+                    if (item.normal) {
+                      const camDir = camera.position.clone().sub(vPos).normalize();
+                      isFacing = new T.Vector3(...item.normal).dot(camDir) > -0.25;
+                    }
+                    screenAnchors.push({
+                      id: item.id,
+                      name: item.label,
+                      detail: item.detail,
+                      x,
+                      y,
+                      z: screenPos.z,
+                      isFacingCamera: isFacing,
+                      isVirtual: true,
+                      isActive: item.isActive,
+                    });
+                  }
+                } else if (!item.isVirtual && item.partIds.length > 0) {
+                  const partId = item.partIds[0];
+                  if (indexMap.has(partId)) {
+                    const idx = indexMap.get(partId)!;
+                    const pos = new T.Vector3(
+                      centers[idx].x + data[idx * 4],
+                      centers[idx].y + data[idx * 4 + 1],
+                      centers[idx].z + data[idx * 4 + 2],
+                    );
+                    const screenPos = pos.clone().project(camera);
+                    if (screenPos.z > -1 && screenPos.z < 1) {
+                      const x = (screenPos.x * 0.5 + 0.5) * cw;
+                      const y = (-screenPos.y * 0.5 + 0.5) * ch;
+                      const camDir = camera.position.clone().sub(pos).normalize();
+                      const partAnchors = anatomyIndexRef.current?.parts?.[partId]?.anchors;
+                      const isFacing = partAnchors?.front
+                        ? new T.Vector3(...partAnchors.front.normal).dot(camDir) > -0.3
+                        : true;
+
+                      screenAnchors.push({
+                        id: item.id,
+                        name: item.label,
+                        detail: item.detail,
+                        x,
+                        y,
+                        z: screenPos.z,
+                        isFacingCamera: isFacing,
+                        isVirtual: false,
+                        isActive: item.isActive,
+                      });
+                    }
+                  }
+                }
+              });
+            });
+
+            const laidOut = layoutAnatomyLabels(screenAnchors, {
+              width: cw,
+              height: ch,
+              minSpacing: 42,
+              labelWidth: 190,
+              leftMargin: 20,
+              rightMargin: 20,
+            });
+
+            setPlacedLabelsRef.current?.(laidOut);
+          }
+        }
+      } else if (!s.isolate && setPlacedLabelsRef.current) {
+        setPlacedLabelsRef.current((prev) => (prev.length > 0 ? [] : prev));
       }
 
       controls.enableRotate = amount < 0.8;
@@ -1269,6 +1452,24 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
       <div className="human-atlas-viewport-area">
         <div ref={hostRef} className="human-atlas-canvas-host" />
 
+        {/* Capa de Etiquetas 3D con Líneas Guía (Overlay SVG de Disección) */}
+        {sceneState.isolate && placedLabels.length > 0 && containerSize.width > 0 && (
+          <AnatomyLabelsOverlay
+            labels={placedLabels}
+            width={containerSize.width}
+            height={containerSize.height}
+            hoveredId={hoveredLabelId}
+            selectedId={sceneState.selected[0] || null}
+            onHover={setHoveredLabelId}
+            onSelect={(id) => {
+              const item = dissectionView?.layers.flatMap((l) => l.items).find((i) => i.id === id);
+              if (item && item.partIds.length > 0) {
+                handlePartSelected(item.partIds[0], undefined, false);
+              }
+            }}
+          />
+        )}
+
         {/* Indicador de carga progresiva de los 15 bloques binarios */}
         {progress < 100 && !error && (
           <div className="human-atlas-loading-overlay" role="status">
@@ -1532,88 +1733,141 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
           </button>
         </div>
 
-        {/* Tarjeta Flotante de Inspección de la Pieza 3D Seleccionada */}
-        {activeMapping && (
-          <div className="human-atlas-inspector-card">
-            <div className="human-atlas-inspector-top">
-              <div>
-                <span className="human-atlas-inspector-fma">
-                  CÓDIGO {activeMapping.fmaId} · PIEZA {activeMapping.atlasPartId}
-                </span>
-                <h5 className="human-atlas-inspector-title">
-                  {activeMapping.atlasPartNameEs}
-                </h5>
-                <p className="human-atlas-inspector-subtitle">
-                  Zona clínica: <strong>{activeMapping.structureLabel}</strong> ({activeMapping.regionLabel} ·{' '}
-                  {activeMapping.laterality === 'D'
-                    ? 'Lado Derecho'
-                    : activeMapping.laterality === 'I'
-                      ? 'Lado Izquierdo'
-                      : 'Eje Central'}
-                  )
-                </p>
+        {/* Panel de Disección Anatómica Estratificada (cuando una pieza está aislada) */}
+        {sceneState.isolate && dissectionView ? (
+          <DissectionPanel
+            view={dissectionView}
+            hiddenItemIds={hiddenDissectionItems}
+            hoveredId={hoveredLabelId}
+            selectedId={sceneState.selected[0] || null}
+            onToggleItem={(itemId) => {
+              setHiddenDissectionItems((prev) => {
+                const next = new Set(prev);
+                if (next.has(itemId)) next.delete(itemId);
+                else next.add(itemId);
+                return next;
+              });
+              markDirtyRef.current?.();
+            }}
+            onHoverItem={setHoveredLabelId}
+            onSelectItem={(itemId) => {
+              const item = dissectionView.layers.flatMap((l) => l.items).find((i) => i.id === itemId);
+              if (item && item.partIds.length > 0) {
+                handlePartSelected(item.partIds[0], undefined, false);
+              }
+            }}
+            onExitIsolation={() => {
+              setSceneState((s) => ({ ...s, isolate: false }));
+              setDissectionView(null);
+            }}
+            onOpenEva={() => {
+              if (activeMapping && onSelectStructure) {
+                onSelectStructure(
+                  activeMapping.structureCode,
+                  { x: activeMapping.coordX, y: activeMapping.coordY },
+                  {
+                    laterality: activeMapping.laterality,
+                    view: activeMapping.view,
+                    regionCode: activeMapping.regionCode,
+                    atlasMeta: {
+                      atlasPartId: activeMapping.atlasPartId,
+                      atlasPartName: activeMapping.atlasPartName,
+                      atlasPartNameEs: activeMapping.atlasPartNameEs,
+                      fmaId: activeMapping.fmaId,
+                      system: activeMapping.system,
+                      pos3d: activeMapping.pos3d,
+                    },
+                  },
+                );
+              } else if (activeMapping) {
+                onSelectRegion(activeMapping.regionCode);
+              }
+            }}
+          />
+        ) : (
+          /* Tarjeta Flotante Normal de Inspección cuando no está en aislamiento */
+          activeMapping && (
+            <div className="human-atlas-inspector-card">
+              <div className="human-atlas-inspector-top">
+                <div>
+                  <span className="human-atlas-inspector-fma">
+                    CÓDIGO {activeMapping.fmaId} · PIEZA {activeMapping.atlasPartId}
+                  </span>
+                  <h5 className="human-atlas-inspector-title">
+                    {activeMapping.atlasPartNameEs}
+                  </h5>
+                  <p className="human-atlas-inspector-subtitle">
+                    Zona clínica: <strong>{activeMapping.structureLabel}</strong> ({activeMapping.regionLabel} ·{' '}
+                    {activeMapping.laterality === 'D'
+                      ? 'Lado Derecho'
+                      : activeMapping.laterality === 'I'
+                        ? 'Lado Izquierdo'
+                        : 'Eje Central'}
+                    )
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="human-atlas-close-btn"
+                  onClick={() => {
+                    setActiveMapping(null);
+                    setSceneState((s) => ({ ...s, selected: [], isolate: false }));
+                  }}
+                  title="Limpiar selección 3D"
+                >
+                  <MaterialIcon name="close" size={16} />
+                </button>
               </div>
-              <button
-                type="button"
-                className="human-atlas-close-btn"
-                onClick={() => {
-                  setActiveMapping(null);
-                  setSceneState((s) => ({ ...s, selected: [], isolate: false }));
-                }}
-                title="Limpiar selección 3D"
-              >
-                <MaterialIcon name="close" size={16} />
-              </button>
-            </div>
 
-            <div className="human-atlas-inspector-actions">
-              <button
-                type="button"
-                className={`human-atlas-action-btn secondary ${sceneState.isolate ? 'active' : ''}`}
-                onClick={() =>
-                  setSceneState((s) => ({
-                    ...s,
-                    isolate: !s.isolate,
-                    explode: 0,
-                  }))
-                }
-              >
-                <MaterialIcon name="center_focus_strong" size={15} />
-                <span>{sceneState.isolate ? 'Ver cuerpo completo' : 'Aislar pieza en 3D'}</span>
-              </button>
-
-              <button
-                type="button"
-                className="human-atlas-action-btn primary"
-                onClick={() => {
-                  if (onSelectStructure) {
-                    onSelectStructure(
-                      activeMapping.structureCode,
-                      { x: activeMapping.coordX, y: activeMapping.coordY },
-                      {
-                        laterality: activeMapping.laterality,
-                        view: activeMapping.view,
-                        regionCode: activeMapping.regionCode,
-                        atlasMeta: {
-                          atlasPartId: activeMapping.atlasPartId,
-                          atlasPartName: activeMapping.atlasPartName,
-                          atlasPartNameEs: activeMapping.atlasPartNameEs,
-                          fmaId: activeMapping.fmaId,
-                          system: activeMapping.system,
-                          pos3d: activeMapping.pos3d,
-                        },
-                      },
-                    );
-                  } else {
-                    onSelectRegion(activeMapping.regionCode);
+              <div className="human-atlas-inspector-actions">
+                <button
+                  type="button"
+                  className={`human-atlas-action-btn secondary ${sceneState.isolate ? 'active' : ''}`}
+                  onClick={() =>
+                    setSceneState((s) => ({
+                      ...s,
+                      isolate: !s.isolate,
+                      explode: 0,
+                    }))
                   }
-                }}
-              >
-                <MaterialIcon name="add_location_alt" size={15} />
-                <span>Evaluar Dolor EVA (0–10)</span>
-              </button>
+                >
+                  <MaterialIcon name="center_focus_strong" size={15} />
+                  <span>{sceneState.isolate ? 'Ver cuerpo completo' : 'Aislar pieza en 3D'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="human-atlas-action-btn primary"
+                  onClick={() => {
+                    if (onSelectStructure) {
+                      onSelectStructure(
+                        activeMapping.structureCode,
+                        { x: activeMapping.coordX, y: activeMapping.coordY },
+                        {
+                          laterality: activeMapping.laterality,
+                          view: activeMapping.view,
+                          regionCode: activeMapping.regionCode,
+                          atlasMeta: {
+                            atlasPartId: activeMapping.atlasPartId,
+                            atlasPartName: activeMapping.atlasPartName,
+                            atlasPartNameEs: activeMapping.atlasPartNameEs,
+                            fmaId: activeMapping.fmaId,
+                            system: activeMapping.system,
+                            pos3d: activeMapping.pos3d,
+                          },
+                        },
+                      );
+                    } else {
+                      onSelectRegion(activeMapping.regionCode);
+                    }
+                  }}
+                >
+                  <MaterialIcon name="add_location_alt" size={15} />
+                  <span>Evaluar Dolor EVA (0–10)</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {/* Modal de Créditos y Licencia CC BY 4.0 */}
