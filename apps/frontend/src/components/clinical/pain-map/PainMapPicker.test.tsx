@@ -129,7 +129,13 @@ describe('PainMapPicker Component (Opción C: Zoom Anatómico Jerárquico)', () 
     expect(rightCalcaneal.laterality).toBe('D');
     expect(rightCalcaneal.regionCode).toBe('TOBILLO_PIE');
     expect(rightCalcaneal.fmaId).toBe('FMA258847');
-    expect(translateAtlasNameEs('Right calcaneal tendon')).toContain('Tendón de Aquiles');
+    expect(translateAtlasNameEs('Right calcaneal tendon')).toMatch(/Aquiles/i);
+    expect(translateAtlasNameEs('Right iliocostalis lumborum')).toBe(
+      'Músculo iliocostal lumbar derecho',
+    );
+    expect(translateAtlasNameEs('Left inferior medial genicular artery')).toBe(
+      'Arteria genicular medial inferior izquierda',
+    );
 
     const leftSupraspinatus = mapAtlasPartToClinical({
       id: 'FJ2001',

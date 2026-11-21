@@ -1172,9 +1172,9 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
         <div className="human-atlas-brand">
           <span className="human-atlas-live-dot" />
           <div className="human-atlas-title-row">
-            <strong>Human Atlas 3D · BodyParts3D</strong>
+            <strong>Atlas Anatómico Humano 3D</strong>
             <span className="human-atlas-badge">
-              {visiblePieceCount.toLocaleString()} / {atlas ? atlas.parts.length.toLocaleString() : '2,234'} piezas · 3,432 FMA
+              {visiblePieceCount.toLocaleString()} / {atlas ? atlas.parts.length.toLocaleString() : '2,234'} estructuras
             </span>
           </div>
         </div>
@@ -1276,7 +1276,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
             <div className="human-atlas-loading-info">
               <strong>Preparando Atlas Anatómico 3D de Precisión</strong>
               <span>
-                {progress}% · Descomprimiendo {atlas?.parts.length.toLocaleString() ?? '2,234'} mallas FMA (BodyParts3D 4.0)
+                {progress}% · Cargando {atlas?.parts.length.toLocaleString() ?? '2,234'} estructuras anatómicas en 3D
               </span>
               <div className="human-atlas-progress-bar">
                 <i style={{ width: `${progress}%` }} />
@@ -1381,11 +1381,11 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
           </div>
         )}
 
-        {/* Panel Desplegable 2: Buscador de las 3,432 Estructuras FMA */}
+        {/* Panel Desplegable 2: Buscador de las 3,432 Estructuras Anatómicas */}
         {activeDrawer === 'search' && (
           <div className="human-atlas-floating-drawer left">
             <div className="human-atlas-drawer-header">
-              <strong>Buscar en 3,432 Conceptos FMA</strong>
+              <strong>Buscar en 3,432 Estructuras 3D</strong>
               <button
                 type="button"
                 className="human-atlas-close-btn"
@@ -1401,7 +1401,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
                 autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Ej. Supraespinoso, Piramidal, Aquiles, L4, FMA..."
+                placeholder="Ej. Supraespinoso, Piramidal, Aquiles, Aorta, Fémur..."
               />
               {searchQuery && (
                 <button
@@ -1426,11 +1426,11 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
                       {translateAtlasNameEs(concept.name)}
                     </div>
                     <div className="human-atlas-search-item-sub">
-                      {concept.name} · <strong>{concept.id}</strong>
+                      Código Anatómico: <strong>{concept.id}</strong>
                     </div>
                   </div>
                   <span className="human-atlas-piece-pill">
-                    {concept.elements.length} {concept.elements.length === 1 ? 'malla' : 'mallas'}
+                    {concept.elements.length} {concept.elements.length === 1 ? 'pieza' : 'piezas'}
                   </span>
                 </button>
               ))}
@@ -1538,19 +1538,18 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
             <div className="human-atlas-inspector-top">
               <div>
                 <span className="human-atlas-inspector-fma">
-                  {activeMapping.fmaId} · {activeMapping.atlasPartId}
+                  CÓDIGO {activeMapping.fmaId} · PIEZA {activeMapping.atlasPartId}
                 </span>
                 <h5 className="human-atlas-inspector-title">
                   {activeMapping.atlasPartNameEs}
                 </h5>
                 <p className="human-atlas-inspector-subtitle">
-                  {activeMapping.atlasPartName} →{' '}
-                  <strong>{activeMapping.structureLabel}</strong> ({activeMapping.regionLabel} ·{' '}
+                  Zona clínica: <strong>{activeMapping.structureLabel}</strong> ({activeMapping.regionLabel} ·{' '}
                   {activeMapping.laterality === 'D'
-                    ? 'Derecho'
+                    ? 'Lado Derecho'
                     : activeMapping.laterality === 'I'
-                      ? 'Izquierdo'
-                      : 'Central'}
+                      ? 'Lado Izquierdo'
+                      : 'Eje Central'}
                   )
                 </p>
               </div>
@@ -1640,13 +1639,13 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
         )}
       </div>
 
-      {/* 4. Dock Inferior: Despiece Anatómico (Explode 0%-100%) + Resumen de Pines EVA */}
+      {/* 4. Dock Inferior: Despiece Anatómico (0%-100%) + Resumen de Pines EVA */}
       <div className="human-atlas-bottom-dock">
         <div className="human-atlas-explode-group">
           <div className="human-atlas-explode-header">
             <label htmlFor="human-atlas-explode-range">
               <MaterialIcon name="open_in_full" size={14} />
-              <span>Despiece Anatómico (Explode):</span>
+              <span>Separar Capas Anatómicas (Despiece):</span>
             </label>
             <strong>{Math.round(sceneState.explode * 100)}%</strong>
           </div>
