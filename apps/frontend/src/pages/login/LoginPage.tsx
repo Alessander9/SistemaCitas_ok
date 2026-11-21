@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
+import { TurnstileWidget } from '../../components/ui/TurnstileWidget';
+import { requestPasswordReset, confirmPasswordReset } from '../../services/api';
 import './LoginPage.css';
 
 interface DemoUser {
@@ -17,7 +20,7 @@ const DEMO_USERS: DemoUser[] = [
     email: 'admin@clinica.pe',
     password: 'Password123!',
     clinicSlug: 'clinica-demo',
-    badge: '💼',
+    badge: 'business_center',
   },
   {
     label: 'Médico',
@@ -25,7 +28,7 @@ const DEMO_USERS: DemoUser[] = [
     email: 'doctor@clinica.pe',
     password: 'Password123!',
     clinicSlug: 'clinica-demo',
-    badge: '🩺',
+    badge: 'medical_services',
   },
   {
     label: 'Recepción',
@@ -33,7 +36,7 @@ const DEMO_USERS: DemoUser[] = [
     email: 'recepcion@clinica.pe',
     password: 'Password123!',
     clinicSlug: 'clinica-demo',
-    badge: '📋',
+    badge: 'assignment',
   },
   {
     label: 'Paciente',
@@ -41,7 +44,7 @@ const DEMO_USERS: DemoUser[] = [
     email: 'paciente@clinica.pe',
     password: 'Password123!',
     clinicSlug: 'clinica-demo',
-    badge: '👤',
+    badge: 'person',
   },
   {
     label: 'Super Admin',
@@ -49,7 +52,7 @@ const DEMO_USERS: DemoUser[] = [
     email: 'superadmin@citassistema.pe',
     password: 'Password123!',
     clinicSlug: 'global',
-    badge: '🛡️',
+    badge: 'security',
   },
 ];
 
@@ -59,6 +62,8 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHome }) => {
+  const [authMode, setAuthMode] = useState<'login' | 'forgot' | 'reset'>('login');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [clinicSlug, setClinicSlug] = useState('clinica-demo');
@@ -69,6 +74,34 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successUser, setSuccessUser] = useState<any | null>(null);
+
+  // Forgot Password State (Cloudflare Turnstile + Resend)
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [isForgotLoading, setIsForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState<string | null>(null);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+
+  // Reset Password State
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [isResetLoading, setIsResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [resetError, setResetError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const view = params.get('view');
+    if (view === 'reset-password' && token) {
+      setAuthMode('reset');
+      setResetToken(token);
+    }
+  }, []);
 
   const handleSelectDemo = (demo: DemoUser) => {
     setEmail(demo.email);
@@ -107,12 +140,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
       const resolvedName = resolvedRole === 'SUPER_ADMIN'
         ? 'Alessander (Super Admin Global)'
         : resolvedRole === 'PACIENTE'
-        ? 'Juan Pérez'
-        : resolvedRole === 'PROFESIONAL'
-        ? 'Dra. María González'
-        : resolvedRole === 'RECEPCION'
-        ? 'Recepción y Admisión'
-        : 'Alessander (Director Médico)';
+          ? 'Juan Pérez'
+          : resolvedRole === 'PROFESIONAL'
+            ? 'Dra. María González'
+            : resolvedRole === 'RECEPCION'
+              ? 'Recepción y Admisión'
+              : 'Alessander (Director Médico)';
 
       const userObj = {
         email: email.trim(),
@@ -128,7 +161,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
           onLoginSuccess?.(data.user || userObj);
         }, 300);
       } else {
-        // Instant resilient fallback for local demo exploration when backend API is offline
         setSuccessUser(userObj);
         setTimeout(() => {
           onLoginSuccess?.(userObj);
@@ -139,12 +171,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
       const resolvedName = resolvedRole === 'SUPER_ADMIN'
         ? 'Alessander (Super Admin Global)'
         : resolvedRole === 'PACIENTE'
-        ? 'Juan Pérez'
-        : resolvedRole === 'PROFESIONAL'
-        ? 'Dra. María González'
-        : resolvedRole === 'RECEPCION'
-        ? 'Recepción y Admisión'
-        : 'Alessander (Director Médico)';
+          ? 'Juan Pérez'
+          : resolvedRole === 'PROFESIONAL'
+            ? 'Dra. María González'
+            : resolvedRole === 'RECEPCION'
+              ? 'Recepción y Admisión'
+              : 'Alessander (Director Médico)';
 
       const userObj = {
         email: email.trim(),
@@ -158,6 +190,66 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
       }, 300);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError(null);
+
+    if (!forgotEmail.trim()) {
+      setForgotError('Por favor ingresa tu correo electrónico registrado.');
+      return;
+    }
+
+    if (!turnstileToken) {
+      setForgotError('Por favor completa la verificación de seguridad Cloudflare Turnstile.');
+      return;
+    }
+
+    setIsForgotLoading(true);
+    try {
+      const res = await requestPasswordReset(forgotEmail.trim(), turnstileToken);
+      if (res.success) {
+        setForgotSuccess(true);
+        setForgotMessage(res.message);
+      } else {
+        setForgotError(res.message);
+      }
+    } catch {
+      setForgotError('Error de conexión al solicitar restablecimiento de contraseña.');
+    } finally {
+      setIsForgotLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError(null);
+
+    if (!newPassword || newPassword.length < 8) {
+      setResetError('La nueva contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setResetError('Las contraseñas no coinciden. Por favor verifica.');
+      return;
+    }
+
+    setIsResetLoading(true);
+    try {
+      const res = await confirmPasswordReset(resetToken, newPassword);
+      if (res.success) {
+        setResetSuccess(true);
+        setResetMessage(res.message);
+      } else {
+        setResetError(res.message);
+      }
+    } catch {
+      setResetError('Error al actualizar la contraseña. El enlace puede haber caducado.');
+    } finally {
+      setIsResetLoading(false);
     }
   };
 
@@ -212,46 +304,57 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                 <span>99.9% Uptime</span>
               </div>
               <div className="trust-metric-pill">
-                <span>🛡️ Datos Protegidos (Ley 29733)</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <MaterialIcon name="verified_user" size={14} color="#10b981" />
+                  <span>Datos Protegidos (Ley 29733)</span>
+                </span>
               </div>
               <div className="trust-metric-pill">
-                <span>🇵🇪 Lima, Perú</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <MaterialIcon name="shield" size={14} color="#0d9488" />
+                  <span>Cloudflare Turnstile Active</span>
+                </span>
               </div>
             </div>
 
-            <div className="value-props">
-              <div className="prop-item">
-                <div className="prop-icon-box blue">🛡️</div>
-                <div className="prop-text">
-                  <h4>Historia Clínica Protegida</h4>
-                  <p>La información de cada paciente se registra y custodia bajo estándares clínicos y la Ley N° 29733.</p>
+            {/* Platform Highlights */}
+            <div className="feature-cards">
+              <div className="feature-card">
+                <div className="feature-card-icon" style={{ background: 'rgba(13, 148, 136, 0.15)', color: '#0d9488' }}>
+                  <MaterialIcon name="calendar_today" size={20} />
+                </div>
+                <div className="feature-card-content">
+                  <h4>Agenda en Tiempo Real</h4>
+                  <p>Gestión multi-especialista con prevención anti-colisiones y recordatorios automáticos.</p>
                 </div>
               </div>
 
-              <div className="prop-item">
-                <div className="prop-icon-box teal">⚡</div>
-                <div className="prop-text">
-                  <h4>Agenda Clínica en Tiempo Real</h4>
-                  <p>Coordinamos sesiones y consultas sin traslapes, con recordatorios para que no pierdas tu cita.</p>
+              <div className="feature-card">
+                <div className="feature-card-icon" style={{ background: 'rgba(2, 132, 199, 0.15)', color: '#0284c7' }}>
+                  <MaterialIcon name="mark_email_read" size={20} />
+                </div>
+                <div className="feature-card-content">
+                  <h4>Notificaciones Duales Resend</h4>
+                  <p>Envío instantáneo de confirmaciones de citas al paciente y al centro de salud.</p>
                 </div>
               </div>
 
-              <div className="prop-item">
-                <div className="prop-icon-box purple">🎙️</div>
-                <div className="prop-text">
-                  <h4>Evaluación y Seguimiento Clínico</h4>
-                  <p>Registramos tu evolución sesión a sesión con escalas de dolor e informes de progreso firmados por tu especialista.</p>
+              <div className="feature-card">
+                <div className="feature-card-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                  <MaterialIcon name="payments" size={20} />
+                </div>
+                <div className="feature-card-content">
+                  <h4>Cobros y Liquidaciones en Soles</h4>
+                  <p>Soporte completo para moneda nacional S/. en pagos presenciales y pasarelas digitales.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="sidebar-footer">
-            <div className="footer-status-pill">
-              <span className="live-status-dot" />
-              <span>Atención al Paciente — Sede San Isidro</span>
-            </div>
-            <span className="version-tag">v0.4.0 Enterprise</span>
+          {/* Legal / Tenant Footer */}
+          <div className="brand-footer">
+            <span>© {new Date().getFullYear()} Clínica VitalSalud S.A.C. Todos los derechos reservados.</span>
+            <span>RUC: 20601234567 • San Isidro, Lima, Perú</span>
           </div>
         </aside>
 
@@ -275,226 +378,438 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                 marginBottom: '1rem',
               }}
             >
-              ← Volver a Inicio
+              <MaterialIcon name="arrow_back" size={16} />
+              <span>Volver a Inicio</span>
             </button>
           )}
-          <div className="form-header">
-            <h2>Acceso al Personal VitalSalud</h2>
-            <p>Ingresa tus credenciales para gestionar citas, sesiones y atención de pacientes.</p>
-          </div>
 
-          {/* Quick-Fill Demo Roles */}
-          <div className="demo-role-section">
-            <div className="demo-role-title">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              </svg>
-              Prueba Rápida de Roles (Demo):
-            </div>
-            <div className="demo-chips">
-              {DEMO_USERS.map((demo) => (
-                <button
-                  type="button"
-                  key={demo.role}
-                  className={`demo-chip ${selectedDemoRole === demo.role ? 'active' : ''}`}
-                  onClick={() => handleSelectDemo(demo)}
-                >
-                  {demo.badge} {demo.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* ----------------------------------------------------------------- */}
+          {/* VISTA 1: RECUPERACIÓN DE CONTRASEÑA CON CLOUDFLARE TURNSTILE      */}
+          {/* ----------------------------------------------------------------- */}
+          {authMode === 'forgot' && (
+            <div className="auth-recovery-card">
+              <button
+                type="button"
+                className="auth-back-link"
+                onClick={() => {
+                  setAuthMode('login');
+                  setForgotError(null);
+                  setForgotSuccess(false);
+                }}
+              >
+                <MaterialIcon name="arrow_back" size={16} />
+                <span>Volver al inicio de sesión</span>
+              </button>
 
-          {/* Alert Feedback */}
-          {errorMessage && (
-            <div className="alert-box alert-danger" role="alert">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              <span>{errorMessage}</span>
+              <div className="form-header" style={{ marginBottom: '1.25rem' }}>
+                <h2 style={{ fontSize: '1.45rem', color: '#0f172a', fontWeight: 800 }}>Recuperar Contraseña</h2>
+                <p style={{ color: '#64748b', fontSize: '0.88rem', marginTop: '4px' }}>
+                  Ingresa tu correo para recibir un enlace seguro de recuperación protegido contra bots con Cloudflare Turnstile.
+                </p>
+              </div>
+
+              {forgotError && (
+                <div className="alert-box alert-danger" role="alert" style={{ marginBottom: '1rem' }}>
+                  <MaterialIcon name="error_outline" size={18} />
+                  <span>{forgotError}</span>
+                </div>
+              )}
+
+              {forgotSuccess ? (
+                <div className="alert-box alert-success" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem', padding: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <MaterialIcon name="mark_email_read" size={24} color="#059669" />
+                    <strong style={{ fontSize: '1rem', color: '#065f46' }}>¡Instrucciones enviadas!</strong>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#047857', lineHeight: 1.5 }}>
+                    {forgotMessage || 'Si la dirección está registrada en el sistema, recibirás un enlace de recuperación vía Resend.'}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#065f46' }}>
+                    Revisa tu bandeja de entrada y la carpeta de correo no deseado (spam). El enlace expira en 60 minutos.
+                  </p>
+                  <button
+                    type="button"
+                    className="submit-btn"
+                    style={{ width: '100%', marginTop: '0.75rem' }}
+                    onClick={() => {
+                      setAuthMode('login');
+                      setForgotSuccess(false);
+                      setForgotError(null);
+                    }}
+                  >
+                    <MaterialIcon name="login" size={18} />
+                    <span>Regresar al Inicio de Sesión</span>
+                  </button>
+                </div>
+              ) : (
+                <form className="auth-form" onSubmit={handleForgotSubmit}>
+                  <div className="input-group">
+                    <label htmlFor="forgotEmail" className="input-label">
+                      Correo Electrónico Registrado
+                    </label>
+                    <div className="input-wrapper">
+                      <span className="input-icon" aria-hidden="true">
+                        <MaterialIcon name="mail_outline" size={18} />
+                      </span>
+                      <input
+                        id="forgotEmail"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        className="auth-input"
+                        placeholder="tu.nombre@clinica.pe"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Cloudflare Turnstile Integration */}
+                  <TurnstileWidget
+                    onVerify={(token) => {
+                      setTurnstileToken(token);
+                      setForgotError(null);
+                    }}
+                    onError={() => {
+                      setForgotError('Error en la verificación de seguridad Cloudflare Turnstile.');
+                    }}
+                  />
+
+                  <button
+                    type="submit"
+                    className="submit-btn"
+                    disabled={isForgotLoading || !turnstileToken || !forgotEmail.trim()}
+                    style={{
+                      opacity: isForgotLoading || !turnstileToken || !forgotEmail.trim() ? 0.65 : 1,
+                      cursor: isForgotLoading || !turnstileToken || !forgotEmail.trim() ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {isForgotLoading ? (
+                      <>
+                        <span className="spinner" />
+                        <span>Enviando enlace vía Resend...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MaterialIcon name="send" size={18} />
+                        <span>Enviar Enlace de Recuperación</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
             </div>
           )}
 
-          {successUser ? (
-            <div className="alert-box alert-success" role="status" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-                <strong>¡Sesión iniciada correctamente!</strong>
-              </div>
-              <p style={{ margin: 0, fontSize: '0.85rem' }}>
-                Bienvenido(a), <strong>{successUser.firstName || successUser.email}</strong>. Redirigiendo a tu panel...
-              </p>
-              <button
-                type="button"
-                className="submit-btn"
-                style={{ width: '100%', marginTop: '0.5rem' }}
-                onClick={() => onLoginSuccess?.(successUser)}
-              >
-                🚀 Ir al Dashboard Principal →
-              </button>
-            </div>
-          ) : (
-            <form className="auth-form" onSubmit={handleSubmit}>
-              {/* Clinic Tenant Field */}
-              <div className="input-group">
-                <label htmlFor="clinicSlug" className="input-label">
-                  Sede / Clínica
-                </label>
-                <div className="input-wrapper">
-                  <span className="input-icon" aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                      <polyline points="9 22 9 12 15 12 15 22" />
-                    </svg>
-                  </span>
-                  <input
-                    id="clinicSlug"
-                    type="text"
-                    className="auth-input"
-                    placeholder="ej. clinica-demo"
-                    value={clinicSlug}
-                    onChange={(e) => setClinicSlug(e.target.value)}
-                  />
-                </div>
+          {/* ----------------------------------------------------------------- */}
+          {/* VISTA 2: ESTABLECER NUEVA CONTRASEÑA                              */}
+          {/* ----------------------------------------------------------------- */}
+          {authMode === 'reset' && (
+            <div className="auth-reset-card">
+              <div className="form-header" style={{ marginBottom: '1.25rem' }}>
+                <h2 style={{ fontSize: '1.45rem', color: '#0f172a', fontWeight: 800 }}>Establecer Nueva Contraseña</h2>
+                <p style={{ color: '#64748b', fontSize: '0.88rem', marginTop: '4px' }}>
+                  Ingresa tu nueva clave de acceso de al menos 8 caracteres para tu cuenta clínica.
+                </p>
               </div>
 
-              {/* Email Field */}
-              <div className="input-group">
-                <label htmlFor="email" className="input-label">
-                  Correo Electrónico
-                </label>
-                <div className="input-wrapper">
-                  <span className="input-icon" aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect width="20" height="16" x="2" y="4" rx="2" />
-                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                    </svg>
-                  </span>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    className="auth-input"
-                    placeholder="tu.nombre@clinica.pe"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+              {resetError && (
+                <div className="alert-box alert-danger" role="alert" style={{ marginBottom: '1rem' }}>
+                  <MaterialIcon name="error_outline" size={18} />
+                  <span>{resetError}</span>
                 </div>
-              </div>
+              )}
 
-              {/* Password Field */}
-              <div className="input-group">
-                <div className="input-label">
-                  <label htmlFor="password">Contraseña</label>
-                </div>
-                <div className="input-wrapper">
-                  <span className="input-icon" aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                  </span>
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    autoComplete="current-password"
-                    className="auth-input"
-                    placeholder="••••••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+              {resetSuccess ? (
+                <div className="alert-box alert-success" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem', padding: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <MaterialIcon name="check_circle" size={24} color="#059669" />
+                    <strong style={{ fontSize: '1rem', color: '#065f46' }}>¡Contraseña actualizada!</strong>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#047857' }}>
+                    {resetMessage || 'Tu contraseña ha sido actualizada con éxito. Ya puedes iniciar sesión.'}
+                  </p>
                   <button
                     type="button"
-                    className="toggle-password-btn"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    className="submit-btn"
+                    style={{ width: '100%', marginTop: '0.75rem' }}
+                    onClick={() => {
+                      setAuthMode('login');
+                      setResetSuccess(false);
+                      setResetError(null);
+                    }}
                   >
-                    {showPassword ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                        <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                        <line x1="2" y1="2" x2="22" y2="22" />
-                      </svg>
+                    <MaterialIcon name="login" size={18} />
+                    <span>Iniciar Sesión Ahora</span>
+                  </button>
+                </div>
+              ) : (
+                <form className="auth-form" onSubmit={handleResetSubmit}>
+                  <div className="input-group">
+                    <label htmlFor="newPassword" className="input-label">
+                      Nueva Contraseña (mínimo 8 caracteres)
+                    </label>
+                    <div className="input-wrapper">
+                      <span className="input-icon" aria-hidden="true">
+                        <MaterialIcon name="lock" size={18} />
+                      </span>
+                      <input
+                        id="newPassword"
+                        type={showNewPassword ? 'text' : 'password'}
+                        required
+                        minLength={8}
+                        className="auth-input"
+                        placeholder="••••••••••••"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="toggle-password-btn"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        aria-label={showNewPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                      >
+                        <MaterialIcon name={showNewPassword ? 'visibility_off' : 'visibility'} size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="input-group">
+                    <label htmlFor="confirmPassword" className="input-label">
+                      Confirmar Nueva Contraseña
+                    </label>
+                    <div className="input-wrapper">
+                      <span className="input-icon" aria-hidden="true">
+                        <MaterialIcon name="lock_reset" size={18} />
+                      </span>
+                      <input
+                        id="confirmPassword"
+                        type={showNewPassword ? 'text' : 'password'}
+                        required
+                        minLength={8}
+                        className="auth-input"
+                        placeholder="••••••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="submit-btn"
+                    disabled={isResetLoading || !newPassword || !confirmPassword}
+                  >
+                    {isResetLoading ? (
+                      <>
+                        <span className="spinner" />
+                        <span>Actualizando contraseña...</span>
+                      </>
                     ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
+                      <>
+                        <MaterialIcon name="save" size={18} />
+                        <span>Guardar Nueva Contraseña</span>
+                      </>
                     )}
                   </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* ----------------------------------------------------------------- */}
+          {/* VISTA 3: INICIO DE SESIÓN REGULAR                                 */}
+          {/* ----------------------------------------------------------------- */}
+          {authMode === 'login' && (
+            <>
+              <div className="form-header">
+                <h2>Acceso al Personal VitalSalud</h2>
+                <p>Ingresa tus credenciales para gestionar citas, sesiones y atención de pacientes.</p>
+              </div>
+
+              {/* Quick-Fill Demo Roles */}
+              <div className="demo-role-section">
+                <div className="demo-role-title">
+                  <MaterialIcon name="bolt" size={16} />
+                  <span>Prueba Rápida de Roles (Demo):</span>
+                </div>
+                <div className="demo-chips">
+                  {DEMO_USERS.map((demo) => (
+                    <button
+                      type="button"
+                      key={demo.role}
+                      className={`demo-chip ${selectedDemoRole === demo.role ? 'active' : ''}`}
+                      onClick={() => handleSelectDemo(demo)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <MaterialIcon name={demo.badge} size={15} />
+                      <span>{demo.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Options */}
-              <div className="form-options">
-                <label className="remember-label">
-                  <input
-                    type="checkbox"
-                    className="remember-checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                  />
-                  <span>Recordar sesión</span>
-                </label>
-                <a
-                  href="#recuperar"
-                  className="forgot-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert('Por favor contacta a administración o ingresa al enlace enviado a tu correo.');
-                  }}
-                >
-                  ¿Olvidaste tu contraseña?
-                </a>
-              </div>
+              {/* Alert Feedback */}
+              {errorMessage && (
+                <div className="alert-box alert-danger" role="alert">
+                  <MaterialIcon name="error_outline" size={18} />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
 
-              {/* Submit Button */}
-              <button type="submit" className="submit-btn" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <span className="spinner" />
-                    <span>Validando credenciales...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Ingresar al Sistema</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                      <path d="M5 12h14" />
-                      <path d="m12 5 7 7-7 7" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </form>
+              {successUser ? (
+                <div className="alert-box alert-success" role="status" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <MaterialIcon name="check_circle" size={20} color="#059669" />
+                    <strong>¡Sesión iniciada correctamente!</strong>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.85rem' }}>
+                    Bienvenido(a), <strong>{successUser.firstName || successUser.email}</strong>. Redirigiendo a tu panel...
+                  </p>
+                  <button
+                    type="button"
+                    className="submit-btn"
+                    style={{ width: '100%', marginTop: '0.5rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    onClick={() => onLoginSuccess?.(successUser)}
+                  >
+                    <span>Ir al Dashboard Principal</span>
+                    <MaterialIcon name="arrow_forward" size={18} />
+                  </button>
+                </div>
+              ) : (
+                <form className="auth-form" onSubmit={handleSubmit}>
+                  {/* Clinic Tenant Field */}
+                  <div className="input-group">
+                    <label htmlFor="clinicSlug" className="input-label">
+                      Sede / Clínica
+                    </label>
+                    <div className="input-wrapper">
+                      <span className="input-icon" aria-hidden="true">
+                        <MaterialIcon name="domain" size={18} />
+                      </span>
+                      <input
+                        id="clinicSlug"
+                        type="text"
+                        className="auth-input"
+                        placeholder="ej. clinica-demo"
+                        value={clinicSlug}
+                        onChange={(e) => setClinicSlug(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email Field */}
+                  <div className="input-group">
+                    <label htmlFor="email" className="input-label">
+                      Correo Electrónico
+                    </label>
+                    <div className="input-wrapper">
+                      <span className="input-icon" aria-hidden="true">
+                        <MaterialIcon name="mail" size={18} />
+                      </span>
+                      <input
+                        id="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        className="auth-input"
+                        placeholder="tu.nombre@clinica.pe"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password Field */}
+                  <div className="input-group">
+                    <div className="input-label">
+                      <label htmlFor="password">Contraseña</label>
+                    </div>
+                    <div className="input-wrapper">
+                      <span className="input-icon" aria-hidden="true">
+                        <MaterialIcon name="lock" size={18} />
+                      </span>
+                      <input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        autoComplete="current-password"
+                        className="auth-input"
+                        placeholder="••••••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="toggle-password-btn"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                      >
+                        <MaterialIcon name={showPassword ? 'visibility_off' : 'visibility'} size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Options */}
+                  <div className="form-options">
+                    <label className="remember-label">
+                      <input
+                        type="checkbox"
+                        className="remember-checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <span>Recordar sesión</span>
+                    </label>
+                    <a
+                      href="#recuperar"
+                      className="forgot-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setAuthMode('forgot');
+                        setErrorMessage(null);
+                        setForgotSuccess(false);
+                        setForgotError(null);
+                      }}
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </a>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button type="submit" className="submit-btn" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <span className="spinner" />
+                        <span>Validando credenciales...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Ingresar al Sistema</span>
+                        <MaterialIcon name="arrow_forward" size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </>
           )}
 
           {/* Footer Security Badges */}
           <div className="security-badge-footer">
             <div className="security-badge-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+              <MaterialIcon name="lock" size={14} />
               <span>TLS 256-bit</span>
             </div>
             <span>•</span>
             <div className="security-badge-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-              </svg>
+              <MaterialIcon name="verified_user" size={14} />
               <span>Ley 29733 (Perú)</span>
             </div>
             <span>•</span>
             <div className="security-badge-item">
-              <span>Acceso Seguro</span>
+              <MaterialIcon name="shield" size={14} />
+              <span>Cloudflare & Resend</span>
             </div>
           </div>
         </section>

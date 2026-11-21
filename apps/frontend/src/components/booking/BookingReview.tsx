@@ -52,7 +52,12 @@ export const BookingReview: React.FC<BookingReviewProps> = ({ blocks, onEditStep
 
     <div className="apx-review__blocks">
       {blocks.map((block) => (
-        <div key={block.id}>{renderBlock(block, onEditStep)}</div>
+        <div
+          key={block.id}
+          className={`apx-review__col${block.id === 'reason' ? ' apx-review__col--full' : ''}`}
+        >
+          {renderBlock(block, onEditStep)}
+        </div>
       ))}
     </div>
   </section>

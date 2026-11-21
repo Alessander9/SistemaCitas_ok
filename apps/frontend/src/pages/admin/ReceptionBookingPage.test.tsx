@@ -24,7 +24,7 @@ describe('ReceptionBookingPage Component', () => {
   it('opens express booking modal and submits new appointment', () => {
     render(<ReceptionBookingPage />);
 
-    const newBtn = screen.getByRole('button', { name: /⚡ \+ Nueva Cita Express/i });
+    const newBtn = screen.getByRole('button', { name: /Nueva Cita Express/i });
     fireEvent.click(newBtn);
 
     expect(screen.getByText(/Agendamiento Express \(Ventanilla & Teléfono\)/i)).toBeInTheDocument();
@@ -32,7 +32,7 @@ describe('ReceptionBookingPage Component', () => {
     const quickBtn = screen.getByRole('button', { name: /Luciana Paredes/i });
     fireEvent.click(quickBtn);
 
-    const submitBtn = screen.getByRole('button', { name: /⚡ Confirmar Cita & Notificar/i });
+    const submitBtn = screen.getByRole('button', { name: /Confirmar Cita & Notificar/i });
     fireEvent.click(submitBtn);
 
     expect(screen.getAllByText(/Luciana Paredes Soto/i).length).toBeGreaterThan(0);

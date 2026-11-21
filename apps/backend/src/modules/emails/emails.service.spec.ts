@@ -272,4 +272,116 @@ describe('EmailsService', () => {
       expect(mockProvider.sentMessages).toHaveLength(0);
     });
   });
+
+  // ===========================================================================
+  // RESEND & SPECIALIZED DOMAIN EMAIL DISPATCHERS
+  // ===========================================================================
+  describe('Resend & Domain Confirmation Emails', () => {
+    it('should send appointment confirmation email to patient with S/. and booking code', async () => {
+      db.query
+        .mockResolvedValueOnce({ rows: [] }) // getTemplateByName
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 'log-1',
+              clinic_id: CLINIC_ID,
+              to_email: 'paciente@gmail.com',
+              subject: 'Confirmación de tu cita — Clínica VitalSalud',
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+            },
+          ],
+        }); // insert email_logs
+
+      const log = await service.sendAppointmentConfirmationToPatient(CLINIC_ID, {
+        bookingCode: 'CIT-2026-9999',
+        patientName: 'Luis Fernández',
+        patientEmail: 'paciente@gmail.com',
+        serviceName: 'Fisioterapia y Rehabilitación',
+        professionalName: 'Dra. María González',
+        appointmentDate: '2026-11-20',
+        startTime: '13:00',
+        amount: 120,
+      });
+
+      expect(log).not.toBeNull();
+      expect(log?.status).toBe('sent');
+      expect(mockProvider.sentMessages).toHaveLength(1);
+      const sent = mockProvider.sentMessages[0];
+      expect(sent.to).toBe('paciente@gmail.com');
+      expect(sent.html).toContain('CIT-2026-9999');
+      expect(sent.html).toContain('Luis Fernández');
+      expect(sent.html).toContain('S/. 120.00');
+    });
+
+    it('should send new appointment alert email to health center / clinic', async () => {
+      db.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 'log-2',
+              clinic_id: CLINIC_ID,
+              to_email: 'contacto@clinica.pe',
+              subject: '[Nueva Cita] Fisioterapia - Luis Fernández (2026-11-20 13:00)',
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+            },
+          ],
+        });
+
+      const log = await service.sendAppointmentNotificationToClinic(CLINIC_ID, {
+        bookingCode: 'CIT-2026-8888',
+        patientName: 'Luis Fernández',
+        patientDocType: 'DNI',
+        patientDocNumber: '08520322',
+        patientPhone: '+51923110309',
+        patientEmail: 'paciente@gmail.com',
+        serviceName: 'Fisioterapia',
+        professionalName: 'Dr. Carlos Mendoza',
+        appointmentDate: '2026-11-20',
+        startTime: '13:00',
+        amount: '120.00',
+      });
+
+      expect(log).not.toBeNull();
+      expect(mockProvider.sentMessages).toHaveLength(1);
+      const sent = mockProvider.sentMessages[0];
+      expect(sent.html).toContain('CIT-2026-8888');
+      expect(sent.html).toContain('08520322');
+    });
+
+    it('should send password reset email with secure URL', async () => {
+      db.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 'log-3',
+              clinic_id: CLINIC_ID,
+              to_email: 'user@clinica.pe',
+              subject: 'Recuperación de contraseña — Clínica VitalSalud',
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+            },
+          ],
+        });
+
+      const log = await service.sendPasswordResetEmail(
+        CLINIC_ID,
+        'user@clinica.pe',
+        'http://localhost:5300/?view=reset-password&token=secret123',
+        'Juan',
+      );
+
+      expect(log.status).toBe('sent');
+      expect(mockProvider.sentMessages).toHaveLength(1);
+      const sent = mockProvider.sentMessages[0];
+      expect(sent.to).toBe('user@clinica.pe');
+      expect(sent.html).toContain('token=secret123');
+    });
+  });
 });

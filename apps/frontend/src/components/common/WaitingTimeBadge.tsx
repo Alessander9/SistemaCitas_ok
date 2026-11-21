@@ -1,5 +1,6 @@
 import React from 'react';
 import './WaitingTimeBadge.css';
+import { MaterialIcon } from '../ui/MaterialIcon';
 
 interface WaitingTimeBadgeProps {
   minutes?: number;
@@ -25,25 +26,31 @@ export const WaitingTimeBadge: React.FC<WaitingTimeBadgeProps> = ({
 
   let statusClass = 'wait-normal';
   let label = `${elapsed} min`;
-  let icon = '🟢';
+  let iconName = 'schedule';
+  let iconColor = '#10b981';
 
   if (elapsed >= 20) {
     statusClass = 'wait-alert';
     label = `${elapsed} min (Demora)`;
-    icon = '🔴';
+    iconName = 'warning';
+    iconColor = '#ef4444';
   } else if (elapsed >= 10) {
     statusClass = 'wait-warning';
     label = `${elapsed} min en sala`;
-    icon = '🟡';
+    iconName = 'schedule';
+    iconColor = '#f59e0b';
   } else {
     statusClass = 'wait-normal';
     label = `${elapsed} min en sala`;
-    icon = '🟢';
+    iconName = 'schedule';
+    iconColor = '#10b981';
   }
 
   return (
     <span className={`waiting-time-badge ${statusClass} ${className}`} title={`Tiempo de espera en sala: ${elapsed} minutos`}>
-      <span className="wait-dot">{icon}</span>
+      <span className="wait-dot" style={{ display: 'inline-flex', alignItems: 'center' }}>
+        <MaterialIcon name={iconName} size={13} color={iconColor} />
+      </span>
       <span className="wait-text">{label}</span>
     </span>
   );

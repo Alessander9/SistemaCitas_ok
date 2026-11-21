@@ -3,8 +3,10 @@ import {
   BadRequestException,
   ConflictException,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
+import { EmailsService } from '../emails/emails.service';
 import {
   Appointment,
   AppointmentStatus,
@@ -12,6 +14,7 @@ import {
   AvailabilitySlot,
 } from '@citassistema/shared-types';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { CreatePublicBookingDto } from './dto/create-public-booking.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 
@@ -91,13 +94,34 @@ function isInRange(start: number, end: number, rangeStart: number, rangeEnd: num
   return start >= rangeStart && end <= rangeEnd;
 }
 
+function parseTimeString(timeStr: string): string {
+  const trimmed = timeStr.trim().toUpperCase();
+  const match12 = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+  if (match12) {
+    let hours = parseInt(match12[1], 10);
+    const minutes = match12[2];
+    const period = match12[3];
+    if (period === 'PM' && hours < 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
+    return `${String(hours).padStart(2, '0')}:${minutes}`;
+  }
+  const match24 = trimmed.match(/^(\d{1,2}):(\d{2})/);
+  if (match24) {
+    return `${String(match24[1]).padStart(2, '0')}:${match24[2]}`;
+  }
+  return timeStr;
+}
+
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    @Optional() private readonly emailsService?: EmailsService,
+  ) {}
 
   // =========================================================================
   // 4.1 — AVAILABILITY ENGINE
@@ -459,6 +483,12 @@ export class AppointmentsService {
       );
     });
 
+    if (newStatus === AppointmentStatus.CONFIRMED && this.emailsService) {
+      this.dispatchAppointmentConfirmationEmails(clinicId, id).catch((err) => {
+        console.warn('[AppointmentsService] Error al enviar correos de confirmación:', err);
+      });
+    }
+
     return this.findOne(clinicId, id);
   }
 
@@ -473,6 +503,52 @@ export class AppointmentsService {
     userId: string,
   ): Promise<Appointment> {
     const appointment = await this.findOne(clinicId, id);
+
+    // Verify service duration
+    const { rows: svcRows } = await this.db.query<DurationDbRow>(
+      `SELECT duration_minutes FROM services WHERE id = $1 AND clinic_id = $2 AND deleted_at IS NULL`,
+      [appointment.serviceId, clinicId],
+    );
+    const durationMinutes = svcRows.length > 0 ? svcRows[0].duration_minutes : 60;
+    const startMinutes = timeToMinutes(dto.startTime);
+    const endMinutes = startMinutes + durationMinutes;
+
+    // Verify schedule for new date/time
+    const dayOfWeek = getDayOfWeek(dto.appointmentDate);
+    const { rows: schedRows } = await this.db.query<ScheduleDbRow>(
+      `SELECT day_of_week, start_time, end_time
+       FROM professional_schedules
+       WHERE professional_id = $1 AND day_of_week = $2 AND is_active = true AND deleted_at IS NULL`,
+      [appointment.professionalId, dayOfWeek],
+    );
+    if (schedRows.length === 0) {
+      throw new BadRequestException('El profesional no tiene horario configurado para este día');
+    }
+    const schedule = schedRows[0];
+    if (!isInRange(startMinutes, endMinutes, timeToMinutes(schedule.start_time), timeToMinutes(schedule.end_time))) {
+      throw new BadRequestException(
+        `El horario solicitado está fuera de la agenda del profesional (${schedule.start_time} - ${schedule.end_time})`,
+      );
+    }
+
+    // Check conflict on new slot (excluding current appointment if on same day)
+    const { rows: existingAppointments } = await this.db.query<{ id: string; start_time: string; end_time: string }>(
+      `SELECT id, start_time, end_time
+       FROM appointments
+       WHERE professional_id = $1
+         AND appointment_date = $2
+         AND status NOT IN ('cancelled', 'no_show')
+         AND deleted_at IS NULL`,
+      [appointment.professionalId, dto.appointmentDate],
+    );
+    const hasConflict = existingAppointments.some(
+      (a) => a.id !== id && rangesOverlap(startMinutes, endMinutes, timeToMinutes(a.start_time), timeToMinutes(a.end_time)),
+    );
+    if (hasConflict) {
+      throw new ConflictException(
+        'El nuevo horario solicitado entra en conflicto con otra cita existente para este profesional',
+      );
+    }
 
     // Cancel old appointment
     await this.updateStatus(clinicId, id, AppointmentStatus.CANCELLED, userId, dto.reason);
@@ -517,6 +593,304 @@ export class AppointmentsService {
     }));
   }
 
+  /**
+   * Despacha correos electrónicos de confirmación al paciente y al centro de salud vía Resend.
+   */
+  async dispatchAppointmentConfirmationEmails(clinicId: string, appointmentId: string): Promise<void> {
+    if (!this.emailsService) return;
+
+    try {
+      const { rows } = await this.db.query<{
+        id: string;
+        appointment_date: string;
+        start_time: string;
+        end_time: string;
+        notes?: string;
+        patient_first_name: string;
+        patient_last_name: string;
+        patient_email?: string;
+        patient_phone?: string;
+        patient_national_id?: string;
+        professional_first_name: string;
+        professional_last_name: string;
+        service_name: string;
+        service_price?: number | string;
+        clinic_name: string;
+        clinic_address?: string;
+        clinic_phone?: string;
+      }>(
+        `SELECT a.id, a.appointment_date, a.start_time, a.end_time, a.notes,
+                p.first_name AS patient_first_name, p.last_name AS patient_last_name,
+                p.email AS patient_email, p.phone AS patient_phone,
+                p.national_id AS patient_national_id,
+                pr.first_name AS professional_first_name, pr.last_name AS professional_last_name,
+                s.name AS service_name, s.price AS service_price,
+                c.name AS clinic_name, c.address AS clinic_address, c.phone AS clinic_phone
+         FROM appointments a
+         JOIN clinics c ON c.id = a.clinic_id
+         JOIN patients p ON p.id = a.patient_id
+         JOIN professionals pr ON pr.id = a.professional_id
+         JOIN services s ON s.id = a.service_id
+         WHERE a.id = $1 AND a.clinic_id = $2`,
+        [appointmentId, clinicId],
+      );
+
+      if (rows.length === 0) return;
+      const row = rows[0];
+
+      const formattedDate = typeof row.appointment_date === 'string'
+        ? row.appointment_date.split('T')[0]
+        : String(row.appointment_date).split('T')[0];
+
+      const bookingCode = `CIT-${new Date().getFullYear()}-${row.id.substring(0, 4).toUpperCase()}`;
+
+      const details = {
+        bookingCode,
+        patientName: `${row.patient_first_name} ${row.patient_last_name}`.trim(),
+        patientDocType: 'DNI',
+        patientDocNumber: row.patient_national_id || undefined,
+        patientPhone: row.patient_phone || undefined,
+        patientEmail: row.patient_email || undefined,
+        serviceName: row.service_name,
+        professionalName: `${row.professional_first_name} ${row.professional_last_name}`.trim(),
+        appointmentDate: formattedDate,
+        startTime: row.start_time,
+        endTime: row.end_time,
+        clinicName: row.clinic_name || 'Clínica VitalSalud',
+        clinicAddress: row.clinic_address || 'Sede San Isidro — Av. Javier Prado Este 1234, Lima',
+        clinicPhone: row.clinic_phone || '+51 (01) 710-8000',
+        amount: row.service_price ? Number(row.service_price).toFixed(2) : '120.00',
+        paymentMethod: 'En clínica / En línea',
+        notes: row.notes || undefined,
+      };
+
+      await Promise.allSettled([
+        this.emailsService.sendAppointmentConfirmationToPatient(clinicId, details),
+        this.emailsService.sendAppointmentNotificationToClinic(clinicId, details),
+      ]);
+    } catch (error) {
+      console.warn('[AppointmentsService] No se pudieron enviar los correos de confirmación:', error);
+    }
+  }
+
+  /**
+   * Registra una cita médica desde el flujo público de reservas con verificación estricta anti-colisión
+   * y envía confirmaciones por correo vía Resend.
+   */
+  async createPublicBooking(
+    tenantClinicId: string | undefined,
+    dto: CreatePublicBookingDto,
+  ): Promise<{ id: string; bookingCode: string; status: string; appointment: Appointment }> {
+    let clinicId = tenantClinicId;
+    if (!clinicId) {
+      const { rows: cRows } = await this.db.query<{ id: string }>(
+        `SELECT id FROM clinics WHERE id = 'a0000000-0000-4000-a000-000000000001' AND deleted_at IS NULL`,
+      );
+      if (cRows.length > 0) {
+        clinicId = cRows[0].id;
+      } else {
+        const { rows: fallbackRows } = await this.db.query<{ id: string }>(
+          `SELECT id FROM clinics WHERE deleted_at IS NULL ORDER BY created_at ASC LIMIT 1`,
+        );
+        clinicId = fallbackRows[0]?.id || 'a0000000-0000-4000-a000-000000000001';
+      }
+    }
+
+    // 1. Validar servicio y calcular duración
+    const { rows: durationRows } = await this.db.query<{ duration_minutes: number }>(
+      `SELECT duration_minutes FROM services WHERE id = $1 AND clinic_id = $2 AND deleted_at IS NULL`,
+      [dto.serviceId, clinicId],
+    );
+    if (durationRows.length === 0) {
+      throw new NotFoundException('Servicio no encontrado');
+    }
+    const durationMinutes = durationRows[0].duration_minutes;
+
+    // 2. Validar profesional activo
+    const { rows: profRows } = await this.db.query(
+      `SELECT id FROM professionals WHERE id = $1 AND clinic_id = $2 AND is_active = true AND deleted_at IS NULL`,
+      [dto.professionalId, clinicId],
+    );
+    if (profRows.length === 0) {
+      throw new NotFoundException('Profesional no encontrado o inactivo');
+    }
+
+    const startTime24 = parseTimeString(dto.startTime);
+    const startMinutes = timeToMinutes(startTime24);
+    const endMinutes = startMinutes + durationMinutes;
+    const endTime24 = minutesToTime(endMinutes);
+
+    // 3. Validar agenda y horario del profesional
+    const dayOfWeek = getDayOfWeek(dto.appointmentDate);
+    const { rows: schedRows } = await this.db.query<ScheduleDbRow>(
+      `SELECT day_of_week, start_time, end_time
+       FROM professional_schedules
+       WHERE professional_id = $1 AND day_of_week = $2 AND is_active = true AND deleted_at IS NULL`,
+      [dto.professionalId, dayOfWeek],
+    );
+    if (schedRows.length === 0) {
+      throw new BadRequestException('El profesional no tiene horario configurado para este día');
+    }
+
+    const schedule = schedRows[0];
+    if (!isInRange(startMinutes, endMinutes, timeToMinutes(schedule.start_time), timeToMinutes(schedule.end_time))) {
+      throw new BadRequestException(
+        `El horario solicitado está fuera de la agenda del profesional (${schedule.start_time} - ${schedule.end_time})`,
+      );
+    }
+
+    // 4. MOTOR ANTI-COLISIÓN TRANSACCIONAL (Evita doble agendamiento a la misma hora)
+    const result = await this.db.transaction(async (client) => {
+      // Bloqueo consultivo para serializar reservas concurrentes
+      await client.query(`SELECT pg_advisory_xact_lock(hashtext($1 || '_' || $2))`, [
+        dto.professionalId,
+        dto.appointmentDate,
+      ]);
+
+      // Verificar conflictos con citas existentes activas
+      const { rows: lockedAppointments } = await client.query<{ start_time: string; end_time: string }>(
+        `SELECT start_time, end_time
+         FROM appointments
+         WHERE professional_id = $1
+           AND appointment_date = $2
+           AND status NOT IN ('cancelled', 'no_show')
+           AND deleted_at IS NULL
+         FOR UPDATE`,
+        [dto.professionalId, dto.appointmentDate],
+      );
+
+      const hasConflict = lockedAppointments.some((a) =>
+        rangesOverlap(startMinutes, endMinutes, timeToMinutes(a.start_time), timeToMinutes(a.end_time)),
+      );
+      if (hasConflict) {
+        throw new ConflictException(
+          'El horario seleccionado ya no está disponible con este profesional. Por favor seleccione otro horario.',
+        );
+      }
+
+      // Verificar bloqueos de agenda
+      const { rows: blocks } = await client.query<{ start_time: string; end_time: string }>(
+        `SELECT start_time, end_time
+         FROM schedule_blocks
+         WHERE professional_id = $1 AND block_date = $2 AND deleted_at IS NULL
+         FOR UPDATE`,
+        [dto.professionalId, dto.appointmentDate],
+      );
+      const blockConflict = blocks.some((b) =>
+        rangesOverlap(startMinutes, endMinutes, timeToMinutes(b.start_time), timeToMinutes(b.end_time)),
+      );
+      if (blockConflict) {
+        throw new ConflictException(
+          'El horario solicitado entra en conflicto con un bloqueo de agenda del profesional',
+        );
+      }
+
+      // 5. Vincular o crear paciente
+      let patientId: string;
+      const docNumber = dto.patientDocNumber?.trim() || null;
+      const email = dto.patientEmail?.trim() || null;
+
+      let existingPatient = null;
+      if (docNumber) {
+        const { rows } = await client.query<{ id: string }>(
+          `SELECT id FROM patients WHERE clinic_id = $1 AND national_id = $2 AND deleted_at IS NULL LIMIT 1`,
+          [clinicId, docNumber],
+        );
+        if (rows.length > 0) existingPatient = rows[0];
+      }
+      if (!existingPatient && email) {
+        const { rows } = await client.query<{ id: string }>(
+          `SELECT id FROM patients WHERE clinic_id = $1 AND email = $2 AND deleted_at IS NULL LIMIT 1`,
+          [clinicId, email],
+        );
+        if (rows.length > 0) existingPatient = rows[0];
+      }
+
+      if (existingPatient) {
+        patientId = existingPatient.id;
+      } else {
+        const { rows } = await client.query<{ id: string }>(
+          `INSERT INTO patients (
+            clinic_id, first_name, last_name, email, phone, national_id, address
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+          RETURNING id`,
+          [
+            clinicId,
+            dto.patientFirstName,
+            dto.patientLastName,
+            email,
+            dto.patientPhone || null,
+            docNumber,
+            'Sede San Isidro — Lima',
+          ],
+        );
+        patientId = rows[0].id;
+      }
+
+      // 6. Insertar la cita confirmada
+      const { rows: apptRows } = await client.query<AppointmentDbRow>(
+        `INSERT INTO appointments (
+          clinic_id, patient_id, professional_id, service_id,
+          appointment_date, start_time, end_time, status,
+          notes, created_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL)
+        RETURNING *`,
+        [
+          clinicId,
+          patientId,
+          dto.professionalId,
+          dto.serviceId,
+          dto.appointmentDate,
+          startTime24,
+          endTime24,
+          AppointmentStatus.CONFIRMED,
+          dto.notes ?? null,
+        ],
+      );
+
+      const appointment = apptRows[0];
+
+      await client.query(
+        `INSERT INTO appointment_status_history (appointment_id, from_status, to_status, reason)
+         VALUES ($1, NULL, $2, 'Reserva pública confirmada en línea')`,
+        [appointment.id, AppointmentStatus.CONFIRMED],
+      );
+
+      const bookingCode = `CIT-${new Date().getFullYear()}-${appointment.id.substring(0, 4).toUpperCase()}`;
+
+      // Obtener detalles mapeados dentro de la misma transacción
+      const { rows: fullApptRows } = await client.query<AppointmentDbRow>(
+        `SELECT a.*,
+                p.first_name AS patient_first_name, p.last_name AS patient_last_name,
+                pr.first_name AS professional_first_name, pr.last_name AS professional_last_name,
+                s.name AS service_name
+         FROM appointments a
+         JOIN patients p ON p.id = a.patient_id
+         JOIN professionals pr ON pr.id = a.professional_id
+         JOIN services s ON s.id = a.service_id
+         WHERE a.id = $1 AND a.clinic_id = $2`,
+        [appointment.id, clinicId],
+      );
+
+      const mapped = this.mapRow(fullApptRows[0] || appointment);
+
+      return {
+        id: appointment.id,
+        bookingCode,
+        status: AppointmentStatus.CONFIRMED,
+        appointment: mapped,
+      };
+    });
+
+    if (this.emailsService) {
+      this.dispatchAppointmentConfirmationEmails(clinicId, result.id).catch((err) => {
+        console.warn('[AppointmentsService] Error al despachar correos de cita:', err);
+      });
+    }
+
+    return result;
+  }
+
   async softDelete(clinicId: string, id: string): Promise<void> {
     const { rowCount } = await this.db.query(
       `UPDATE appointments SET deleted_at = NOW() WHERE id = $1 AND clinic_id = $2 AND deleted_at IS NULL`,
@@ -544,8 +918,12 @@ export class AppointmentsService {
             ? row.appointment_date.split('T')[0]
             : String(row.appointment_date).split('T')[0])
         : '',
-      startTime: row.start_time,
-      endTime: row.end_time,
+      startTime: row.start_time
+        ? (typeof row.start_time === 'string' ? row.start_time.substring(0, 5) : String(row.start_time).substring(0, 5))
+        : '',
+      endTime: row.end_time
+        ? (typeof row.end_time === 'string' ? row.end_time.substring(0, 5) : String(row.end_time).substring(0, 5))
+        : '',
       status: row.status,
       notes: row.notes ?? undefined,
       internalNotes: row.internal_notes ?? undefined,

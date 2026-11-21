@@ -4,6 +4,7 @@ import { PaymentSummary } from './PaymentSummary';
 import { ValidationStatus } from './ValidationStatus';
 import { PolicyModal } from './PolicyModal';
 import { IconAlert, IconCheck } from './AppointmentIcons';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import { buildBookingReview, ReviewPatientInput } from './reviewCatalog';
 import { DEFAULT_SPECIALTY_LOCATION_ADDRESS } from './specialtyCatalog';
 import type {
@@ -120,16 +121,22 @@ export const AppointmentReviewStep: React.FC<AppointmentReviewStepProps> = ({
         <div className="apx-split__main">
           <BookingReview
             blocks={review.blocks}
-            patient={patient}
-            locationAddress={review.locationAddress}
             onEditStep={onEditStep}
           />
 
           {/* Integrated Consent Policies */}
           <div className={`apx-consent-group ${hasConsentError && !isBothConsentsAccepted ? 'apx-consent-group--error' : ''}`}>
-            <h3 className="apx-consent-group__title">Consentimientos y Políticas Requeridas</h3>
+            <div className="apx-consent-group__header">
+              <span className="apx-consent-group__icon" aria-hidden="true">
+                <MaterialIcon name="verified_user" size={20} />
+              </span>
+              <div>
+                <h3 className="apx-consent-group__title">Consentimientos y Políticas Requeridas</h3>
+                <p className="apx-consent-group__subtitle">Confirmación obligatoria para garantizar tu atención médica.</p>
+              </div>
+            </div>
 
-            <label className="apx-consent-checkbox-card">
+            <label className={`apx-consent-checkbox-card ${cancellationAccepted ? 'is-checked' : ''}`}>
               <input
                 type="checkbox"
                 checked={cancellationAccepted}
@@ -154,7 +161,7 @@ export const AppointmentReviewStep: React.FC<AppointmentReviewStepProps> = ({
               </div>
             </label>
 
-            <label className="apx-consent-checkbox-card">
+            <label className={`apx-consent-checkbox-card ${privacyAccepted ? 'is-checked' : ''}`}>
               <input
                 type="checkbox"
                 checked={privacyAccepted}
@@ -180,8 +187,9 @@ export const AppointmentReviewStep: React.FC<AppointmentReviewStepProps> = ({
             </label>
 
             {hasConsentError && !isBothConsentsAccepted && (
-              <p className="apx-consent-error-msg" role="alert">
-                ⚠️ Debes aceptar ambos consentimientos para poder continuar con la reserva.
+              <p className="apx-consent-error-msg" role="alert" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <IconAlert size={16} />
+                <span>Debes aceptar ambos consentimientos para poder continuar con la reserva.</span>
               </p>
             )}
           </div>
@@ -205,7 +213,38 @@ export const AppointmentReviewStep: React.FC<AppointmentReviewStepProps> = ({
 
       {modalType && (
         <PolicyModal
-          type={modalType}
+          isOpen={Boolean(modalType)}
+          title={
+            modalType === 'cancellation'
+              ? 'Política de Cancelación y Reagendamiento'
+              : 'Política de Privacidad y Tratamiento de Datos'
+          }
+          lastUpdated="Septiembre 2026"
+          content={
+            modalType === 'cancellation' ? (
+              <div>
+                <p>
+                  En VitalSalud valoramos el tiempo de nuestros profesionales y pacientes. Las cancelaciones
+                  y reagendamientos pueden realizarse sin costo hasta 24 horas antes del horario acordado.
+                </p>
+                <p>
+                  En caso de no asistir o cancelar con menos de 24 horas de anticipación, se aplicará una
+                  penalidad según las condiciones del servicio reservado.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p>
+                  VitalSalud garantiza la protección de tus datos personales y sensibles de acuerdo con la Ley
+                  N° 29733 (Ley de Protección de Datos Personales del Perú).
+                </p>
+                <p>
+                  La información recopilada será utilizada únicamente para fines asistenciales de salud,
+                  gestión de tu cita médica y recordatorios de atención.
+                </p>
+              </div>
+            )
+          }
           onClose={() => setModalType(null)}
         />
       )}

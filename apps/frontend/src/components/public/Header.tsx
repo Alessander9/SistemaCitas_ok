@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Header.css';
+import { MaterialIcon } from '../ui/MaterialIcon';
 
 interface HeaderProps {
   onNavigate: (view: 'landing' | 'booking' | 'login') => void;
@@ -183,59 +184,74 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, activeView }) => {
             type="button"
             className="mobile-nav-link"
             onClick={() => handleNavClick('landing')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            🏠 Inicio
+            <MaterialIcon name="home" size={18} />
+            <span>Inicio</span>
           </button>
           <button
             type="button"
             className="mobile-nav-link"
             onClick={() => handleNavClick('landing', 'como-funciona')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            ⚡ Cómo Funciona
+            <MaterialIcon name="bolt" size={18} />
+            <span>Cómo Funciona</span>
           </button>
           <button
             type="button"
             className="mobile-nav-link"
             onClick={() => handleNavClick('landing', 'especialidades')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            🩺 Especialidades Médicas
+            <MaterialIcon name="medical_services" size={18} />
+            <span>Especialidades Médicas</span>
           </button>
           <button
             type="button"
             className="mobile-nav-link"
             onClick={() => handleNavClick('landing', 'servicios')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            ✨ Servicios y Terapias
+            <MaterialIcon name="healing" size={18} />
+            <span>Servicios y Terapias</span>
           </button>
           <button
             type="button"
             className="mobile-nav-link"
             onClick={() => handleNavClick('landing', 'profesionales')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            👨‍⚕️ Médicos y Especialistas
+            <MaterialIcon name="groups" size={18} />
+            <span>Médicos y Especialistas</span>
           </button>
           <button
             type="button"
             className="mobile-nav-link"
             onClick={() => handleNavClick('landing', 'faq')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            ❓ Preguntas Frecuentes
+            <MaterialIcon name="help" size={18} />
+            <span>Preguntas Frecuentes</span>
           </button>
           <div className="mobile-nav-divider" />
           <button
             type="button"
             className="btn-book-cta w-full"
             onClick={() => handleNavClick('booking')}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
           >
-            🗓️ Reservar Cita en Línea
+            <MaterialIcon name="calendar_month" size={18} />
+            <span>Reservar Cita en Línea</span>
           </button>
           <button
             type="button"
             className="btn-login w-full"
-            style={{ justifyContent: 'center' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
             onClick={() => handleNavClick('login')}
           >
-            🔐 Iniciar Sesión / Portal
+            <MaterialIcon name="lock" size={18} />
+            <span>Iniciar Sesión / Portal</span>
           </button>
         </div>
       )}

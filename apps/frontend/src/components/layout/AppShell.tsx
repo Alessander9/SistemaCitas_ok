@@ -47,7 +47,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
 
-        <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-20 sm:pb-8">
+        <main className="flex-1 p-2.5 sm:p-4 lg:p-5 w-full pb-16 sm:pb-6">
           {children}
         </main>
       </div>

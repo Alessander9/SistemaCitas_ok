@@ -86,7 +86,7 @@ export function buildServiceCards(services: MedicalService[]): ServiceCardModel[
         name: service.name,
         description: service.description ?? '',
         price: service.price ?? 0,
-        currency: service.currency || 'PEN',
+        currency: service.currency === 'USD' ? 'USD' : 'PEN',
         durationMinutes: service.durationMinutes,
         imageUrl: entry.imageUrl,
         isPopular: entry.isPopular,
@@ -96,9 +96,9 @@ export function buildServiceCards(services: MedicalService[]): ServiceCardModel[
     });
 }
 
-/** "S/ 120.00" from the service price + currency (single formatting rule). */
+/** "S/ 120.00" from the service price + currency (single formatting rule, Soles peruanos por defecto). */
 export function formatPriceLabel(price: number, currency = 'PEN'): string {
-  const prefix = currency === 'PEN' ? 'S/' : `${currency} `;
+  const prefix = currency === 'USD' ? '$' : 'S/';
   return `${prefix} ${price.toFixed(2)}`;
 }
 

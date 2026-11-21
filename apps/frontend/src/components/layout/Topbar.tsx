@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Topbar.css';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import { IconSearch } from '../ui/Icons';
 import { useTheme } from '../../context/ThemeContext';
 import { AccessibilityFontScaler } from './AccessibilityFontScaler';
@@ -234,16 +235,17 @@ export const Topbar: React.FC<TopbarProps> = ({
             className="sidebar-toggle-btn"
             onClick={toggleTheme}
             title={isDark ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
-            style={{ width: '36px', height: '36px', fontSize: '1rem' }}
+            style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {isDark ? '☀️' : '🌙'}
+            {isDark ? <MaterialIcon name="light_mode" size={18} /> : <MaterialIcon name="dark_mode" size={18} />}
           </button>
 
           {/* Active Clinic / Scope Indicator */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/80 border border-slate-200/80 text-xs text-slate-700">
             <span className="w-2 h-2 rounded-full bg-emerald-500 dot-live"></span>
-            <span className="font-semibold">
-              {activeRole === 'SUPER_ADMIN' ? '🌐 Red Global' : '🏥 Sanitas Lima'}
+            <span className="font-semibold flex items-center gap-1">
+              <MaterialIcon name={activeRole === 'SUPER_ADMIN' ? 'public' : 'local_hospital'} size={14} />
+              {activeRole === 'SUPER_ADMIN' ? 'Red Global' : 'Sanitas Lima'}
             </span>
           </div>
 
@@ -310,7 +312,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                       setShowCustomizeModal(true);
                     }}
                   >
-                    <span className="dropdown-item-icon">⚙️</span>
+                    <span className="dropdown-item-icon"><MaterialIcon name="tune" size={18} /></span>
                     <span>Personalizar Interfaz</span>
                   </button>
 
@@ -322,7 +324,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                       setShowProfileModal(true);
                     }}
                   >
-                    <span className="dropdown-item-icon">👤</span>
+                    <span className="dropdown-item-icon"><MaterialIcon name="person" size={18} /></span>
                     <span>Mi Perfil Clínico</span>
                   </button>
 
@@ -334,7 +336,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                       alert('Protocolo de Seguridad Activo: Cifrado TLS 256-bit, Row-Level Security (RLS) y Logs Inmutables Ley 29733.');
                     }}
                   >
-                    <span className="dropdown-item-icon">🛡️</span>
+                    <span className="dropdown-item-icon"><MaterialIcon name="security" size={18} /></span>
                     <span>Seguridad & Auditoría</span>
                   </button>
 
@@ -353,7 +355,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                           onRoleChange('SUPER_ADMIN');
                         }}
                       >
-                        <span className="dropdown-item-icon">🌐</span>
+                        <span className="dropdown-item-icon"><MaterialIcon name="public" size={18} /></span>
                         <span>Super Admin (Multi-Tenant)</span>
                       </button>
                       <button
@@ -364,7 +366,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                           onRoleChange('ADMIN_CLINIC');
                         }}
                       >
-                        <span className="dropdown-item-icon">🏥</span>
+                        <span className="dropdown-item-icon"><MaterialIcon name="local_hospital" size={18} /></span>
                         <span>Director Médico (Sede)</span>
                       </button>
                       <button
@@ -375,7 +377,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                           onRoleChange('PROFESIONAL');
                         }}
                       >
-                        <span className="dropdown-item-icon">🩺</span>
+                        <span className="dropdown-item-icon"><MaterialIcon name="medical_services" size={18} /></span>
                         <span>Dra. González (Médico)</span>
                       </button>
                       <button
@@ -386,7 +388,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                           onRoleChange('RECEPCION');
                         }}
                       >
-                        <span className="dropdown-item-icon">📋</span>
+                        <span className="dropdown-item-icon"><MaterialIcon name="assignment" size={18} /></span>
                         <span>Recepción / Front-Desk</span>
                       </button>
                       <button
@@ -397,7 +399,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                           onRoleChange('PACIENTE');
                         }}
                       >
-                        <span className="dropdown-item-icon">👤</span>
+                        <span className="dropdown-item-icon"><MaterialIcon name="person" size={18} /></span>
                         <span>Juan Pérez (Paciente)</span>
                       </button>
                     </>
@@ -415,7 +417,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                         onLogout();
                       }}
                     >
-                      <span className="dropdown-item-icon">⎋</span>
+                      <span className="dropdown-item-icon"><MaterialIcon name="logout" size={18} /></span>
                       <span>Cerrar Sesión Segura</span>
                     </button>
                   )}
@@ -436,9 +438,9 @@ export const Topbar: React.FC<TopbarProps> = ({
                 type="button"
                 className="close-btn"
                 onClick={() => setShowCustomizeModal(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}
+                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={20} />
               </button>
             </div>
             <div className="modal-body-custom">
@@ -505,9 +507,9 @@ export const Topbar: React.FC<TopbarProps> = ({
                 type="button"
                 className="close-btn"
                 onClick={() => setShowProfileModal(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}
+                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={20} />
               </button>
             </div>
             <div className="modal-body-custom">
@@ -534,7 +536,7 @@ export const Topbar: React.FC<TopbarProps> = ({
               </div>
 
               <div style={{ padding: '0.75rem 1rem', background: '#ecfdf5', borderRadius: '10px', border: '1px solid #a7f3d0', color: '#065f46', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>🛡️</span>
+                <MaterialIcon name="verified_user" size={18} color="#059669" />
                 <span>Firma digital acreditada según Ley N° 27269 para emisión de recetas y órdenes médicas.</span>
               </div>
             </div>

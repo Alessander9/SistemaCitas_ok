@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import { TransferPaymentFormValues } from './appointmentTypes';
 
 export interface OnlineTransferFormProps {
@@ -102,8 +103,16 @@ export const OnlineTransferForm: React.FC<OnlineTransferFormProps> = ({
                       handleCopy(acc.accountNumber, `${acc.bank}-cta`);
                     }}
                     title="Copiar número de cuenta"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                   >
-                    {copiedKey === `${acc.bank}-cta` ? '✓ Copiado' : 'Copiar'}
+                    {copiedKey === `${acc.bank}-cta` ? (
+                      <>
+                        <MaterialIcon name="check" size={13} />
+                        <span>Copiado</span>
+                      </>
+                    ) : (
+                      'Copiar'
+                    )}
                   </button>
                 </div>
                 <div className="apx-transfer-card__row">
@@ -117,8 +126,16 @@ export const OnlineTransferForm: React.FC<OnlineTransferFormProps> = ({
                       handleCopy(acc.cci, `${acc.bank}-cci`);
                     }}
                     title="Copiar código interbancario"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                   >
-                    {copiedKey === `${acc.bank}-cci` ? '✓ Copiado' : 'Copiar'}
+                    {copiedKey === `${acc.bank}-cci` ? (
+                      <>
+                        <MaterialIcon name="check" size={13} />
+                        <span>Copiado</span>
+                      </>
+                    ) : (
+                      'Copiar'
+                    )}
                   </button>
                 </div>
               </div>

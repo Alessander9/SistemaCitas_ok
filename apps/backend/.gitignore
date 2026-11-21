@@ -1,0 +1,7 @@
+# Local environment & sensitive configuration
+.env
+.env.*
+*.env
+dist/
+node_modules/
+*.log

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './CommunicationsPage.css';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import {
   IconMail,
   IconSearch,
@@ -43,12 +44,12 @@ const mockTemplates: EmailTemplate[] = [
     description: 'Enviado automáticamente al paciente en cuanto la cita es reservada o confirmada en recepción.',
     htmlBody: `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
   <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 24px; text-align: center; color: #ffffff;">
-    <div style="font-size: 28px; margin-bottom: 6px;">🏥</div>
+    <div style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">CLÍNICA</div>
     <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">{{clinic_name}}</h1>
     <p style="margin: 4px 0 0; font-size: 13px; color: #e0f2fe;">Comprobante Digital de Reserva</p>
   </div>
   <div style="padding: 24px; color: #1e293b;">
-    <h2 style="color: #0284c7; font-size: 17px; margin-top: 0;">¡Hola {{patient_name}}! 👋</h2>
+    <h2 style="color: #0284c7; font-size: 17px; margin-top: 0;">¡Hola {{patient_name}}!</h2>
     <p style="font-size: 14px; line-height: 1.6; color: #475569;">Tu cita médica ha sido <strong>confirmada exitosamente</strong> en nuestro sistema.</p>
     
     <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 18px 0;">
@@ -71,7 +72,7 @@ const mockTemplates: EmailTemplate[] = [
     </div>
 
     <div style="background: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 14px; border-radius: 6px; font-size: 13px; color: #166534; margin-bottom: 20px;">
-      💡 <strong>Recomendación:</strong> Por favor preséntate 10 minutos antes con tu documento de identidad (DNI/CE).
+      <strong>Recomendación:</strong> Por favor preséntate 10 minutos antes con tu documento de identidad (DNI/CE).
     </div>
 
     <p style="font-size: 12px; color: #94a3b8; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 14px; text-align: center;">
@@ -91,7 +92,7 @@ const mockTemplates: EmailTemplate[] = [
     description: 'Disparado por el motor cron 24 horas antes de la hora pactada para maximizar la tasa de asistencia.',
     htmlBody: `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
   <div style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); padding: 22px; text-align: center; color: #ffffff;">
-    <div style="font-size: 26px; margin-bottom: 4px;">⏰</div>
+    <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">RECORDATORIO</div>
     <h1 style="margin: 0; font-size: 19px; font-weight: 700; color: #ffffff;">Recordatorio de Cita Médica</h1>
     <p style="margin: 3px 0 0; font-size: 13px; color: #ccfbf1;">Tu cita está programada para el día de mañana</p>
   </div>
@@ -102,8 +103,8 @@ const mockTemplates: EmailTemplate[] = [
     </p>
     
     <div style="background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 14px; margin: 16px 0;">
-      <p style="margin: 0 0 6px; font-size: 13px;">🩺 <strong>Servicio:</strong> {{service_name}}</p>
-      <p style="margin: 0; font-size: 13px;">👨‍⚕️ <strong>Médico:</strong> {{professional_name}}</p>
+      <p style="margin: 0 0 6px; font-size: 13px;"><strong>Servicio:</strong> {{service_name}}</p>
+      <p style="margin: 0; font-size: 13px;"><strong>Médico:</strong> {{professional_name}}</p>
     </div>
 
     <div style="text-align: center; margin: 24px 0 10px;">
@@ -125,7 +126,7 @@ const mockTemplates: EmailTemplate[] = [
     description: 'Aviso formal inmediato cuando una cita es anulada o cancelada por el paciente o la clínica.',
     htmlBody: `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #fee2e2;">
   <div style="background: #ef4444; padding: 20px; text-align: center; color: #ffffff;">
-    <div style="font-size: 26px; margin-bottom: 4px;">⚠️</div>
+    <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">AVISO IMPORTANTE</div>
     <h1 style="margin: 0; font-size: 19px; font-weight: 700; color: #ffffff;">Aviso de Cancelación de Cita</h1>
   </div>
   <div style="padding: 24px; color: #1e293b;">
@@ -153,7 +154,7 @@ const mockTemplates: EmailTemplate[] = [
     description: 'Enviado 4 horas posteriores a la consulta para registrar métricas de satisfacción (NPS y feedback).',
     htmlBody: `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
   <div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); padding: 22px; text-align: center; color: #ffffff;">
-    <div style="font-size: 26px; margin-bottom: 4px;">🌟</div>
+    <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">ENCUESTA</div>
     <h1 style="margin: 0; font-size: 19px; font-weight: 700; color: #ffffff;">Seguimiento Post-Consulta</h1>
     <p style="margin: 3px 0 0; font-size: 13px; color: #ede9fe;">Tu bienestar y opinión nos importan</p>
   </div>
@@ -162,7 +163,7 @@ const mockTemplates: EmailTemplate[] = [
     <p style="font-size: 13.5px; color: #64748b;">¿Cómo calificarías la atención recibida por nuestro equipo médico?</p>
     
     <div style="text-align: center; margin: 20px 0;">
-      <span style="font-size: 24px; margin: 0 6px; cursor: pointer;">⭐</span>
+      <span style="font-size: 20px; margin: 0 6px; cursor: pointer; color: #f59e0b;">&#9733;</span>
       <span style="font-size: 24px; margin: 0 6px; cursor: pointer;">⭐</span>
       <span style="font-size: 24px; margin: 0 6px; cursor: pointer;">⭐</span>
       <span style="font-size: 24px; margin: 0 6px; cursor: pointer;">⭐</span>
@@ -389,7 +390,7 @@ export function CommunicationsPage() {
             onClick={() => setActiveTab('templates')}
             id="tab-templates"
           >
-            <span className="tab-icon">📄</span>
+            <MaterialIcon name="description" size={18} />
             <span>Plantillas</span>
             <span className="tab-count">{templates.length}</span>
           </button>
@@ -398,7 +399,7 @@ export function CommunicationsPage() {
             onClick={() => setActiveTab('logs')}
             id="tab-logs"
           >
-            <span className="tab-icon">📊</span>
+            <MaterialIcon name="bar_chart" size={18} />
             <span>Auditoría de Envíos</span>
             <span className="tab-count">{logs.length}</span>
           </button>
@@ -407,7 +408,7 @@ export function CommunicationsPage() {
             onClick={() => setActiveTab('test')}
             id="tab-test"
           >
-            <span className="tab-icon">✉️</span>
+            <MaterialIcon name="mail" size={18} />
             <span>Probador / Enviar Test</span>
           </button>
           <button
@@ -415,7 +416,7 @@ export function CommunicationsPage() {
             onClick={() => setActiveTab('reminders')}
             id="tab-reminders"
           >
-            <span className="tab-icon">⏰</span>
+            <MaterialIcon name="schedule" size={18} />
             <span>Recordatorios Automatizados</span>
             <span className="tab-badge-auto">Cron Activo</span>
           </button>
@@ -548,8 +549,9 @@ export function CommunicationsPage() {
 
               {/* Dynamic Sample Variable Quick Customizer */}
               <div className="preview-variable-controls">
-                <div className="var-controls-header">
-                  <span>🛠️ Variables de Simulación en Vivo:</span>
+                <div className="var-controls-header" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <MaterialIcon name="tune" size={16} />
+                  <span>Variables de Simulación en Vivo:</span>
                 </div>
                 <div className="var-controls-grid">
                   <div className="var-input-group">
@@ -619,20 +621,26 @@ export function CommunicationsPage() {
                 <button
                   className={`filter-pill ${logStatusFilter === 'sent' ? 'active' : ''}`}
                   onClick={() => setLogStatusFilter('sent')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
                 >
-                  ✅ Enviados ({logs.filter(l => l.status === 'sent').length})
+                  <MaterialIcon name="check_circle" size={14} />
+                  <span>Enviados ({logs.filter(l => l.status === 'sent').length})</span>
                 </button>
                 <button
                   className={`filter-pill ${logStatusFilter === 'queued' ? 'active' : ''}`}
                   onClick={() => setLogStatusFilter('queued')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
                 >
-                  ⏳ En Cola ({logs.filter(l => l.status === 'queued').length})
+                  <MaterialIcon name="hourglass_empty" size={14} />
+                  <span>En Cola ({logs.filter(l => l.status === 'queued').length})</span>
                 </button>
                 <button
                   className={`filter-pill ${logStatusFilter === 'failed' ? 'active' : ''}`}
                   onClick={() => setLogStatusFilter('failed')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
                 >
-                  ❌ Fallidos ({logs.filter(l => l.status === 'failed').length})
+                  <MaterialIcon name="cancel" size={14} />
+                  <span>Fallidos ({logs.filter(l => l.status === 'failed').length})</span>
                 </button>
               </div>
             </div>
@@ -838,8 +846,10 @@ export function CommunicationsPage() {
                   className="comms-btn primary lg"
                   onClick={handleSendTest}
                   disabled={!testTo}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 >
-                  🚀 Despachar Correo de Prueba
+                  <MaterialIcon name="send" size={16} />
+                  <span>Despachar Correo de Prueba</span>
                 </button>
               </div>
             </div>
@@ -851,19 +861,22 @@ export function CommunicationsPage() {
                   <IconBot size={18} /> Verificación de Seguridad
                 </h4>
                 <ul className="guide-list">
-                  <li>
-                    ✅ <strong>Protección Antispam:</strong> Headers DKIM y SPF configurados con firma RSA 2048-bit.
+                  <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+                    <MaterialIcon name="check_circle" size={16} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
+                    <span><strong>Protección Antispam:</strong> Headers DKIM y SPF configurados con firma RSA 2048-bit.</span>
                   </li>
-                  <li>
-                    ✅ <strong>Sanitización HTML:</strong> El motor previene inyección de scripts externos.
+                  <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+                    <MaterialIcon name="check_circle" size={16} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
+                    <span><strong>Sanitización HTML:</strong> El motor previene inyección de scripts externos.</span>
                   </li>
-                  <li>
-                    ✅ <strong>Auditoría Inmediata:</strong> Cada despacho se registrará en la pestaña de Auditoría.
+                  <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+                    <MaterialIcon name="check_circle" size={16} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
+                    <span><strong>Auditoría Inmediata:</strong> Cada despacho se registrará en la pestaña de Auditoría.</span>
                   </li>
                 </ul>
 
-                <div className="guide-callout">
-                  <span className="callout-icon">💡</span>
+                <div className="guide-callout" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <MaterialIcon name="lightbulb" size={20} style={{ color: '#f59e0b', flexShrink: 0 }} />
                   <div className="callout-text">
                     <strong>Tip Clínico:</strong> Puedes configurar webhooks en tu proveedor para recibir notificaciones de aperturas y clics de pacientes.
                   </div>
@@ -894,8 +907,19 @@ export function CommunicationsPage() {
                 className="comms-btn primary"
                 onClick={handleTriggerSweep}
                 disabled={isSweeping}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
               >
-                {isSweeping ? '⏳ Ejecutando barrido...' : '🔄 Ejecutar Barrido Manual Ahora'}
+                {isSweeping ? (
+                  <>
+                    <MaterialIcon name="hourglass_empty" size={16} />
+                    <span>Ejecutando barrido...</span>
+                  </>
+                ) : (
+                  <>
+                    <MaterialIcon name="refresh" size={16} />
+                    <span>Ejecutar Barrido Manual Ahora</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

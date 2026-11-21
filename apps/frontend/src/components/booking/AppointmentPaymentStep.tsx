@@ -8,7 +8,6 @@ import {
   IconHourglass,
   IconLocation,
   IconPencil,
-  IconShieldCheck,
   IconUser,
   resolveSpecialtyIcon,
 } from './AppointmentIcons';

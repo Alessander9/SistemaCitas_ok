@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './ClinicalDashboard.css';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import {
   IconCalendar,
   IconCash,
@@ -268,9 +269,10 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', marginLeft: '0.5rem' }}
+            aria-label="Cerrar"
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}
           >
-            ✕
+            <MaterialIcon name="close" size={16} />
           </button>
         </div>
       )}
@@ -484,7 +486,14 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
                     <td>
                       <span style={{ fontWeight: 700, color: '#0f172a' }}>{apt.price}</span>
                       <span style={{ display: 'block', fontSize: '0.68rem', color: apt.paid ? '#16a34a' : '#d97706', fontWeight: 700 }}>
-                        {apt.paid ? '✓ Pagado' : '● Pendiente'}
+                        {apt.paid ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                            <MaterialIcon name="check" size={12} />
+                            <span>Pagado</span>
+                          </span>
+                        ) : (
+                          '● Pendiente'
+                        )}
                       </span>
                     </td>
                     <td>
@@ -540,9 +549,10 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedAppointment(null)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -550,9 +560,9 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
               {/* Tarjeta 1: Servicio y Profesional */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>🩺</span>
-                    Detalles del Servicio & Profesional
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="medical_services" size={18} />
+                    <span>Detalles del Servicio & Profesional</span>
                   </h4>
                   <span className="status-pill status-confirmed" style={{ fontSize: '0.75rem', fontWeight: 800 }}>
                     {selectedAppointment.price}
@@ -562,7 +572,9 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
                   <div className="input-field-wrap">
                     <label className="input-field-label">Servicio Clínico</label>
                     <div className="input-with-icon">
-                      <span className="input-icon-left">🩺</span>
+                      <span className="input-icon-left">
+                        <MaterialIcon name="medical_services" size={16} />
+                      </span>
                       <input
                         type="text"
                         className="modern-form-input"
@@ -574,7 +586,9 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
                   <div className="input-field-wrap">
                     <label className="input-field-label">Profesional Asignado</label>
                     <div className="input-with-icon">
-                      <span className="input-icon-left">👨‍⚕️</span>
+                      <span className="input-icon-left">
+                        <MaterialIcon name="person" size={16} />
+                      </span>
                       <input
                         type="text"
                         className="modern-form-input"
@@ -589,9 +603,9 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
               {/* Tarjeta 2: Operativa y Consultorio */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>⚙️</span>
-                    Estado de Atención, Horario y Consultorio
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="settings" size={18} />
+                    <span>Estado de Atención, Horario y Consultorio</span>
                   </h4>
                   <span className="form-section-badge">SEDE {clinicName.toUpperCase()}</span>
                 </div>
@@ -617,10 +631,10 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
                         });
                       }}
                     >
-                      <option value="waiting">🟡 En Sala de Espera</option>
-                      <option value="in_consultation">🔵 En Consulta Médica</option>
-                      <option value="confirmed">🟢 Confirmada / Por Llegar</option>
-                      <option value="attended">✓ Atendida / Finalizada</option>
+                      <option value="waiting">En Sala de Espera</option>
+                      <option value="in_consultation">En Consulta Médica</option>
+                      <option value="confirmed">Confirmada / Por Llegar</option>
+                      <option value="attended">Atendida / Finalizada</option>
                     </select>
                   </div>
                   <div className="input-field-wrap">
@@ -651,9 +665,9 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
               {/* Tarjeta 3: Notas Administrativas */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>📝</span>
-                    Notas Internas de Recepción
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="edit_note" size={18} />
+                    <span>Notas Internas de Recepción</span>
                   </h4>
                   <span className="form-section-badge">INTERNO</span>
                 </div>
@@ -671,16 +685,17 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
               <button
                 type="button"
                 className="cash-btn primary"
-                style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', borderColor: '#0284c7' }}
+                style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', borderColor: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 onClick={() => {
                   const updated = appointments.map(a => a.id === selectedAppointment.id ? { ...selectedAppointment, status: 'in_consultation' as const, statusText: 'En Consulta', statusClass: 'status-in_consultation' } : a);
                   setAppointments(updated);
-                  showToast(`✓ Paciente ${selectedAppointment.patient} llamado a ${selectedAppointment.room || 'Cons. 101'}.`);
+                  showToast(`Paciente ${selectedAppointment.patient} llamado a ${selectedAppointment.room || 'Cons. 101'}.`);
                   setSelectedAppointment(null);
                   onNavigate('clinical-consultation');
                 }}
               >
-                🩺 Llamar a Consulta y Abrir Ficha
+                <MaterialIcon name="medical_services" size={16} />
+                <span>Llamar a Consulta y Abrir Ficha</span>
               </button>
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -697,7 +712,7 @@ export const ClinicAdminDashboard: React.FC<ClinicAdminDashboardProps> = ({
                   style={{ background: '#0284c7', borderColor: '#0284c7' }}
                   onClick={() => {
                     setAppointments(prev => prev.map(a => a.id === selectedAppointment.id ? selectedAppointment : a));
-                    showToast(`✓ Cita de ${selectedAppointment.patient} actualizada con éxito.`);
+                    showToast(`Cita de ${selectedAppointment.patient} actualizada con éxito.`);
                     setSelectedAppointment(null);
                   }}
                 >

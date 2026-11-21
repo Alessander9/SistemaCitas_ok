@@ -5,6 +5,7 @@ import { fetchSpecialties, fetchServices, fetchProfessionals } from '../../servi
 import { Header } from '../../components/public/Header';
 import { Footer } from '../../components/public/Footer';
 import { AiChatWidget } from '../../components/ai/AiChatWidget';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -111,14 +112,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Quick Hero Interactive Booking Card */}
           <div className="hero-booking-card">
             <div className="hero-booking-card-header">
-              <span className="hero-booking-card-title">⚡ Agenda tu Evaluación en Línea</span>
+              <span className="hero-booking-card-title" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <MaterialIcon name="bolt" size={20} />
+                <span>Agenda tu Evaluación en Línea</span>
+              </span>
               <span className="hero-booking-card-sub">Sin llamadas ni esperas telefónicas</span>
             </div>
             <form onSubmit={handleHeroQuickSearch} className="hero-booking-form">
               <div className="hero-form-field">
                 <label htmlFor="hero-spec-select">Especialidad Médica</label>
                 <div className="hero-input-wrap">
-                  <span className="hero-field-icon">🩺</span>
+                  <span className="hero-field-icon"><MaterialIcon name="medical_services" size={18} /></span>
                   <select
                     id="hero-spec-select"
                     value={heroSelectedSpecialty}
@@ -140,7 +144,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="hero-form-field">
                 <label htmlFor="hero-serv-select">Servicio o Tratamiento</label>
                 <div className="hero-input-wrap">
-                  <span className="hero-field-icon">✨</span>
+                  <span className="hero-field-icon"><MaterialIcon name="auto_awesome" size={18} /></span>
                   <select
                     id="hero-serv-select"
                     value={heroSelectedService}
@@ -172,13 +176,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <div className="hero-quick-perks">
               <div className="quick-perk-item">
-                <span className="perk-check">✓</span> Confirmación inmediata por WhatsApp
+                <span className="perk-check"><MaterialIcon name="check" size={14} /></span> Confirmación inmediata por WhatsApp
               </div>
               <div className="quick-perk-item">
-                <span className="perk-check">✓</span> Pagos seguros con Yape, Plin y Tarjetas
+                <span className="perk-check"><MaterialIcon name="check" size={14} /></span> Pagos seguros con Yape, Plin y Tarjetas
               </div>
               <div className="quick-perk-item">
-                <span className="perk-check">✓</span> Reprogramación sin costo hasta 24 h antes
+                <span className="perk-check"><MaterialIcon name="check" size={14} /></span> Reprogramación sin costo hasta 24 h antes
               </div>
             </div>
           </div>
@@ -186,28 +190,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Trust Stats Bar */}
           <div className="trust-stats-bar">
             <div className="stat-item">
-              <div className="stat-icon-wrap">👥</div>
+              <div className="stat-icon-wrap"><MaterialIcon name="groups" size={24} /></div>
               <div className="stat-content">
                 <h4>10k+</h4>
                 <p>Pacientes Atendidos</p>
               </div>
             </div>
             <div className="stat-item">
-              <div className="stat-icon-wrap">⭐</div>
+              <div className="stat-icon-wrap"><MaterialIcon name="star" size={24} /></div>
               <div className="stat-content">
                 <h4>4.9 / 5</h4>
                 <p>Calificación de Pacientes</p>
               </div>
             </div>
             <div className="stat-item">
-              <div className="stat-icon-wrap">🛡️</div>
+              <div className="stat-icon-wrap"><MaterialIcon name="verified_user" size={24} /></div>
               <div className="stat-content">
                 <h4>100%</h4>
                 <p>Especialistas Colegiados</p>
               </div>
             </div>
             <div className="stat-item">
-              <div className="stat-icon-wrap">⏱️</div>
+              <div className="stat-icon-wrap"><MaterialIcon name="schedule" size={24} /></div>
               <div className="stat-content">
                 <h4>15+</h4>
                 <p>Años de Experiencia</p>
@@ -230,7 +234,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="steps-grid">
           <div className="step-card">
             <div className="step-number-badge">01</div>
-            <div className="step-icon">🩺</div>
+            <div className="step-icon"><MaterialIcon name="medical_services" size={28} /></div>
             <h3 className="step-title">Agenda tu Evaluación Inicial</h3>
             <p className="step-desc">
               Reserva en línea tu primera consulta; no necesitas orden médica previa para comenzar tu tratamiento.
@@ -241,7 +245,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="step-card">
             <div className="step-number-badge">02</div>
-            <div className="step-icon">📋</div>
+            <div className="step-icon"><MaterialIcon name="assignment" size={28} /></div>
             <h3 className="step-title">Recibe tu Diagnóstico y Plan</h3>
             <p className="step-desc">
               Tu especialista evalúa tu condición y diseña un plan de recuperación personalizado con metas claras.
@@ -252,7 +256,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="step-card">
             <div className="step-number-badge">03</div>
-            <div className="step-icon">💪</div>
+            <div className="step-icon"><MaterialIcon name="fitness_center" size={28} /></div>
             <h3 className="step-title">Inicia tu Recuperación</h3>
             <p className="step-desc">
               Comienza tus sesiones con seguimiento constante y reportes de progreso hasta tu alta funcional.
@@ -273,37 +277,39 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="specialties-grid">
           {specialtiesList.map((spec) => {
-            const getIcon = () => {
-              if (spec.id === 'spec-1' || spec.name.includes('Fisio')) return '⚡';
-              if (spec.id === 'spec-2' || spec.name.includes('Trauma')) return '🦴';
-              if (spec.id === 'spec-3' || spec.name.includes('Ocupacional')) return '🖐️';
-              return '🥗';
-            };
+              const getIconName = () => {
+                if (spec.id === 'spec-1' || spec.name.includes('Fisio')) return 'offline_bolt';
+                if (spec.id === 'spec-2' || spec.name.includes('Trauma')) return 'healing';
+                if (spec.id === 'spec-3' || spec.name.includes('Ocupacional')) return 'pan_tool';
+                return 'restaurant';
+              };
 
-            return (
-              <div key={spec.id} className="specialty-card">
-                <div>
-                  <div className="specialty-card-top">
-                    <div className="specialty-icon-box">{getIcon()}</div>
-                    <span className="specialty-status-tag">Atención Activa</span>
+              return (
+                <div key={spec.id} className="specialty-card">
+                  <div>
+                    <div className="specialty-card-top">
+                      <div className="specialty-icon-box">
+                        <MaterialIcon name={getIconName()} size={28} />
+                      </div>
+                      <span className="specialty-status-tag">Atención Activa</span>
+                    </div>
+                    <h3 className="specialty-name">{spec.name}</h3>
+                    <p className="specialty-desc">{spec.description}</p>
                   </div>
-                  <h3 className="specialty-name">{spec.name}</h3>
-                  <p className="specialty-desc">{spec.description}</p>
-                </div>
 
-                <div className="specialty-card-footer">
-                  <button
-                    type="button"
-                    className="btn-card-action"
-                    onClick={() => onStartBooking(spec.id)}
-                  >
-                    <span>Ver Servicios y Agendar</span>
-                    <span className="arrow-icon">→</span>
-                  </button>
+                  <div className="specialty-card-footer">
+                    <button
+                      type="button"
+                      className="btn-card-action"
+                      onClick={() => onStartBooking(spec.id)}
+                    >
+                      <span>Ver Servicios y Agendar</span>
+                      <span className="arrow-icon">→</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </section>
 
@@ -320,7 +326,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* Search and Filter Bar */}
         <div className="services-toolbar">
           <div className="services-search-box">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"><MaterialIcon name="search" size={18} /></span>
             <input
               type="text"
               placeholder="Buscar por tratamiento o terapia..."
@@ -334,7 +340,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="clear-search-btn"
                 onClick={() => setServiceSearchTerm('')}
               >
-                ✕
+                <MaterialIcon name="close" size={16} />
               </button>
             )}
           </div>
@@ -363,7 +369,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* Services Cards Grid */}
         {filteredServices.length === 0 ? (
           <div className="services-empty-state">
-            <span className="empty-icon">🔍</span>
+            <span className="empty-icon"><MaterialIcon name="search" size={36} /></span>
             <h3>No se encontraron servicios</h3>
             <p>Intenta con otro término de búsqueda o selecciona otra especialidad.</p>
             <button
@@ -384,7 +390,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div>
                   <div className="service-header-row">
                     <span className="service-badge">{serv.specialtyName || 'Medicina'}</span>
-                    <span className="service-duration-badge">⏱️ {serv.durationMinutes} min</span>
+                    <span className="service-duration-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <MaterialIcon name="schedule" size={14} />
+                      <span>{serv.durationMinutes} min</span>
+                    </span>
                   </div>
                   <h3 className="service-title">{serv.name}</h3>
                   <p className="service-desc">{serv.description}</p>
@@ -408,9 +417,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     type="button"
                     className="btn-card-action btn-service-book"
                     onClick={() => onStartBooking(serv.specialtyId, serv.id)}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
                   >
                     <span>Reservar Este Servicio</span>
-                    <span>🗓️</span>
+                    <MaterialIcon name="calendar_month" size={16} />
                   </button>
                 </div>
               </div>
@@ -434,36 +444,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div key={prof.id} className="doctor-card">
               <div className="doctor-img-wrap">
                 <img src={prof.avatarUrl} alt={prof.firstName} className="doctor-img" />
-                <div className="doctor-verified-badge">
-                  <span>✔️</span> Verificado
+                  <div className="doctor-verified-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <MaterialIcon name="verified" size={14} /> Verificado
+                  </div>
                 </div>
-              </div>
-              <div className="doctor-body">
-                <div className="doctor-rating-row">
-                  <span className="doctor-stars">★★★★★</span>
-                  <span className="doctor-score">4.9</span>
-                  <span className="doctor-reviews">(+90 opiniones)</span>
-                </div>
-                <h3 className="doctor-name">
-                  {prof.firstName} {prof.lastName}
-                </h3>
-                <div className="doctor-license">Colegiatura: {prof.licenseNumber}</div>
-                <p className="doctor-bio">{prof.bio}</p>
+                <div className="doctor-body">
+                  <div className="doctor-rating-row">
+                    <span className="doctor-stars" style={{ display: 'inline-flex', gap: '1px', color: '#f59e0b' }}>
+                      {[...Array(5)].map((_, i) => (
+                        <MaterialIcon key={i} name="star" size={14} />
+                      ))}
+                    </span>
+                    <span className="doctor-score">4.9</span>
+                    <span className="doctor-reviews">(+90 opiniones)</span>
+                  </div>
+                  <h3 className="doctor-name">
+                    {prof.firstName} {prof.lastName}
+                  </h3>
+                  <div className="doctor-license">Colegiatura: {prof.licenseNumber}</div>
+                  <p className="doctor-bio">{prof.bio}</p>
 
-                <div className="doctor-card-footer">
-                  <button
-                    type="button"
-                    className="btn-card-action"
-                    onClick={() => onStartBooking()}
-                  >
-                    <span>Agendar con este Especialista</span>
-                    <span>→</span>
-                  </button>
+                  <div className="doctor-card-footer">
+                    <button
+                      type="button"
+                      className="btn-card-action"
+                      onClick={() => onStartBooking()}
+                    >
+                      <span>Agendar con este Especialista</span>
+                      <span>→</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
           ))}
-        </div>
+            </div>
       </section>
 
       {/* Por Qué Elegirnos / Ventajas Clínicas */}
@@ -478,25 +492,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="advantages-grid">
           <div className="advantage-card">
-            <div className="advantage-icon">🚀</div>
+            <div className="advantage-icon"><MaterialIcon name="bolt" size={24} /></div>
             <h3>Reserva sin Esperas</h3>
             <p>Agenda tu cita en línea en menos de 2 minutos y recibe confirmación inmediata, sin llamadas ni salas de espera.</p>
           </div>
 
           <div className="advantage-card">
-            <div className="advantage-icon">📱</div>
+            <div className="advantage-icon"><MaterialIcon name="smartphone" size={24} /></div>
             <h3>Recordatorios por WhatsApp</h3>
             <p>Confirmamos tu cita y te enviamos recordatorios e indicaciones previas a cada sesión en tu celular.</p>
           </div>
 
           <div className="advantage-card">
-            <div className="advantage-icon">📂</div>
+            <div className="advantage-icon"><MaterialIcon name="folder_shared" size={24} /></div>
             <h3>Seguimiento de tu Progreso</h3>
             <p>Evaluamos tu evolución sesión a sesión y ajustamos tu plan de tratamiento hasta tu recuperación completa.</p>
           </div>
 
           <div className="advantage-card">
-            <div className="advantage-icon">🛡️</div>
+            <div className="advantage-icon"><MaterialIcon name="verified_user" size={24} /></div>
             <h3>Atención Humanizada</h3>
             <p>El mismo terapeuta te acompaña durante todo el proceso, con trato cercano y planes adaptados a ti.</p>
           </div>
@@ -515,7 +529,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="testimonials-grid">
           <div className="testimonial-card">
-            <div className="testimonial-stars">★★★★★</div>
+            <div className="testimonial-stars" style={{ display: 'inline-flex', gap: '2px', color: '#f59e0b' }}>
+              {[...Array(5)].map((_, i) => (
+                <MaterialIcon key={i} name="star" size={16} />
+              ))}
+            </div>
             <p className="testimonial-quote">
               "Llegué con un dolor lumbar severo que me impedía trabajar. Con 5 sesiones de fisioterapia y punción seca con la Dra. González recuperé mi movilidad por completo. La reserva online fue comodísima."
             </p>
@@ -529,7 +547,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <div className="testimonial-card">
-            <div className="testimonial-stars">★★★★★</div>
+            <div className="testimonial-stars" style={{ display: 'inline-flex', gap: '2px', color: '#f59e0b' }}>
+              {[...Array(5)].map((_, i) => (
+                <MaterialIcon key={i} name="star" size={16} />
+              ))}
+            </div>
             <p className="testimonial-quote">
               "La atención en traumatología con el Dr. Mendoza fue impecable. Explicó mi diagnóstico con radiografías y la infiltración me alivió de inmediato. Excelente clínica y cero tiempo de espera."
             </p>
@@ -543,7 +565,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <div className="testimonial-card">
-            <div className="testimonial-stars">★★★★★</div>
+            <div className="testimonial-stars" style={{ display: 'inline-flex', gap: '2px', color: '#f59e0b' }}>
+              {[...Array(5)].map((_, i) => (
+                <MaterialIcon key={i} name="star" size={16} />
+              ))}
+            </div>
             <p className="testimonial-quote">
               "El plan nutricional personalizado y las mediciones por bioimpedancia me permitieron recuperarme de mi lesión muscular y mejorar mi rendimiento deportivo. Totalmente recomendado."
             </p>
@@ -570,20 +596,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <div className="locations-list">
               <div className="location-item">
-                <div className="location-icon">📍</div>
+                <div className="location-icon"><MaterialIcon name="location_on" size={22} /></div>
                 <div>
                   <h4 className="location-name">Sede Principal — San Isidro</h4>
                   <p className="location-address">Av. Javier Prado Este 2450, San Isidro, Lima</p>
-                  <p className="location-hours">🕒 Lun a Sáb: 7:00 AM – 9:00 PM | Dom: 8:00 AM – 1:00 PM</p>
+                  <p className="location-hours" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <MaterialIcon name="schedule" size={14} /> Lun a Sáb: 7:00 AM – 9:00 PM | Dom: 8:00 AM – 1:00 PM
+                  </p>
                 </div>
               </div>
 
               <div className="location-item">
-                <div className="location-icon">📍</div>
+                <div className="location-icon"><MaterialIcon name="location_on" size={22} /></div>
                 <div>
                   <h4 className="location-name">Sede Miraflores</h4>
                   <p className="location-address">Av. José Pardo 830, Of. 402, Miraflores, Lima</p>
-                  <p className="location-hours">🕒 Lun a Vie: 8:00 AM – 8:00 PM | Sáb: 8:00 AM – 2:00 PM</p>
+                  <p className="location-hours" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <MaterialIcon name="schedule" size={14} /> Lun a Vie: 8:00 AM – 8:00 PM | Sáb: 8:00 AM – 2:00 PM
+                  </p>
                 </div>
               </div>
             </div>
@@ -601,14 +631,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 target="_blank"
                 rel="noreferrer"
                 className="btn-whatsapp-direct"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
               >
-                💬 Contactar por WhatsApp
+                <MaterialIcon name="chat" size={16} />
+                <span>Contactar por WhatsApp</span>
               </a>
             </div>
           </div>
 
           <div className="locations-badge-box">
-            <div className="pulse-circle">🏥</div>
+            <div className="pulse-circle"><MaterialIcon name="local_hospital" size={32} /></div>
             <h3>Reservas e Informes</h3>
             <p className="locations-phone">+51 (01) 480-9900</p>
             <p className="locations-email">contacto@vitalsalud.pe</p>
@@ -668,10 +700,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               type="button"
               className="btn-cta-giant"
               onClick={() => onStartBooking()}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
             >
-              🗓️ Agendar Consulta Médica Ahora
+              <MaterialIcon name="calendar_month" size={20} />
+              <span>Agendar Consulta Médica Ahora</span>
             </button>
-            <span className="cta-assurance">🔒 Sin costos ocultos • Cita confirmada al instante</span>
+            <span className="cta-assurance" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+              <MaterialIcon name="lock" size={14} />
+              <span>Sin costos ocultos • Cita confirmada al instante</span>
+            </span>
           </div>
         </div>
       </section>

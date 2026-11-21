@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { soundEffects } from '../../utils/soundEffects';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import './MobileCameraScannerModal.css';
 
 interface ScannedPatientData {
@@ -112,7 +113,9 @@ export const MobileCameraScannerModal: React.FC<MobileCameraScannerModalProps> =
         {/* Header */}
         <div className="scanner-header">
           <div className="flex items-center gap-2">
-            <span className="text-xl">📷</span>
+            <span className="text-xl flex items-center justify-center">
+              <MaterialIcon name="photo_camera" size={22} color="#38bdf8" />
+            </span>
             <div>
               <h3 className="font-bold text-sm text-white">Escáner Óptico de DNI / QR</h3>
               <p className="text-[11px] text-slate-300">Apunta la cámara al código de barras o QR</p>
@@ -121,9 +124,9 @@ export const MobileCameraScannerModal: React.FC<MobileCameraScannerModalProps> =
           <button
             type="button"
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1.5 rounded-full bg-white/10 hover:bg-white/20"
+            className="text-white/80 hover:text-white p-1.5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"
           >
-            ✕
+            <MaterialIcon name="close" size={18} />
           </button>
         </div>
 
@@ -138,8 +141,10 @@ export const MobileCameraScannerModal: React.FC<MobileCameraScannerModalProps> =
             />
           ) : (
             <div className="scanner-simulated-preview">
-              <div className="text-center p-6 space-y-2">
-                <span className="text-4xl animate-bounce">📱</span>
+              <div className="text-center p-6 space-y-2 flex flex-col items-center">
+                <span className="text-4xl animate-bounce flex items-center justify-center">
+                  <MaterialIcon name="smartphone" size={38} color="#94a3b8" />
+                </span>
                 <p className="text-xs text-slate-300 font-medium max-w-xs">
                   {cameraError || 'Iniciando cámara de alta velocidad...'}
                 </p>
@@ -173,7 +178,7 @@ export const MobileCameraScannerModal: React.FC<MobileCameraScannerModalProps> =
               onClick={() => triggerMockScan('dni_maria')}
               className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex flex-col items-center gap-1 active:scale-95 transition-all"
             >
-              <span>🪪</span>
+              <MaterialIcon name="badge" size={18} color="#38bdf8" />
               <span className="truncate w-full text-center">DNI María</span>
             </button>
 
@@ -182,7 +187,7 @@ export const MobileCameraScannerModal: React.FC<MobileCameraScannerModalProps> =
               onClick={() => triggerMockScan('qr_carlos')}
               className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex flex-col items-center gap-1 active:scale-95 transition-all"
             >
-              <span>🏁</span>
+              <MaterialIcon name="qr_code_2" size={18} color="#4ade80" />
               <span className="truncate w-full text-center">QR Carlos</span>
             </button>
 
@@ -191,7 +196,7 @@ export const MobileCameraScannerModal: React.FC<MobileCameraScannerModalProps> =
               onClick={() => triggerMockScan('dni_jorge')}
               className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex flex-col items-center gap-1 active:scale-95 transition-all"
             >
-              <span>🪪</span>
+              <MaterialIcon name="badge" size={18} color="#a78bfa" />
               <span className="truncate w-full text-center">DNI Jorge</span>
             </button>
           </div>

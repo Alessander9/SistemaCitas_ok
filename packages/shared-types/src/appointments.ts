@@ -71,12 +71,19 @@ export interface AppointmentStatusHistoryEntry {
 // ---------------------------------------------------------------------------
 // Availability
 // ---------------------------------------------------------------------------
+export type AvailabilitySlotState = 'available' | 'busy' | 'unavailable';
+
 export interface AvailabilitySlot {
+  id?: string;
   startTime: string;  // 'HH:MM'
   endTime: string;    // 'HH:MM'
-  professionalId: string;
-  serviceId: string;
+  professionalId?: string;
+  serviceId?: string;
   date: string;       // 'YYYY-MM-DD'
+  available?: boolean;
+  state?: AvailabilitySlotState;
+  recommended?: boolean;
+  recommendationLabel?: string;
 }
 
 export interface AvailabilityQuery {

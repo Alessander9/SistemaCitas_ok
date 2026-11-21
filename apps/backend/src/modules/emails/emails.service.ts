@@ -2,9 +2,12 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { MockEmailProvider } from './providers/mock-email-provider';
+import { ResendEmailProvider } from './providers/resend-email-provider';
+import { IEmailProvider } from './providers/email-provider.interface';
 import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
 import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
 import {
@@ -55,25 +58,117 @@ interface AppointmentReminderRow {
   service_name: string;
 }
 
+export interface AppointmentEmailDetails {
+  bookingCode?: string;
+  patientName: string;
+  patientDocType?: string;
+  patientDocNumber?: string;
+  patientPhone?: string;
+  patientEmail?: string;
+  serviceName: string;
+  specialtyName?: string;
+  professionalName: string;
+  appointmentDate: string;
+  startTime: string;
+  endTime?: string;
+  clinicName?: string;
+  clinicAddress?: string;
+  clinicPhone?: string;
+  amount?: string | number;
+  paymentMethod?: string;
+  notes?: string;
+}
+
 const DEFAULT_TEMPLATES = [
   {
     name: 'appointment_confirmation',
     subject: 'Confirmación de tu cita — {{clinic_name}}',
     htmlBody: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-        <h2 style="color: #0d9488;">¡Hola {{patient_name}}!</h2>
-        <p>Tu cita médica ha sido confirmada exitosamente con los siguientes detalles:</p>
-        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin: 20px 0;">
-          <p><strong>Servicio:</strong> {{service_name}}</p>
-          <p><strong>Especialista:</strong> Dr(a). {{professional_name}}</p>
-          <p><strong>Fecha:</strong> {{appointment_date}}</p>
-          <p><strong>Hora:</strong> {{start_time}}</p>
-          <p><strong>Lugar:</strong> {{clinic_name}}</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+        <h2 style="color: #0d9488; margin-top: 0;">¡Hola {{patient_name}}!</h2>
+        <p style="color: #334155; line-height: 1.5;">Tu cita médica ha sido confirmada exitosamente con los siguientes detalles:</p>
+        <div style="background: #f8fafc; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="margin: 6px 0;"><strong>Código de Reserva:</strong> <span style="font-family: monospace; color: #0d9488; font-weight: bold;">{{booking_code}}</span></p>
+          <p style="margin: 6px 0;"><strong>Servicio:</strong> {{service_name}}</p>
+          <p style="margin: 6px 0;"><strong>Especialidad:</strong> {{specialty_name}}</p>
+          <p style="margin: 6px 0;"><strong>Especialista:</strong> Dr(a). {{professional_name}}</p>
+          <p style="margin: 6px 0;"><strong>Fecha y Hora:</strong> {{appointment_date}} a las {{start_time}}</p>
+          <p style="margin: 6px 0;"><strong>Sede de Atención:</strong> {{clinic_name}} ({{clinic_address}})</p>
+          <p style="margin: 6px 0;"><strong>Monto:</strong> S/. {{amount}}</p>
+          <p style="margin: 6px 0;"><strong>Método de pago:</strong> {{payment_method}}</p>
         </div>
-        <p style="color: #64748b; font-size: 14px;">Si necesitas reprogramar o cancelar, por favor contáctanos al {{clinic_phone}}.</p>
+        <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Por favor preséntate 10 minutos antes con tu documento de identidad. Si necesitas reprogramar o cancelar, comunícate con nosotros al {{clinic_phone}}.</p>
       </div>
     `,
-    variables: ['patient_name', 'service_name', 'professional_name', 'appointment_date', 'start_time', 'clinic_name', 'clinic_phone'],
+    variables: [
+      'patient_name',
+      'booking_code',
+      'service_name',
+      'specialty_name',
+      'professional_name',
+      'appointment_date',
+      'start_time',
+      'clinic_name',
+      'clinic_address',
+      'clinic_phone',
+      'amount',
+      'payment_method',
+    ],
+  },
+  {
+    name: 'appointment_clinic_notification',
+    subject: '[Nueva Cita] {{service_name}} - {{patient_name}} ({{appointment_date}} {{start_time}})',
+    htmlBody: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #cbd5e1; border-radius: 12px; background: #ffffff;">
+        <h2 style="color: #0f766e; margin-top: 0;">Nueva Cita Médica Confirmada</h2>
+        <p style="color: #334155; line-height: 1.5;">Se ha registrado una nueva cita médica confirmada en el sistema para {{clinic_name}}.</p>
+        <div style="background: #f1f5f9; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="margin: 6px 0;"><strong>Código de Reserva:</strong> <span style="font-family: monospace; color: #0f766e; font-weight: bold;">{{booking_code}}</span></p>
+          <p style="margin: 6px 0;"><strong>Paciente:</strong> {{patient_name}} ({{patient_doc}})</p>
+          <p style="margin: 6px 0;"><strong>Contacto del Paciente:</strong> Tel: {{patient_phone}} | Email: {{patient_email}}</p>
+          <p style="margin: 6px 0;"><strong>Servicio Solicitado:</strong> {{service_name}} ({{specialty_name}})</p>
+          <p style="margin: 6px 0;"><strong>Profesional Asignado:</strong> Dr(a). {{professional_name}}</p>
+          <p style="margin: 6px 0;"><strong>Turno:</strong> {{appointment_date}} a las {{start_time}}</p>
+          <p style="margin: 6px 0;"><strong>Monto:</strong> S/. {{amount}} ({{payment_method}})</p>
+          <p style="margin: 6px 0;"><strong>Notas / Motivo:</strong> {{notes}}</p>
+        </div>
+        <p style="color: #64748b; font-size: 13px;">Notificación automática para la administración del centro de salud.</p>
+      </div>
+    `,
+    variables: [
+      'booking_code',
+      'patient_name',
+      'patient_doc',
+      'patient_phone',
+      'patient_email',
+      'service_name',
+      'specialty_name',
+      'professional_name',
+      'appointment_date',
+      'start_time',
+      'clinic_name',
+      'amount',
+      'payment_method',
+      'notes',
+    ],
+  },
+  {
+    name: 'password_reset',
+    subject: 'Recuperación de contraseña — {{clinic_name}}',
+    htmlBody: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+        <h2 style="color: #0d9488; margin-top: 0;">Recuperación de Contraseña</h2>
+        <p style="color: #334155; line-height: 1.5;">Estimado(a) {{user_name}},</p>
+        <p style="color: #334155; line-height: 1.5;">Hemos recibido una solicitud para reestablecer la contraseña de tu cuenta protegida por Cloudflare Turnstile en {{clinic_name}}.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="{{reset_url}}" style="background-color: #0d9488; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Reestablecer mi contraseña</a>
+        </div>
+        <p style="color: #64748b; font-size: 14px;">Este enlace es válido durante 60 minutos. Si no solicitaste este cambio, puedes ignorar este mensaje con total seguridad.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+        <p style="color: #94a3b8; font-size: 12px; word-break: break-all;">O ingresa directamente a esta dirección:<br />{{reset_url}}</p>
+      </div>
+    `,
+    variables: ['user_name', 'reset_url', 'clinic_name'],
   },
   {
     name: 'appointment_reminder_24h',
@@ -121,10 +216,19 @@ const DEFAULT_TEMPLATES = [
 
 @Injectable()
 export class EmailsService {
+  private readonly emailProvider: IEmailProvider;
+
   constructor(
     private readonly db: DatabaseService,
-    private readonly emailProvider: MockEmailProvider,
-  ) {}
+    private readonly mockEmailProvider: MockEmailProvider,
+    @Optional() private readonly resendEmailProvider?: ResendEmailProvider,
+  ) {
+    if (process.env.RESEND_API_KEY && this.resendEmailProvider) {
+      this.emailProvider = this.resendEmailProvider;
+    } else {
+      this.emailProvider = this.mockEmailProvider;
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Template Compiler
@@ -290,13 +394,24 @@ export class EmailsService {
     if (payload.templateName) {
       let tpl = await this.getTemplateByName(clinicId, payload.templateName);
       if (!tpl) {
-        // Try fallback to templates
-        await this.getTemplates(clinicId);
-        tpl = await this.getTemplateByName(clinicId, payload.templateName);
+        const defaultTpl = DEFAULT_TEMPLATES.find((t) => t.name === payload.templateName);
+        if (defaultTpl) {
+          tpl = {
+            id: 'default-template',
+            clinicId,
+            name: defaultTpl.name,
+            subject: defaultTpl.subject,
+            htmlBody: defaultTpl.htmlBody,
+            variables: defaultTpl.variables,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+        }
       }
 
       if (tpl) {
-        templateId = tpl.id;
+        templateId = tpl.id === 'default-template' ? undefined : tpl.id;
         subject = this.compileTemplate(tpl.subject, payload.variables);
         html = this.compileTemplate(tpl.htmlBody, payload.variables);
       }
@@ -340,15 +455,101 @@ export class EmailsService {
   }
 
   // ---------------------------------------------------------------------------
+  // Specialized Domain Email Dispatchers (Resend Supported)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Envía correo de confirmación de cita médica al paciente vía Resend.
+   */
+  async sendAppointmentConfirmationToPatient(
+    clinicId: string,
+    details: AppointmentEmailDetails,
+  ): Promise<EmailLog | null> {
+    if (!details.patientEmail) return null;
+
+    return this.sendEmail(clinicId, {
+      to: details.patientEmail,
+      templateName: 'appointment_confirmation',
+      variables: {
+        booking_code: details.bookingCode || 'CIT-CONFIRMED',
+        patient_name: details.patientName,
+        service_name: details.serviceName,
+        specialty_name: details.specialtyName || 'Medicina General',
+        professional_name: details.professionalName,
+        appointment_date: details.appointmentDate,
+        start_time: details.startTime,
+        clinic_name: details.clinicName || 'Clínica VitalSalud',
+        clinic_address: details.clinicAddress || 'Sede San Isidro — Av. Javier Prado Este 1234, Lima',
+        clinic_phone: details.clinicPhone || '+51 (01) 710-8000',
+        amount: typeof details.amount === 'number' ? details.amount.toFixed(2) : (details.amount || '120.00'),
+        payment_method: details.paymentMethod || 'En clínica',
+      },
+    });
+  }
+
+  /**
+   * Envía correo con los datos de la cita confirmada al centro de salud / clínica vía Resend.
+   */
+  async sendAppointmentNotificationToClinic(
+    clinicId: string,
+    details: AppointmentEmailDetails,
+  ): Promise<EmailLog | null> {
+    const clinicRecipient =
+      process.env.CLINIC_NOTIFICATION_EMAIL ||
+      process.env.CLINIC_CONTACT_EMAIL ||
+      'contacto@clinica.pe';
+
+    return this.sendEmail(clinicId, {
+      to: clinicRecipient,
+      templateName: 'appointment_clinic_notification',
+      variables: {
+        booking_code: details.bookingCode || 'CIT-CONFIRMED',
+        patient_name: details.patientName,
+        patient_doc: `${details.patientDocType || 'DNI'}: ${details.patientDocNumber || 'No especificado'}`,
+        patient_phone: details.patientPhone || 'No registrado',
+        patient_email: details.patientEmail || 'No registrado',
+        service_name: details.serviceName,
+        specialty_name: details.specialtyName || 'General',
+        professional_name: details.professionalName,
+        appointment_date: details.appointmentDate,
+        start_time: details.startTime,
+        clinic_name: details.clinicName || 'Clínica VitalSalud',
+        amount: typeof details.amount === 'number' ? details.amount.toFixed(2) : (details.amount || '120.00'),
+        payment_method: details.paymentMethod || 'En clínica',
+        notes: details.notes || 'Sin observaciones adicionales.',
+      },
+    });
+  }
+
+  /**
+   * Envía correo con enlace para reestablecer la contraseña vía Resend.
+   */
+  async sendPasswordResetEmail(
+    clinicId: string,
+    toEmail: string,
+    resetUrl: string,
+    userName: string,
+  ): Promise<EmailLog> {
+    return this.sendEmail(clinicId, {
+      to: toEmail,
+      templateName: 'password_reset',
+      variables: {
+        user_name: userName,
+        reset_url: resetUrl,
+        clinic_name: 'Clínica VitalSalud',
+      },
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Reminder Engine (Scheduled Cron & Manual Sweep)
   // ---------------------------------------------------------------------------
   async triggerReminderSweep(clinicId?: string): Promise<ReminderSweepResult> {
-    // Find confirmed appointments in the next 24-48 hours where reminder_sent = false
     const conditions = [
       "a.status = 'confirmed'",
       'a.reminder_sent = false',
       'a.deleted_at IS NULL',
-      "a.appointment_date >= CURRENT_DATE AND a.appointment_date <= CURRENT_DATE + INTERVAL '2 days'",
+      "a.appointment_date = CURRENT_DATE + INTERVAL '1 day'",
     ];
     const params: unknown[] = [];
 
@@ -358,13 +559,13 @@ export class EmailsService {
     }
 
     const { rows } = await this.db.query<AppointmentReminderRow>(
-      `SELECT
+      `SELECT 
          a.id AS appointment_id,
          a.clinic_id,
-         a.appointment_date,
-         a.start_time,
          c.name AS clinic_name,
          c.phone AS clinic_phone,
+         a.appointment_date,
+         a.start_time,
          p.first_name AS patient_first_name,
          p.last_name AS patient_last_name,
          p.email AS patient_email,
@@ -411,7 +612,6 @@ export class EmailsService {
 
         if (log.status === 'sent') {
           sentCount++;
-          // Mark appointment reminder as sent (idempotency guarantee)
           await this.db.query(
             `UPDATE appointments SET reminder_sent = true, updated_at = NOW() WHERE id = $1`,
             [appt.appointment_id],

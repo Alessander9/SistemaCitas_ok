@@ -4,9 +4,10 @@
    ============================================================================= */
 
 .cash-page {
-  padding: 1.5rem 1.25rem 3rem 1.25rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 1rem 1.25rem 2rem 1.25rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
   color: #1e293b;
 }

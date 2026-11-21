@@ -13,7 +13,7 @@ export interface PatientFieldProps {
   hint?: string;
   /** Replaces the hint with an accessible error message. */
   error?: string;
-  /** Shows the ✓ mark once the value passes its own rule. */
+  /** Shows the check mark once the value passes its own rule. */
   isValid?: boolean;
   /** Shows the spinner instead of the check (async validation/lookup). */
   isValidating?: boolean;

@@ -1,5 +1,6 @@
 import { useState, Fragment } from 'react';
 import './InventoryPage.css';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 
 type MovementType = 'sale' | 'purchase' | 'adjustment' | 'return' | 'waste';
 
@@ -121,15 +122,17 @@ export function InventoryPage({ onNavigateToCash }: InventoryPageProps = {}) {
               type="button"
               className="inv-btn ghost"
               onClick={onNavigateToCash}
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem', color: '#16a34a', borderColor: '#bbf7d0', background: '#f0fdf4' }}
+              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem', color: '#16a34a', borderColor: '#bbf7d0', background: '#f0fdf4', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               title="Ir a arqueo y movimientos de caja chica"
             >
-              🏦 Ver Caja Chica ↗
+              <MaterialIcon name="payments" size={15} />
+              <span>Ver Caja Chica ↗</span>
             </button>
           )}
           {lowStockProducts.length > 0 && (
-            <span className="low-stock-badge" id="low-stock-badge">
-              ⚠️ {lowStockProducts.length} alerta{lowStockProducts.length > 1 ? 's' : ''}
+            <span className="low-stock-badge" id="low-stock-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <MaterialIcon name="warning" size={13} color="#dc2626" />
+              <span>{lowStockProducts.length} alerta{lowStockProducts.length > 1 ? 's' : ''}</span>
             </span>
           )}
           <button id="btn-new-movement" className="inv-btn primary" onClick={() => setShowMovementForm(v => !v)}>
@@ -141,7 +144,10 @@ export function InventoryPage({ onNavigateToCash }: InventoryPageProps = {}) {
       {/* Low stock alerts panel */}
       {lowStockProducts.length > 0 && (
         <div className="alerts-panel" id="alerts-panel">
-          <h3 className="alerts-title">🚨 Stock Bajo — Requiere Atención</h3>
+          <h3 className="alerts-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <MaterialIcon name="warning" size={18} color="#dc2626" />
+            <span>Stock Bajo — Requiere Atención</span>
+          </h3>
           <div className="alerts-grid">
             {lowStockProducts.map(p => (
               <div className="alert-card" key={p.id}>
@@ -263,8 +269,8 @@ export function InventoryPage({ onNavigateToCash }: InventoryPageProps = {}) {
                   <td>{p.unit}</td>
                   <td>
                     {p.isLowStock
-                      ? <span className="status-chip danger">⚠️ Bajo</span>
-                      : <span className="status-chip ok">✅ OK</span>}
+                      ? <span className="status-chip danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><MaterialIcon name="warning" size={12} /> Bajo</span>
+                      : <span className="status-chip ok" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><MaterialIcon name="check_circle" size={12} /> OK</span>}
                   </td>
                 </tr>
                 {/* Expandable Kardex */}

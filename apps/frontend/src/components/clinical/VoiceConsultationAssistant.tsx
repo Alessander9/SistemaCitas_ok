@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import './VoiceConsultationAssistant.css';
 
 export interface ParsedClinicalVoiceData {
@@ -48,15 +49,15 @@ const AVAILABLE_TECHNIQUES = [
 
 const PRESET_SAMPLE_DICTATIONS = [
   {
-    title: '🩺 Consulta Completa: Lumbalgia Mecánica',
+    title: 'Consulta Completa: Lumbalgia Mecánica',
     text: 'Motivo de consulta: Dolor lumbar agudo irradiado a glúteo derecho tras levantar peso. Anamnesis: Paciente refiere inicio hace 4 días con molestia punzante al sentarse. Examen físico: Maniobra de Lasègue negativa, contractura paravertebral L4-L5. Escala de dolor EVA 7 sobre 10. Diagnóstico: Lumbalgia mecánica aguda con contractura muscular. Plan de tratamiento: 10 sesiones de fisioterapia y kinesiología. Técnicas aplicadas: Terapia Manual, Ultrasonido y Electroterapia TENS. Recetar: Celecoxib 200mg, una cápsula cada 12 horas por 5 días. Recomendaciones: Aplicar compresas tibias y reposo de cargas.',
   },
   {
-    title: '⚡ Sesión de Terapia: Hombro Doloroso',
+    title: 'Sesión de Terapia: Hombro Doloroso',
     text: 'Motivo: Tendinitis de manguito rotador hombro derecho. Examen: Dolor a la abducción mayor a 90 grados. Dolor al ingresar EVA 8, dolor al salir EVA 3. Técnicas: Ultrasonido, Punción Seca y Ejercicio Terapéutico Funcional. Observaciones: Gran mejoría en rango de movilidad articular. Recetar: Paracetamol 500mg cada 8 horas por 3 días.',
   },
   {
-    title: '🏃 Readaptación Deportiva: Esguince Tobillo',
+    title: 'Readaptación Deportiva: Esguince Tobillo',
     text: 'Motivo: Esguince grado 2 ligamento peroneoastragalino. Escala de dolor EVA 4. Diagnóstico: Esguince de tobillo en fase de readaptación. Plan: 6 sesiones de propiocepción. Técnicas: Crioterapia, Kinesiotape y Liberación Miofascial. Recomendaciones: Ejercicios de apoyo monopodal 10 minutos al día.',
   },
 ];
@@ -68,7 +69,7 @@ export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData =>
 
   // 1. Escala EVA / Dolor
   const evaMatch = text.match(/(?:dolor|escala|eva|nivel de dolor)\s*(?:eva)?\s*(?:de\s*)?(\d{1,2})(?:\s*(?:sobre|\/)\s*10)?/i) ||
-                   text.match(/(\d{1,2})\s*(?:sobre|\/)\s*10/i);
+    text.match(/(\d{1,2})\s*(?:sobre|\/)\s*10/i);
   if (evaMatch) {
     const score = parseInt(evaMatch[1], 10);
     if (score >= 0 && score <= 10) {
@@ -93,17 +94,17 @@ export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData =>
     key: string;
     patterns: RegExp[];
   }> = [
-    { key: 'chiefComplaint', patterns: [/\bmotivo(?: de consulta)?\s*[:\-]/i, /\bpaciente (?:viene por|refiere)\s*[:\-]?/i] },
-    { key: 'painScaleText', patterns: [/\b(?:escala de dolor|dolor eva|escala eva)\s*[:\-]?/i] },
-    { key: 'anamnesis', patterns: [/\banamnesis\s*[:\-]/i, /\benfermedad actual\s*[:\-]/i, /\bhistoria cl[ií]nica\s*[:\-]/i] },
-    { key: 'physicalExam', patterns: [/\bexamen f[ií]sico\s*[:\-]/i, /\bevaluaci[oó]n f[ií]sica\s*[:\-]/i, /\ba la palpaci[oó]n\s*[:\-]?/i] },
-    { key: 'diagnosis', patterns: [/\bdiagn[oó]stico\s*[:\-]/i, /\bcie-?10\s*[:\-]/i] },
-    { key: 'treatmentPlan', patterns: [/\bplan(?: de tratamiento| terap[eé]utico| m[eé]dico)?\s*[:\-]/i] },
-    { key: 'notes', patterns: [/\bobservaciones\s*[:\-]/i, /\bnotas(?: de evoluci[oó]n)?\s*[:\-]/i, /\bevoluci[oó]n\s*[:\-]/i] },
-    { key: 'homeRecommendations', patterns: [/\brecomendaciones\s*[:\-]/i, /\bindicaciones(?: para la casa| para el hogar)?\s*[:\-]/i] },
-    { key: 'techniques', patterns: [/\bt[eé]cnicas(?: aplicadas)?\s*[:\-]/i, /\bprocedimientos\s*[:\-]/i] },
-    { key: 'medications', patterns: [/\brecetar\s*[:\-]/i, /\breceta(?: m[eé]dica)?\s*[:\-]/i, /\bmedicamentos?\s*[:\-]/i, /\bprescripci[oó]n\s*[:\-]/i] },
-  ];
+      { key: 'chiefComplaint', patterns: [/\bmotivo(?: de consulta)?\s*[:\-]/i, /\bpaciente (?:viene por|refiere)\s*[:\-]?/i] },
+      { key: 'painScaleText', patterns: [/\b(?:escala de dolor|dolor eva|escala eva)\s*[:\-]?/i] },
+      { key: 'anamnesis', patterns: [/\banamnesis\s*[:\-]/i, /\benfermedad actual\s*[:\-]/i, /\bhistoria cl[ií]nica\s*[:\-]/i] },
+      { key: 'physicalExam', patterns: [/\bexamen f[ií]sico\s*[:\-]/i, /\bevaluaci[oó]n f[ií]sica\s*[:\-]/i, /\ba la palpaci[oó]n\s*[:\-]?/i] },
+      { key: 'diagnosis', patterns: [/\bdiagn[oó]stico\s*[:\-]/i, /\bcie-?10\s*[:\-]/i] },
+      { key: 'treatmentPlan', patterns: [/\bplan(?: de tratamiento| terap[eé]utico| m[eé]dico)?\s*[:\-]/i] },
+      { key: 'notes', patterns: [/\bobservaciones\s*[:\-]/i, /\bnotas(?: de evoluci[oó]n)?\s*[:\-]/i, /\bevoluci[oó]n\s*[:\-]/i] },
+      { key: 'homeRecommendations', patterns: [/\brecomendaciones\s*[:\-]/i, /\bindicaciones(?: para la casa| para el hogar)?\s*[:\-]/i] },
+      { key: 'techniques', patterns: [/\bt[eé]cnicas(?: aplicadas)?\s*[:\-]/i, /\bprocedimientos\s*[:\-]/i] },
+      { key: 'medications', patterns: [/\brecetar\s*[:\-]/i, /\breceta(?: m[eé]dica)?\s*[:\-]/i, /\bmedicamentos?\s*[:\-]/i, /\bprescripci[oó]n\s*[:\-]/i] },
+    ];
 
   interface HeaderOccurrence {
     key: string;
@@ -182,10 +183,10 @@ export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData =>
     const simpleTech = tech.toLowerCase().replace(/[()]/g, '');
     if (text.toLowerCase().includes(simpleTech) || (tech === 'Terapia Manual Ortopédica' && text.toLowerCase().includes('terapia manual'))) {
       const canonical = tech.includes('TENS') ? 'Electroterapia (TENS / EMS)' :
-                        tech.includes('Ultrasonido') ? 'Ultrasonido Terapéutico' :
-                        tech.includes('Ejercicio') ? 'Ejercicio Terapéutico Funcional' :
-                        tech.includes('Termoterapia') || tech.includes('Crioterapia') ? 'Termoterapia / Crioterapia' :
-                        tech === 'Terapia Manual' ? 'Terapia Manual Ortopédica' : tech;
+        tech.includes('Ultrasonido') ? 'Ultrasonido Terapéutico' :
+          tech.includes('Ejercicio') ? 'Ejercicio Terapéutico Funcional' :
+            tech.includes('Termoterapia') || tech.includes('Crioterapia') ? 'Termoterapia / Crioterapia' :
+              tech === 'Terapia Manual' ? 'Terapia Manual Ortopédica' : tech;
       if (!matchedTechniques.includes(canonical)) {
         matchedTechniques.push(canonical);
       }
@@ -261,15 +262,15 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         if (fullCurrentText.length > 3) {
           const parsed = parseClinicalSpeech(fullCurrentText);
           const slots: string[] = [];
-          if (parsed.chiefComplaint) slots.push('🎯 Motivo');
-          if (parsed.anamnesis) slots.push('📝 Anamnesis');
-          if (parsed.physicalExam) slots.push('📋 Examen Físico');
-          if (parsed.painScale !== undefined) slots.push(`🩺 EVA ${parsed.painScale}/10`);
-          if (parsed.diagnosis) slots.push('🔬 Diagnóstico');
-          if (parsed.treatmentPlan) slots.push('📅 Plan');
-          if (parsed.techniques && parsed.techniques.length > 0) slots.push(`⚡ ${parsed.techniques.length} Técnicas`);
-          if (parsed.medications && parsed.medications.length > 0) slots.push(`💊 ${parsed.medications.length} Medicamento(s)`);
-          if (parsed.homeRecommendations) slots.push('🏠 Indicaciones');
+          if (parsed.chiefComplaint) slots.push('Motivo');
+          if (parsed.anamnesis) slots.push('Anamnesis');
+          if (parsed.physicalExam) slots.push('Examen Físico');
+          if (parsed.painScale !== undefined) slots.push(`EVA ${parsed.painScale}/10`);
+          if (parsed.diagnosis) slots.push('Diagnóstico');
+          if (parsed.treatmentPlan) slots.push('Plan');
+          if (parsed.techniques && parsed.techniques.length > 0) slots.push(`${parsed.techniques.length} Técnicas`);
+          if (parsed.medications && parsed.medications.length > 0) slots.push(`${parsed.medications.length} Medicamento(s)`);
+          if (parsed.homeRecommendations) slots.push('Indicaciones');
 
           setDetectedSlots(slots);
 
@@ -348,15 +349,15 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
     setInterimTranscript('');
     const parsed = parseClinicalSpeech(text);
     const slots: string[] = [];
-    if (parsed.chiefComplaint) slots.push('🎯 Motivo');
-    if (parsed.anamnesis) slots.push('📝 Anamnesis');
-    if (parsed.physicalExam) slots.push('📋 Examen Físico');
-    if (parsed.painScale !== undefined) slots.push(`🩺 EVA ${parsed.painScale}/10`);
-    if (parsed.diagnosis) slots.push('🔬 Diagnóstico');
-    if (parsed.treatmentPlan) slots.push('📅 Plan');
-    if (parsed.techniques && parsed.techniques.length > 0) slots.push(`⚡ ${parsed.techniques.length} Técnicas`);
-    if (parsed.medications && parsed.medications.length > 0) slots.push(`💊 ${parsed.medications.length} Medicamento(s)`);
-    if (parsed.homeRecommendations) slots.push('🏠 Indicaciones');
+    if (parsed.chiefComplaint) slots.push('Motivo');
+    if (parsed.anamnesis) slots.push('Anamnesis');
+    if (parsed.physicalExam) slots.push('Examen Físico');
+    if (parsed.painScale !== undefined) slots.push(`EVA ${parsed.painScale}/10`);
+    if (parsed.diagnosis) slots.push('Diagnóstico');
+    if (parsed.treatmentPlan) slots.push('Plan');
+    if (parsed.techniques && parsed.techniques.length > 0) slots.push(`${parsed.techniques.length} Técnicas`);
+    if (parsed.medications && parsed.medications.length > 0) slots.push(`${parsed.medications.length} Medicamento(s)`);
+    if (parsed.homeRecommendations) slots.push('Indicaciones');
 
     setDetectedSlots(slots);
     onApplyVoiceData(parsed);
@@ -381,8 +382,8 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
       {/* Botón Flotante Principal de Voz (FAB Mobile / Desktop) */}
       <div className="voice-fab-container" role="region" aria-label="Asistente de Voz Médico">
         {!isOpen && !isListening && (
-          <div className="voice-hint-bubble" onClick={() => setIsOpen(true)} style={{ cursor: 'pointer' }}>
-            <span>🎙️</span>
+          <div className="voice-hint-bubble" onClick={() => setIsOpen(true)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <MaterialIcon name="mic" size={18} />
             <span>Dictado por Voz Médico</span>
           </div>
         )}
@@ -396,11 +397,11 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         >
           {isListening ? (
             <span style={{ fontSize: '1.45rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              ⏹️
+              <MaterialIcon name="stop" size={26} />
             </span>
           ) : (
             <span style={{ fontSize: '1.45rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              🎙️
+              <MaterialIcon name="mic" size={26} />
             </span>
           )}
 
@@ -416,7 +417,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
           {/* Header */}
           <div className="voice-panel-header">
             <div className="voice-panel-title">
-              <span style={{ fontSize: '1.15rem' }}>🎙️</span>
+              <MaterialIcon name="mic" size={20} color="#0284c7" />
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span>{activeContext === 'quick-note' ? 'Dictado de Notas Rápidas' : 'Dictado Clínico Inteligente'}</span>
@@ -448,25 +449,29 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
                   cursor: 'pointer',
                   padding: '4px 6px',
                   borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
                 }}
                 title="Minimizar asistente"
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
           </div>
 
           {/* Fallback Notice for unsupported mic */}
           {!micSupported && (
-            <div style={{ padding: '8px 16px', background: '#fffbeb', color: '#92400e', fontSize: '0.74rem', fontWeight: 600, borderBottom: '1px solid #fde68a' }}>
-              ℹ️ Micrófono no detectado en este navegador. Puedes usar los dictados clínicos de muestra (1-Click).
+            <div style={{ padding: '8px 16px', background: '#fffbeb', color: '#92400e', fontSize: '0.74rem', fontWeight: 600, borderBottom: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <MaterialIcon name="info" size={16} color="#b45309" />
+              <span>Micrófono no detectado en este navegador. Puedes usar los dictados clínicos de muestra (1-Click).</span>
             </div>
           )}
 
           {/* Error Message if any */}
           {speechError && (
-            <div style={{ padding: '8px 16px', background: '#fef2f2', color: '#991b1b', fontSize: '0.74rem', fontWeight: 600, borderBottom: '1px solid #fecaca' }}>
-              ⚠️ {speechError}
+            <div style={{ padding: '8px 16px', background: '#fef2f2', color: '#991b1b', fontSize: '0.74rem', fontWeight: 600, borderBottom: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <MaterialIcon name="warning" size={16} color="#b91c1c" />
+              <span>{speechError}</span>
             </div>
           )}
 
@@ -479,7 +484,10 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
               </p>
             ) : (
               <div className="voice-transcript-placeholder">
-                <span>💬 Habla con naturalidad o dicta usando palabras clave como: <em>"Motivo de consulta..."</em>, <em>"Dolor EVA 7"</em>, <em>"Diagnóstico..."</em>, <em>"Recetar..."</em></span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                  <MaterialIcon name="chat" size={16} color="#64748b" />
+                  <span>Habla con naturalidad o dicta usando palabras clave como: <em>"Motivo de consulta..."</em>, <em>"Dolor EVA 7"</em>, <em>"Diagnóstico..."</em>, <em>"Recetar..."</em></span>
+                </span>
               </div>
             )}
           </div>
@@ -487,10 +495,13 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
           {/* Detected Slots Real-Time Strip */}
           {detectedSlots.length > 0 && (
             <div className="voice-slots-strip">
-              <span style={{ color: '#0369a1', marginRight: '4px' }}>⚡ Campos detectados:</span>
+              <span style={{ color: '#0369a1', marginRight: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <MaterialIcon name="bolt" size={16} color="#0284c7" />
+                <span>Campos detectados:</span>
+              </span>
               {detectedSlots.map((slot, idx) => (
-                <span key={idx} className="voice-slot-chip">
-                  ✓ {slot}
+                <span key={idx} className="voice-slot-chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <MaterialIcon name="check" size={14} color="#059669" /> {slot}
                 </span>
               ))}
             </div>
@@ -499,7 +510,10 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
           {/* Sample Dictations for fast testing & 1-click execution */}
           <div className="voice-samples-box">
             <div className="voice-samples-title">
-              <span>💡 Ejemplos de Dictado Rápido</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MaterialIcon name="lightbulb" size={16} color="#0284c7" />
+                <span>Ejemplos de Dictado Rápido</span>
+              </span>
               <button
                 type="button"
                 onClick={() => setShowSamples(!showSamples)}
@@ -526,7 +540,9 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
                     onClick={() => handleApplyPreset(preset.text)}
                   >
                     <span>{preset.title}</span>
-                    <span style={{ color: '#0284c7', fontWeight: 800 }}>Llenar ⚡</span>
+                    <span style={{ color: '#0284c7', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                      Llenar <MaterialIcon name="bolt" size={14} />
+                    </span>
                   </button>
                 ))}
               </div>
@@ -562,15 +578,16 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
                 type="button"
                 className={`voice-action-btn ${isListening ? 'danger' : 'primary'}`}
                 onClick={toggleListening}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
                 {isListening ? (
                   <>
-                    <span>⏹️</span>
+                    <MaterialIcon name="stop" size={18} />
                     <span>Pausar</span>
                   </>
                 ) : (
                   <>
-                    <span>🎙️</span>
+                    <MaterialIcon name="mic" size={18} />
                     <span>Hablar</span>
                   </>
                 )}
@@ -581,8 +598,10 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
                   type="button"
                   className="voice-action-btn primary"
                   onClick={handleManualApply}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 >
-                  <span>⚡ Aplicar a Ficha</span>
+                  <MaterialIcon name="bolt" size={16} />
+                  <span>Aplicar a Ficha</span>
                 </button>
               )}
             </div>

@@ -1,4 +1,5 @@
 import React, { useState, lazy, Suspense } from 'react';
+import { MaterialIcon } from './components/ui/MaterialIcon';
 import { LandingPage } from './pages/public/LandingPage';
 import { LoginPage } from './pages/login/LoginPage';
 import { AppShell } from './components/layout/AppShell';
@@ -132,7 +133,7 @@ export const App: React.FC = () => {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#7c3aed', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem' }}>
-                    🛡️
+                    <MaterialIcon name="security" size={20} />
                   </div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#4c1d95' }}>

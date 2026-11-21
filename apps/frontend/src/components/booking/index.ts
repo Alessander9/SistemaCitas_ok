@@ -160,6 +160,9 @@ export type { ConsentCardProps } from './ConsentCard';
 export { PolicyModal } from './PolicyModal';
 export type { PolicyModalProps } from './PolicyModal';
 
+export { AppointmentReceiptModal } from './AppointmentReceiptModal';
+export type { AppointmentReceiptModalProps } from './AppointmentReceiptModal';
+
 export { AppointmentPaymentStep } from './AppointmentPaymentStep';
 export type { AppointmentPaymentStepProps } from './AppointmentPaymentStep';
 

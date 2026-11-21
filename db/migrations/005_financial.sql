@@ -12,7 +12,7 @@ CREATE TABLE payments (
   appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL,
   patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE RESTRICT,
   amount NUMERIC(10, 2) NOT NULL,
-  currency VARCHAR(3) DEFAULT 'ARS',
+  currency VARCHAR(3) DEFAULT 'PEN',
   status payment_status NOT NULL DEFAULT 'pending',
   method payment_method,
   description TEXT,

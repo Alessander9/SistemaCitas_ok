@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconClinicMark } from './AppointmentIcons';
+import { IconClinicMark, IconLocation, IconShieldCheck, IconWhatsApp } from './AppointmentIcons';
 import './AppointmentStep.css';
 
 export interface AppointmentHeaderProps {
@@ -34,6 +34,26 @@ export const AppointmentHeader: React.FC<AppointmentHeaderProps> = ({
           <span className="apx-header__title">{title}</span>
           <span className="apx-header__subtitle">{subtitle}</span>
         </span>
+      </div>
+
+      <div className="apx-header__meta">
+        <span className="apx-header__sede-badge">
+          <IconLocation size={14} />
+          <span>Sede San Isidro — Lima</span>
+        </span>
+        <span className="apx-header__trust-badge">
+          <IconShieldCheck size={14} />
+          <span>Reserva 100% Segura</span>
+        </span>
+        <a
+          href="https://wa.me/51987654321"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="apx-header__help-btn"
+        >
+          <IconWhatsApp size={14} />
+          <span>¿Necesitas ayuda? Chatear</span>
+        </a>
       </div>
 
       <div className="apx-header__status">

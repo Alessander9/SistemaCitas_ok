@@ -1,5 +1,6 @@
 import React from 'react';
 import './Sidebar.css';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import {
   IconChart,
   IconCalendar,
@@ -202,8 +203,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => onNavigate('dashboard')}
               title="CitasSistema — Inicio"
             >
-              <div className="brand-icon-box">
-                ✚
+              <div className="brand-icon-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <MaterialIcon name="local_hospital" size={18} />
               </div>
               {!isCollapsed && (
                 <div>
@@ -224,18 +225,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="collapse-toggle-btn"
                   onClick={onToggleCollapse}
                   title="Minimizar barra lateral (Modo Compacto)"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  ◀
+                  <MaterialIcon name="chevron_left" size={18} />
                 </button>
               )}
 
               {onCloseMobile && (
                 <button
                   type="button"
-                  className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+                  className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer flex items-center justify-center"
                   onClick={onCloseMobile}
                 >
-                  ✕
+                  <MaterialIcon name="close" size={18} />
                 </button>
               )}
             </div>

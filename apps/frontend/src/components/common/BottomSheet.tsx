@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import './BottomSheet.css';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import { soundEffects } from '../../utils/soundEffects';
 
 interface BottomSheetProps {
@@ -98,8 +99,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               }}
               className="bottomsheet-close-btn"
               aria-label="Cerrar modal"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              ✕
+              <MaterialIcon name="close" size={18} />
             </button>
           </div>
         )}

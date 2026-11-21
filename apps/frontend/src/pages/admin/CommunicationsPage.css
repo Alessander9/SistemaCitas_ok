@@ -4,9 +4,10 @@
    ============================================================================= */
 
 .comms-page {
-  padding: 1.5rem 1.5rem 3.5rem 1.5rem;
-  max-width: 1360px;
-  margin: 0 auto;
+  padding: 1rem 1.25rem 2rem 1.25rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
   color: #1e293b;
 }
@@ -517,9 +518,17 @@
   border-radius: 50%;
 }
 
-.dot.red { background: #ef4444; }
-.dot.yellow { background: #eab308; }
-.dot.green { background: #22c55e; }
+.dot.red {
+  background: #ef4444;
+}
+
+.dot.yellow {
+  background: #eab308;
+}
+
+.dot.green {
+  background: #22c55e;
+}
 
 .window-title {
   color: #94a3b8;
@@ -851,7 +860,9 @@
   border-radius: 50%;
 }
 
-.dot-mini.amber { background: #f59e0b; }
+.dot-mini.amber {
+  background: #f59e0b;
+}
 
 .email-row-content {
   display: flex;
@@ -1368,10 +1379,13 @@
    ANIMATIONS & KEYFRAMES
    ============================================================================= */
 @keyframes pulseDot {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.5;
     transform: scale(1.3);
@@ -1383,6 +1397,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './PatientDashboard.css';
 import './ClinicalDashboard.css';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import { IconSearch } from '../../components/ui/Icons';
 
 interface PatientDashboardProps {
@@ -144,9 +145,10 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', marginLeft: '0.5rem' }}
+            aria-label="Cerrar"
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}
           >
-            ✕
+            <MaterialIcon name="close" size={16} />
           </button>
         </div>
       )}
@@ -161,7 +163,10 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
           <div className="patient-title-group">
             <div className="patient-meta-badges">
               <span className="badge-verified-patient">● Paciente Activo · DNI 74918230</span>
-              <span className="badge-clinic-scope">🏥 Clínica Sanitas Lima</span>
+              <span className="badge-clinic-scope" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <MaterialIcon name="domain" size={14} />
+                <span>Clínica Sanitas Lima</span>
+              </span>
             </div>
             <h1>Portal del Paciente</h1>
             <p style={{ margin: 0, fontSize: '0.86rem', color: '#475569' }}>
@@ -176,16 +181,16 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
             className="btn-book-primary"
             onClick={handleOpenBookingModal}
           >
-            <span>📅</span>
+            <MaterialIcon name="calendar_today" size={16} />
             <span>+ Reservar Nueva Cita</span>
           </button>
 
           <button
             type="button"
             className="btn-ghost-secondary"
-            onClick={() => showToast('📥 Generando expediente clínico completo en PDF...')}
+            onClick={() => showToast('Generando expediente clínico completo en PDF...')}
           >
-            <span>📑</span>
+            <MaterialIcon name="description" size={16} />
             <span>Descargar Historial</span>
           </button>
 
@@ -233,7 +238,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
 
               <div className="appointment-meta-grid">
                 <div className="meta-info-box">
-                  <span className="meta-icon">📅</span>
+                  <span className="meta-icon">
+                    <MaterialIcon name="calendar_today" size={16} />
+                  </span>
                   <div>
                     <span className="meta-label">Fecha y Hora</span>
                     <span className="meta-value">Jueves, 10 de Septiembre · 10:00 AM</span>
@@ -241,7 +248,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                 </div>
 
                 <div className="meta-info-box">
-                  <span className="meta-icon">📍</span>
+                  <span className="meta-icon">
+                    <MaterialIcon name="location_on" size={16} />
+                  </span>
                   <div>
                     <span className="meta-label">Ubicación y Sala</span>
                     <span className="meta-value">Sede San Isidro · Box 102 (Piso 1)</span>
@@ -257,7 +266,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               className="btn-reschedule"
               onClick={() => setIsRescheduleOpen(true)}
             >
-              <span>🔄</span>
+              <MaterialIcon name="refresh" size={16} />
               <span>Reprogramar Fecha</span>
             </button>
             <button
@@ -265,7 +274,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               className="btn-cancel"
               onClick={() => setIsCancelOpen(true)}
             >
-              <span>✕</span>
+              <MaterialIcon name="close" size={16} />
               <span>Cancelar Cita</span>
             </button>
           </div>
@@ -277,7 +286,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
           <div className="widget-card">
             <div className="widget-header">
               <div className="widget-title-wrap">
-                <div className="widget-icon teal">🎯</div>
+                <div className="widget-icon teal">
+                  <MaterialIcon name="track_changes" size={20} />
+                </div>
                 <div>
                   <h3 className="widget-title">Plan de Tratamiento Activo</h3>
                   <p className="widget-subtitle">Rehabilitación de Columna Lumbar</p>
@@ -292,22 +303,29 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
 
             <div className="treatment-footer-notes">
               <span>Iniciado: 12 de Agosto, 2026</span>
-              <span style={{ color: '#047857', fontWeight: 800 }}>✓ 80% completado (Alta cercana)</span>
+              <span style={{ color: '#047857', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                <MaterialIcon name="check" size={14} />
+                <span>80% completado (Alta cercana)</span>
+              </span>
             </div>
           </div>
 
           {/* Quick Health Metrics Micro-Grid */}
           <div className="health-stats-grid">
             <div className="stat-metric-card">
-              <span className="stat-icon">📈</span>
+              <span className="stat-icon">
+                <MaterialIcon name="trending_down" size={18} />
+              </span>
               <div>
                 <span className="stat-label">Alivio EVA</span>
-                <span className="stat-value" style={{ color: '#16a34a' }}>8/10 ➔ 2/10 (-75%)</span>
+                <span className="stat-value" style={{ color: '#16a34a' }}>8/10 → 2/10 (-75%)</span>
               </div>
             </div>
 
             <div className="stat-metric-card">
-              <span className="stat-icon">💊</span>
+              <span className="stat-icon">
+                <MaterialIcon name="medication" size={18} />
+              </span>
               <div>
                 <span className="stat-label">Recetas Activas</span>
                 <span className="stat-value" style={{ color: '#7c3aed' }}>2 Emitidas</span>
@@ -326,7 +344,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               className={`tab-pill-btn ${activeTab === 'appointments' ? 'active' : ''}`}
               onClick={() => setActiveTab('appointments')}
             >
-              <span>📅</span>
+              <MaterialIcon name="calendar_today" size={16} />
               <span>Mis Citas Anteriores ({historyAppointments.length})</span>
             </button>
             <button
@@ -334,7 +352,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               className={`tab-pill-btn ${activeTab === 'prescriptions' ? 'active' : ''}`}
               onClick={() => setActiveTab('prescriptions')}
             >
-              <span>💊</span>
+              <MaterialIcon name="medication" size={16} />
               <span>Recetas Médicas ({prescriptions.length})</span>
             </button>
             <button
@@ -342,7 +360,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               className={`tab-pill-btn ${activeTab === 'receipts' ? 'active' : ''}`}
               onClick={() => setActiveTab('receipts')}
             >
-              <span>🧾</span>
+              <MaterialIcon name="receipt" size={16} />
               <span>Comprobantes de Pago ({receipts.length})</span>
             </button>
             <button
@@ -350,7 +368,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               className={`tab-pill-btn ${activeTab === 'eva' ? 'active' : ''}`}
               onClick={() => setActiveTab('eva')}
             >
-              <span>📊</span>
+              <MaterialIcon name="bar_chart" size={16} />
               <span>Evolución EVA</span>
             </button>
           </div>
@@ -389,15 +407,16 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                   </div>
 
                   <div className="history-item-actions">
-                    <span className="badge-attended-pill">
-                      ✓ {apt.status}
+                    <span className="badge-attended-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                      <MaterialIcon name="check" size={12} />
+                      <span>{apt.status}</span>
                     </span>
                     <button
                       type="button"
                       className="btn-download-record"
-                      onClick={() => showToast(`📥 Descarga iniciada: Ficha de Atención #${apt.id} con Firma Digital.`)}
+                      onClick={() => showToast(`Descarga iniciada: Ficha de Atención #${apt.id} con Firma Digital.`)}
                     >
-                      <span>📥</span>
+                      <MaterialIcon name="download" size={16} />
                       <span>Ficha Clínica (PDF)</span>
                     </button>
                   </div>
@@ -418,8 +437,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                   Recetas oficiales con código QR y validez farmacéutica a nivel nacional (Ley N° 27269).
                 </p>
               </div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '0.25rem 0.65rem', borderRadius: '8px' }}>
-                🛡️ Firma Digital MINSA Activa
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '0.25rem 0.65rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                <MaterialIcon name="verified_user" size={14} />
+                <span>Firma Digital MINSA Activa</span>
               </span>
             </div>
 
@@ -434,11 +454,15 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                       <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 700 }}>● Válida hasta {rx.validUntil}</span>
                     </div>
                     <h3 className="rx-medication-title">{rx.medication}</h3>
-                    <p className="rx-instruction-text">📋 <strong>Posología:</strong> {rx.instructions}</p>
+                    <p className="rx-instruction-text" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.35rem' }}>
+                      <MaterialIcon name="assignment" size={16} style={{ color: '#7c3aed', flexShrink: 0, marginTop: '2px' }} />
+                      <span><strong>Posología:</strong> {rx.instructions}</span>
+                    </p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600 }}>Médico: {rx.doctor}</span>
-                      <span style={{ fontSize: '0.72rem', color: '#0284c7', background: '#f0f9ff', border: '1px solid #bae6fd', padding: '0.1rem 0.45rem', borderRadius: '6px' }}>
-                        🏥 Aceptada en Boticas & Farmacias
+                      <span style={{ fontSize: '0.72rem', color: '#0284c7', background: '#f0f9ff', border: '1px solid #bae6fd', padding: '0.1rem 0.45rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <MaterialIcon name="domain" size={14} />
+                        <span>Aceptada en Boticas & Farmacias</span>
                       </span>
                     </div>
                   </div>
@@ -448,9 +472,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                       type="button"
                       className="btn-download-rx"
                       style={{ background: '#7c3aed', color: '#ffffff', border: 'none', boxShadow: '0 4px 12px -2px rgba(124, 58, 237, 0.35)' }}
-                      onClick={() => showToast(`📄 Descargando ${rx.code} con Firma Digital MINSA y Código QR (PDF)...`)}
+                      onClick={() => showToast(`Descargando ${rx.code} con Firma Digital MINSA y Código QR (PDF)...`)}
                     >
-                      <span>📥</span>
+                      <MaterialIcon name="download" size={16} />
                       <span>Descargar Receta (PDF)</span>
                     </button>
                   </div>
@@ -471,8 +495,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                   Boletas y facturas electrónicas emitidas por tus atenciones en Clínica Sanitas.
                 </p>
               </div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.25rem 0.65rem', borderRadius: '8px' }}>
-                ✓ 100% Declarado ante SUNAT
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.25rem 0.65rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                <MaterialIcon name="check" size={14} />
+                <span>100% Declarado ante SUNAT</span>
               </span>
             </div>
 
@@ -483,13 +508,14 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                       <h3 className="receipt-code-title" style={{ margin: 0 }}>{rec.number} · {rec.date}</h3>
-                      <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
-                        ✓ {rec.status}
+                      <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#047857', background: '#ecfdf5', padding: '0.1rem 0.45rem', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <MaterialIcon name="check" size={12} />
+                        <span>{rec.status}</span>
                       </span>
                     </div>
                     <p className="receipt-desc-text">{rec.description}</p>
                     <span className="receipt-pay-tag">
-                      <span>💳</span>
+                      <MaterialIcon name="credit_card" size={14} />
                       <span>{rec.method} · Emisor RUC {rec.ruc}</span>
                     </span>
                   </div>
@@ -499,9 +525,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                     <button
                       type="button"
                       className="btn-download-receipt"
-                      onClick={() => showToast(`📥 Descarga iniciada: ${rec.number} autorizada por SUNAT (PDF).`)}
+                      onClick={() => showToast(`Descarga iniciada: ${rec.number} autorizada por SUNAT (PDF).`)}
                     >
-                      <span>📥</span>
+                      <MaterialIcon name="download" size={16} />
                       <span>Descargar Boleta</span>
                     </button>
                   </div>
@@ -522,8 +548,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                   Monitoreo clínico sesión tras sesión registrado por el médico tratante.
                 </p>
               </div>
-              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#16a34a', background: '#ecfdf5', padding: '0.3rem 0.75rem', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-                🎉 Reducción total de dolor: -75%
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#16a34a', background: '#ecfdf5', padding: '0.3rem 0.75rem', borderRadius: '8px', border: '1px solid #a7f3d0', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <MaterialIcon name="celebration" size={16} />
+                <span>Reducción total de dolor: -75%</span>
               </span>
             </div>
 
@@ -552,7 +579,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
             <div className="modal-header-custom" style={{ padding: '1.25rem 1.5rem', background: '#ffffff', borderBottom: '1.5px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#f0f9ff', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bae6fd' }}>
-                  🔄
+                  <MaterialIcon name="refresh" size={20} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
@@ -566,9 +593,10 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsRescheduleOpen(false)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -576,9 +604,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               {/* Tarjeta 1: Fecha */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>📅</span>
-                    Selecciona Nueva Fecha
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="calendar_today" size={18} />
+                    <span>Selecciona Nueva Fecha</span>
                   </h4>
                   <span className="form-section-badge">DISPONIBILIDAD</span>
                 </div>
@@ -610,9 +638,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               {/* Tarjeta 2: Turnos */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>⏰</span>
-                    Horarios Disponibles para {rescheduleDate}
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="schedule" size={18} />
+                    <span>Horarios Disponibles para {rescheduleDate}</span>
                   </h4>
                   <span className="form-section-badge">TURNO</span>
                 </div>
@@ -673,7 +701,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               {/* Tarjeta 3: Notificación */}
               <div className="form-section-card" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
                 <p style={{ margin: 0, fontSize: '0.75rem', color: '#166534', lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>📲</span>
+                  <MaterialIcon name="smartphone" size={16} />
                   <span>Te enviaremos la confirmación de tu nueva fecha y recordatorio por WhatsApp y correo electrónico.</span>
                 </p>
               </div>
@@ -690,13 +718,14 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               <button
                 type="button"
                 className="cash-btn primary"
-                style={{ background: '#0284c7', borderColor: '#0284c7', boxShadow: '0 4px 12px -2px rgba(2, 132, 199, 0.35)' }}
+                style={{ background: '#0284c7', borderColor: '#0284c7', boxShadow: '0 4px 12px -2px rgba(2, 132, 199, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 onClick={() => {
-                  showToast(`✓ Cita reprogramada para el ${rescheduleDate} a las ${rescheduleTime}. Enviamos confirmación a tu WhatsApp.`);
+                  showToast(`Cita reprogramada para el ${rescheduleDate} a las ${rescheduleTime}. Enviamos confirmación a tu WhatsApp.`);
                   setIsRescheduleOpen(false);
                 }}
               >
-                ✓ Confirmar Reprogramación
+                <MaterialIcon name="check" size={16} />
+                <span>Confirmar Reprogramación</span>
               </button>
             </div>
           </div>
@@ -710,7 +739,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
             <div className="modal-header-custom" style={{ padding: '1.25rem 1.5rem', background: '#ffffff', borderBottom: '1.5px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fecaca' }}>
-                  ✕
+                  <MaterialIcon name="close" size={20} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#dc2626' }}>
@@ -724,24 +753,26 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsCancelOpen(false)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
             <div style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#f8fafc' }}>
               <div className="form-section-card" style={{ background: '#fffbeb', borderColor: '#fde68a' }}>
-                <p style={{ margin: 0, fontSize: '0.78rem', color: '#92400e', lineHeight: 1.5 }}>
-                  ⚠️ Según la política de la clínica, puedes cancelar o reprogramar sin penalidad hasta 2 horas antes de tu horario asignado.
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#92400e', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: '0.35rem' }}>
+                  <MaterialIcon name="warning" size={16} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
+                  <span>Según la política de la clínica, puedes cancelar o reprogramar sin penalidad hasta 2 horas antes de tu horario asignado.</span>
                 </p>
               </div>
 
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>📋</span>
-                    Motivo de la Cancelación
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="assignment" size={18} />
+                    <span>Motivo de la Cancelación</span>
                   </h4>
                   <span className="form-section-badge">OPCIONAL</span>
                 </div>
@@ -775,7 +806,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                 className="cash-btn primary"
                 style={{ background: '#dc2626', borderColor: '#dc2626', boxShadow: '0 4px 12px -2px rgba(220, 38, 38, 0.35)' }}
                 onClick={() => {
-                  showToast('✓ Cita cancelada. Tu turno ha sido liberado para la sala de espera.');
+                  showToast('Cita cancelada. Tu turno ha sido liberado para la sala de espera.');
                   setIsCancelOpen(false);
                 }}
               >
@@ -793,8 +824,8 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
             {/* Header del Modal */}
             <div className="modal-header-custom" style={{ padding: '1.25rem 1.5rem', background: '#ffffff', borderBottom: '1.5px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 4px 12px -2px rgba(2, 132, 199, 0.4)' }}>
-                  📅
+                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px -2px rgba(2, 132, 199, 0.4)' }}>
+                  <MaterialIcon name="calendar_today" size={20} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
@@ -808,9 +839,10 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsBookingModalOpen(false)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -818,15 +850,15 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
             {bookingStep <= 3 && (
               <div className="booking-step-indicator">
                 <div className={`step-node ${bookingStep === 1 ? 'active' : bookingStep > 1 ? 'completed' : ''}`}>
-                  <span className="step-number">{bookingStep > 1 ? '✓' : '1'}</span>
+                  <span className="step-number">{bookingStep > 1 ? (<MaterialIcon name="check" size={14} />) : '1'}</span>
                   <span>Tratamiento</span>
                 </div>
-                <span style={{ color: '#cbd5e1' }}>➔</span>
+                <span style={{ color: '#cbd5e1' }}>→</span>
                 <div className={`step-node ${bookingStep === 2 ? 'active' : bookingStep > 2 ? 'completed' : ''}`}>
-                  <span className="step-number">{bookingStep > 2 ? '✓' : '2'}</span>
+                  <span className="step-number">{bookingStep > 2 ? (<MaterialIcon name="check" size={14} />) : '2'}</span>
                   <span>Fecha & Turno</span>
                 </div>
-                <span style={{ color: '#cbd5e1' }}>➔</span>
+                <span style={{ color: '#cbd5e1' }}>→</span>
                 <div className={`step-node ${bookingStep === 3 ? 'active' : ''}`}>
                   <span className="step-number">3</span>
                   <span>Pago & Confirmación</span>
@@ -849,12 +881,16 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                     onClick={() => setSelectedBookingService('plan_lumbar')}
                   >
                     <div>
-                      <span className="badge-recommended">⭐ Recomendado · Tu Plan Activo</span>
+                      <span className="badge-recommended" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <MaterialIcon name="star" size={14} />
+                        <span>Recomendado · Tu Plan Activo</span>
+                      </span>
                       <h4 style={{ margin: '0 0 0.25rem', fontSize: '0.95rem', fontWeight: 800, color: '#0f172a' }}>
                         Rehabilitación de Columna Lumbar (Sesión 9 de 10)
                       </h4>
-                      <p style={{ margin: 0, fontSize: '0.76rem', color: '#475569' }}>
-                        🩺 Médico asignado: <strong>Dra. María González</strong> · Sede San Isidro
+                      <p style={{ margin: 0, fontSize: '0.76rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <MaterialIcon name="medical_services" size={14} />
+                        <span>Médico asignado: <strong>Dra. María González</strong> · Sede San Isidro</span>
                       </p>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -913,7 +949,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                       className={`booking-mode-btn ${bookingMode === 'presencial' ? 'selected' : ''}`}
                       onClick={() => setBookingMode('presencial')}
                     >
-                      <span>🏥</span>
+                      <MaterialIcon name="domain" size={18} />
                       <span>Presencial (Sede San Isidro)</span>
                     </button>
                     <button
@@ -921,7 +957,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                       className={`booking-mode-btn ${bookingMode === 'teleconsulta' ? 'selected' : ''}`}
                       onClick={() => setBookingMode('teleconsulta')}
                     >
-                      <span>💻</span>
+                      <MaterialIcon name="laptop_mac" size={18} />
                       <span>Teleconsulta Online</span>
                     </button>
                   </div>
@@ -1021,11 +1057,15 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                     <h4 style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: 900, color: '#0f172a' }}>
                       Rehabilitación de Columna Lumbar (Sesión 9/10)
                     </h4>
-                    <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', color: '#475569' }}>
-                      🩺 Dra. María González · {bookingMode === 'presencial' ? 'Sede San Isidro (Box 102)' : 'Teleconsulta por Video HD'}
+                    <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <MaterialIcon name="medical_services" size={14} />
+                      <span>Dra. María González · {bookingMode === 'presencial' ? 'Sede San Isidro (Box 102)' : 'Teleconsulta por Video HD'}</span>
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>📅 {bookingDate} · {bookingTime}</span>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <MaterialIcon name="calendar_today" size={14} />
+                        <span>{bookingDate} · {bookingTime}</span>
+                      </span>
                       <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0284c7' }}>S/ 80.00</span>
                     </div>
                   </div>
@@ -1038,7 +1078,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                     className={`payment-method-card ${bookingPayment === 'clinica' ? 'selected' : ''}`}
                     onClick={() => setBookingPayment('clinica')}
                   >
-                    <span>🏢</span>
+                    <MaterialIcon name="domain" size={20} />
                     <div style={{ flex: 1 }}>
                       <div>Pagar en Clínica al Asistir</div>
                       <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 500 }}>Efectivo, Tarjetas POS o Yape en el mostrador de recepción</span>
@@ -1050,7 +1090,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                     className={`payment-method-card ${bookingPayment === 'yape' ? 'selected' : ''}`}
                     onClick={() => setBookingPayment('yape')}
                   >
-                    <span>📱</span>
+                    <MaterialIcon name="smartphone" size={20} />
                     <div style={{ flex: 1 }}>
                       <div>Pagar ahora con Yape / Plin</div>
                       <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 500 }}>Confirmación inmediata con comprobante digital automático</span>
@@ -1062,7 +1102,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                     className={`payment-method-card ${bookingPayment === 'eps' ? 'selected' : ''}`}
                     onClick={() => setBookingPayment('eps')}
                   >
-                    <span>🛡️</span>
+                    <MaterialIcon name="verified_user" size={20} />
                     <div style={{ flex: 1 }}>
                       <div>Convenio con Seguro Médico / EPS</div>
                       <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 500 }}>Pacífico, Rímac, Sanitas, Mapfre (Copago S/ 0.00 a S/ 25.00)</span>
@@ -1071,7 +1111,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                   </div>
 
                   <div style={{ marginTop: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#ecfdf5', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #a7f3d0' }}>
-                    <span>📲</span>
+                    <MaterialIcon name="smartphone" size={16} />
                     <span style={{ fontSize: '0.74rem', color: '#065f46', fontWeight: 600 }}>
                       Enviaremos el recordatorio con GPS y enlace a tu WhatsApp (+51 987 654 321).
                     </span>
@@ -1082,7 +1122,9 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
               {/* PASO 4: Confirmación Exitosa */}
               {bookingStep === 4 && (
                 <div className="booking-success-view">
-                  <div className="success-icon-animated">✓</div>
+                  <div className="success-icon-animated">
+                    <MaterialIcon name="check" size={32} />
+                  </div>
                   <h3 style={{ margin: '0 0 0.35rem', fontSize: '1.35rem', fontWeight: 900, color: '#0f172a' }}>
                     ¡Tu Cita Médica está Confirmada!
                   </h3>
@@ -1112,19 +1154,20 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                     <button
                       type="button"
                       className="cash-btn ghost"
-                      style={{ flex: 1, padding: '0.65rem', fontSize: '0.8rem' }}
-                      onClick={() => showToast('📅 Evento añadido a tu calendario.')}
+                      style={{ flex: 1, padding: '0.65rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}
+                      onClick={() => showToast('Evento añadido a tu calendario.')}
                     >
-                      <span>📅</span>
+                      <MaterialIcon name="calendar_today" size={16} />
                       <span>Añadir a Google Calendar</span>
                     </button>
                     <button
                       type="button"
                       className="cash-btn primary"
-                      style={{ flex: 1, padding: '0.65rem', fontSize: '0.8rem', background: '#0284c7', borderColor: '#0284c7' }}
+                      style={{ flex: 1, padding: '0.65rem', fontSize: '0.8rem', background: '#0284c7', borderColor: '#0284c7', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}
                       onClick={() => setIsBookingModalOpen(false)}
                     >
-                      🚀 Volver a Mi Portal
+                      <MaterialIcon name="home" size={16} />
+                      <span>Volver a Mi Portal</span>
                     </button>
                   </div>
                 </div>
@@ -1166,13 +1209,14 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
                   <button
                     type="button"
                     className="cash-btn primary"
-                    style={{ background: 'linear-gradient(135deg, #0284c7 0%, #059669 100%)', borderColor: '#0284c7', boxShadow: '0 4px 14px -2px rgba(5, 150, 105, 0.45)' }}
+                    style={{ background: 'linear-gradient(135deg, #0284c7 0%, #059669 100%)', borderColor: '#0284c7', boxShadow: '0 4px 14px -2px rgba(5, 150, 105, 0.45)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                     onClick={() => {
-                      showToast(`✓ ¡Cita agendada para el ${bookingDate} a las ${bookingTime}! Recordatorio enviado a tu WhatsApp.`);
+                      showToast(`¡Cita agendada para el ${bookingDate} a las ${bookingTime}! Recordatorio enviado a tu WhatsApp.`);
                       setBookingStep(4);
                     }}
                   >
-                    <span>✓ Confirmar y Agendar Cita</span>
+                    <MaterialIcon name="check" size={16} />
+                    <span>Confirmar y Agendar Cita</span>
                   </button>
                 )}
               </div>

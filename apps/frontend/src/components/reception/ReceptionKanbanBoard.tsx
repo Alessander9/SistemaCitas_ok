@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { soundEffects } from '../../utils/soundEffects';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import { WhatsAppReminderModal } from './WhatsAppReminderModal';
 import { DigitalPrescriptionModal } from '../clinical/DigitalPrescriptionModal';
 import { WaitingTimeBadge } from '../common/WaitingTimeBadge';
@@ -41,7 +42,7 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
   {
     id: 'waiting',
     title: 'En Sala de Espera',
-    icon: '⏳',
+    icon: 'schedule',
     statusMatch: ['WAITING', 'CONFIRMED', 'PENDING', 'PROGRAMADA'],
     color: '#f59e0b',
     badgeBg: 'bg-amber-100 dark:bg-amber-950/70',
@@ -50,7 +51,7 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
   {
     id: 'in_consultation',
     title: 'En Consulta Médica',
-    icon: '🟢',
+    icon: 'medical_services',
     statusMatch: ['IN_PROGRESS', 'EN_CONSULTA', 'TRIAJE'],
     color: '#10b981',
     badgeBg: 'bg-emerald-100 dark:bg-emerald-950/70',
@@ -59,7 +60,7 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
   {
     id: 'pending_payment',
     title: 'Pendiente Cobro en Caja',
-    icon: '💵',
+    icon: 'payments',
     statusMatch: ['PENDING_PAYMENT', 'PENDIENTE_PAGO', 'CAJA'],
     color: '#0ea5e9',
     badgeBg: 'bg-sky-100 dark:bg-sky-950/70',
@@ -68,7 +69,7 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
   {
     id: 'completed',
     title: 'Atendido & Alta',
-    icon: '✓',
+    icon: 'check_circle',
     statusMatch: ['COMPLETED', 'ATENDIDO', 'PAGADO'],
     color: '#8b5cf6',
     badgeBg: 'bg-purple-100 dark:bg-purple-950/70',
@@ -131,9 +132,9 @@ export const ReceptionKanbanBoard: React.FC<ReceptionKanbanBoardProps> = ({
   };
 
   const getNextActionLabel = (currentCol: KanbanColumnId): { label: string; icon: string } | null => {
-    if (currentCol === 'waiting') return { label: 'Llamar a Box', icon: '📢' };
-    if (currentCol === 'in_consultation') return { label: 'Enviar a Caja', icon: '💳' };
-    if (currentCol === 'pending_payment') return { label: 'Cobrar y Finalizar', icon: '✅' };
+    if (currentCol === 'waiting') return { label: 'Llamar a Box', icon: 'campaign' };
+    if (currentCol === 'in_consultation') return { label: 'Enviar a Caja', icon: 'payments' };
+    if (currentCol === 'pending_payment') return { label: 'Cobrar y Finalizar', icon: 'check_circle' };
     return null;
   };
 
@@ -176,7 +177,7 @@ export const ReceptionKanbanBoard: React.FC<ReceptionKanbanBoardProps> = ({
       {/* Kanban Header Bar */}
       <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-2">
-          <span className="text-xl">📊</span>
+          <MaterialIcon name="analytics" size={22} color="#0284c7" />
           <h2 className="font-bold text-slate-800 dark:text-slate-100 text-base">
             Flujo de Atención en Tiempo Real (Triage & Espera)
           </h2>
@@ -184,8 +185,9 @@ export const ReceptionKanbanBoard: React.FC<ReceptionKanbanBoardProps> = ({
             {appointments.length} Pacientes en cola
           </span>
         </div>
-        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-          <span>💡 Arrastre las tarjetas o use el botón rápido para avanzar</span>
+        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <MaterialIcon name="lightbulb" size={14} color="#f59e0b" />
+          <span>Arrastre las tarjetas o use el botón rápido para avanzar</span>
         </div>
       </div>
 
@@ -203,7 +205,7 @@ export const ReceptionKanbanBoard: React.FC<ReceptionKanbanBoardProps> = ({
               {/* Column Header */}
               <div className="kanban-column-header">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{col.icon}</span>
+                  <MaterialIcon name={col.icon} size={18} color={col.color} />
                   <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-200">
                     {col.title}
                   </h3>
@@ -247,8 +249,9 @@ export const ReceptionKanbanBoard: React.FC<ReceptionKanbanBoardProps> = ({
                               <h4 className="font-bold text-xs text-slate-900 dark:text-slate-100 leading-tight hover:text-primary-600 transition-colors">
                                 {patientName}
                               </h4>
-                              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                                👨‍⚕️ {docName}
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                <MaterialIcon name="person" size={13} />
+                                <span>{docName}</span>
                               </p>
                             </div>
                           </div>
@@ -266,8 +269,9 @@ export const ReceptionKanbanBoard: React.FC<ReceptionKanbanBoardProps> = ({
                             <WaitingTimeBadge arrivalTime={appt.time} />
                           )}
                           {col.id === 'in_consultation' && (
-                            <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-semibold animate-pulse">
-                              📍 Box 101
+                            <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-semibold animate-pulse flex items-center gap-1">
+                              <MaterialIcon name="location_on" size={12} />
+                              <span>Box 101</span>
                             </span>
                           )}
                         </div>
@@ -284,9 +288,9 @@ export const ReceptionKanbanBoard: React.FC<ReceptionKanbanBoardProps> = ({
                                 setSelectedWaAppt(appt);
                                 setWaModalOpen(true);
                               }}
-                              className="p-1.5 text-xs text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-md transition-colors"
+                              className="p-1.5 text-xs text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-md transition-colors flex items-center justify-center"
                             >
-                              📲
+                              <MaterialIcon name="chat" size={15} />
                             </button>
                             <button
                               type="button"
@@ -296,9 +300,9 @@ export const ReceptionKanbanBoard: React.FC<ReceptionKanbanBoardProps> = ({
                                 setSelectedRxAppt(appt);
                                 setRxModalOpen(true);
                               }}
-                              className="p-1.5 text-xs text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/50 rounded-md transition-colors"
+                              className="p-1.5 text-xs text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/50 rounded-md transition-colors flex items-center justify-center"
                             >
-                              📄
+                              <MaterialIcon name="description" size={15} />
                             </button>
                           </div>
 
@@ -312,13 +316,13 @@ export const ReceptionKanbanBoard: React.FC<ReceptionKanbanBoardProps> = ({
                               }}
                               className="px-2.5 py-1 text-[11px] font-bold text-white bg-primary-600 hover:bg-primary-700 active:scale-95 rounded-lg shadow-sm flex items-center gap-1 transition-all"
                             >
-                              <span>{nextAction.icon}</span>
+                              <MaterialIcon name={nextAction.icon} size={14} />
                               <span>{nextAction.label}</span>
                             </button>
                           )}
                           {col.id === 'completed' && (
                             <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1">
-                              <span>✓</span>
+                              <MaterialIcon name="check_circle" size={14} />
                               <span>Alta Médica</span>
                             </span>
                           )}

@@ -4,7 +4,7 @@
    ============================================================================= */
 
 .sidebar-container {
-  width: 268px;
+  width: 250px;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -72,8 +72,8 @@
 
 /* Brand Header */
 .sidebar-brand {
-  height: 70px;
-  padding: 0 1.25rem;
+  height: 56px;
+  padding: 0 1.15rem;
   display: flex;
   align-items: center;
   justify-content: space-between;

@@ -11,6 +11,7 @@ import {
   IconChart,
   IconSearch,
 } from '../../components/ui/Icons';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 
 interface SuperAdminDashboardProps {
   onSwitchClinic?: (clinicId: string) => void;
@@ -225,7 +226,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
     setNewClinicDoctors(4);
     setNewClinicRooms(6);
 
-    showToast(`✓ ¡Nueva clínica "${newEntry.name}" aprovisionada exitosamente en el clúster multi-tenant con slug [${formattedSlug}]!`);
+    showToast(`¡Nueva clínica "${newEntry.name}" aprovisionada exitosamente en el clúster multi-tenant con slug [${formattedSlug}]!`);
   };
 
   const handleSwitchContext = (clinic: ClinicRecord) => {
@@ -240,7 +241,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
     setClinics((prev) =>
       prev.map((c) => (c.id === managingClinic.id ? managingClinic : c))
     );
-    showToast(`✓ ¡Configuración de "${managingClinic.name}" actualizada con éxito!`);
+    showToast(`¡Configuración de "${managingClinic.name}" actualizada con éxito!`);
     setManagingClinic(null);
   };
 
@@ -282,9 +283,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', marginLeft: '0.5rem' }}
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}
           >
-            ✕
+            <MaterialIcon name="close" size={18} />
           </button>
         </div>
       )}
@@ -640,7 +641,10 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             onClick={() => onOpenClinicConsole(c)}
                             title="Operar y supervisar consola médica de esta sede"
                           >
-                            🛡️ Operar Sede ↗
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <MaterialIcon name="verified_user" size={15} />
+                              <span>Operar Sede ↗</span>
+                            </span>
                           </button>
                         )}
 
@@ -655,7 +659,10 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                           }}
                           title="Gestionar configuración, staff y consultorios de esta sede"
                         >
-                          ⚙️ Gestionar Sede
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <MaterialIcon name="settings" size={15} />
+                            <span>Gestionar Sede</span>
+                          </span>
                         </button>
 
                         {/* Action 3: Finances Breakdown Modal */}
@@ -665,7 +672,10 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                           onClick={() => setFinanceClinic(c)}
                           title="Supervisar desglose financiero y liquidación de esta sede"
                         >
-                          🏦 Finanzas
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <MaterialIcon name="account_balance" size={15} />
+                            <span>Finanzas</span>
+                          </span>
                         </button>
                       </div>
                     </td>
@@ -785,9 +795,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsNewClinicModalOpen(false)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -797,7 +807,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 <div className="form-section-card">
                   <div className="form-section-header">
                     <h4 className="form-section-title">
-                      <span>🏥</span>
+                      <MaterialIcon name="local_hospital" size={16} />
                       Identidad Comercial & Slug de Acceso
                     </h4>
                     <span className="form-section-badge">TENANT ID</span>
@@ -809,7 +819,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                       <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <div className="input-with-icon">
-                      <span className="input-icon-left">🏥</span>
+                      <span className="input-icon-left"><MaterialIcon name="local_hospital" size={16} /></span>
                       <input
                         type="text"
                         required
@@ -833,7 +843,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         <span style={{ color: '#ef4444' }}>*</span>
                       </label>
                       <div className="input-with-icon">
-                        <span className="input-icon-left">🔗</span>
+                        <span className="input-icon-left"><MaterialIcon name="link" size={16} /></span>
                         <input
                           type="text"
                           required
@@ -851,7 +861,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         <span style={{ color: '#ef4444' }}>*</span>
                       </label>
                       <div className="input-with-icon">
-                        <span className="input-icon-left">🏙️</span>
+                        <span className="input-icon-left"><MaterialIcon name="location_city" size={16} /></span>
                         <input
                           type="text"
                           required
@@ -869,7 +879,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 <div className="form-section-card">
                   <div className="form-section-header">
                     <h4 className="form-section-title">
-                      <span>⚙️</span>
+                      <MaterialIcon name="settings" size={16} />
                       Infraestructura & Capacidad Inicial
                     </h4>
                     <span className="form-section-badge">DIMENSIONAMIENTO</span>
@@ -946,7 +956,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 <div className="form-section-card">
                   <div className="form-section-header">
                     <h4 className="form-section-title">
-                      <span>👤</span>
+                      <MaterialIcon name="person" size={16} />
                       Cuenta del Administrador Local
                     </h4>
                     <span className="form-section-badge">LOGIN</span>
@@ -958,7 +968,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                       <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <div className="input-with-icon">
-                      <span className="input-icon-left">✉️</span>
+                      <span className="input-icon-left"><MaterialIcon name="mail" size={16} /></span>
                       <input
                         type="email"
                         required
@@ -1026,7 +1036,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     >
                       {managingClinic.status === 'active' ? '● Operativa' :
                        managingClinic.status === 'onboarding' ? '● En Configuración' :
-                       managingClinic.status === 'maintenance' ? '🔧 En Mantenimiento' : '🔴 Suspendida'}
+                       managingClinic.status === 'maintenance' ? 'En Mantenimiento' : 'Suspendida'}
                     </span>
                   </div>
                   <p style={{ margin: '0.2rem 0 0', fontSize: '0.76rem', color: '#64748b' }}>
@@ -1037,9 +1047,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setManagingClinic(null)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms ease' }}
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms ease' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -1050,7 +1060,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 className={`modal-tab-btn ${clinicModalTab === 'general' ? 'active' : ''}`}
                 onClick={() => setClinicModalTab('general')}
               >
-                <span>🏥</span>
+                <MaterialIcon name="local_hospital" size={16} />
                 <span>Datos & Ubicación</span>
               </button>
               <button
@@ -1058,7 +1068,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 className={`modal-tab-btn ${clinicModalTab === 'operations' ? 'active' : ''}`}
                 onClick={() => setClinicModalTab('operations')}
               >
-                <span>⚙️</span>
+                <MaterialIcon name="settings" size={16} />
                 <span>Operaciones & Turnos</span>
               </button>
               <button
@@ -1066,7 +1076,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 className={`modal-tab-btn ${clinicModalTab === 'staff' ? 'active' : ''}`}
                 onClick={() => setClinicModalTab('staff')}
               >
-                <span>🩺</span>
+                <MaterialIcon name="medical_services" size={16} />
                 <span>Staff Médico ({managingClinic.assignedDoctorsList?.length ?? managingClinic.doctors})</span>
               </button>
               <button
@@ -1074,7 +1084,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 className={`modal-tab-btn ${clinicModalTab === 'compliance' ? 'active' : ''}`}
                 onClick={() => setClinicModalTab('compliance')}
               >
-                <span>🛡️</span>
+                <MaterialIcon name="shield" size={16} />
                 <span>Normativa & SUSALUD</span>
               </button>
             </div>
@@ -1088,7 +1098,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     <div className="form-section-card">
                       <div className="form-section-header">
                         <h4 className="form-section-title">
-                          <span>🏥</span>
+                          <MaterialIcon name="local_hospital" size={16} />
                           Identidad de la Sede & Tenant Multi-Clínica
                         </h4>
                         <span className="form-section-badge">PÚBLICO</span>
@@ -1101,7 +1111,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span style={{ color: '#ef4444' }}>*</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">🏥</span>
+                            <span className="input-icon-left"><MaterialIcon name="local_hospital" size={16} /></span>
                             <input
                               type="text"
                               required
@@ -1119,7 +1129,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span style={{ fontSize: '0.68rem', color: '#64748b' }}>Único</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">🔗</span>
+                            <span className="input-icon-left"><MaterialIcon name="link" size={16} /></span>
                             <input
                               type="text"
                               required
@@ -1137,7 +1147,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     <div className="form-section-card">
                       <div className="form-section-header">
                         <h4 className="form-section-title">
-                          <span>💼</span>
+                          <MaterialIcon name="business_center" size={16} />
                           Razón Social & Facturación Electrónica (SUNAT)
                         </h4>
                         <span className="form-section-badge">LEGAL PERÚ</span>
@@ -1149,7 +1159,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span>Razón Social Jurídica Registrada</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">🏢</span>
+                            <span className="input-icon-left"><MaterialIcon name="apartment" size={16} /></span>
                             <input
                               type="text"
                               className="modern-form-input"
@@ -1167,14 +1177,15 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             </label>
                             <button
                               type="button"
-                              onClick={() => showToast(`✓ R.U.C. ${managingClinic.ruc || '20601928371'} validado exitosamente ante SUNAT.`)}
-                              style={{ background: 'none', border: 'none', color: '#16a34a', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                              onClick={() => showToast(`R.U.C. ${managingClinic.ruc || '20601928371'} validado exitosamente ante SUNAT.`)}
+                              style={{ background: 'none', border: 'none', color: '#16a34a', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
                             >
-                              ✓ Validar SUNAT
+                              <MaterialIcon name="check" size={13} />
+                              <span>Validar SUNAT</span>
                             </button>
                           </div>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">📄</span>
+                            <span className="input-icon-left"><MaterialIcon name="description" size={16} /></span>
                             <input
                               type="text"
                               maxLength={11}
@@ -1192,7 +1203,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     <div className="form-section-card">
                       <div className="form-section-header">
                         <h4 className="form-section-title">
-                          <span>📍</span>
+                          <MaterialIcon name="location_on" size={16} />
                           Ubicación Física & Canales de Contacto Directo
                         </h4>
                         <span className="form-section-badge">ATENCIÓN</span>
@@ -1205,7 +1216,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span style={{ color: '#ef4444' }}>*</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">📍</span>
+                            <span className="input-icon-left"><MaterialIcon name="location_on" size={16} /></span>
                             <input
                               type="text"
                               required
@@ -1223,7 +1234,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span style={{ color: '#ef4444' }}>*</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">🏙️</span>
+                            <span className="input-icon-left"><MaterialIcon name="location_city" size={16} /></span>
                             <input
                               type="text"
                               required
@@ -1242,7 +1253,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span>Enlace Google Maps (Para WhatsApp del Paciente)</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">🗺️</span>
+                            <span className="input-icon-left"><MaterialIcon name="map" size={16} /></span>
                             <input
                               type="text"
                               className="modern-form-input"
@@ -1258,7 +1269,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span>Teléfono & WhatsApp</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">📞</span>
+                            <span className="input-icon-left"><MaterialIcon name="phone" size={16} /></span>
                             <input
                               type="text"
                               className="modern-form-input"
@@ -1274,7 +1285,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span>Correo de Admisión</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">✉️</span>
+                            <span className="input-icon-left"><MaterialIcon name="mail" size={16} /></span>
                             <input
                               type="email"
                               className="modern-form-input"
@@ -1296,7 +1307,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     <div className="form-section-card">
                       <div className="form-section-header">
                         <h4 className="form-section-title">
-                          <span>⚙️</span>
+                          <MaterialIcon name="settings" size={16} />
                           Estado Operativo de la Sede
                         </h4>
                         <span className="form-section-badge">EN TIEMPO REAL</span>
@@ -1338,7 +1349,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     <div className="form-section-card">
                       <div className="form-section-header">
                         <h4 className="form-section-title">
-                          <span>🏥</span>
+                          <MaterialIcon name="local_hospital" size={16} />
                           Consultorios Físicos, Días & Tiempos de Cita
                         </h4>
                         <span className="form-section-badge">AGENDA</span>
@@ -1441,9 +1452,17 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                   fontSize: '0.78rem',
                                   cursor: 'pointer',
                                   transition: 'all 120ms ease',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem'
                                 }}
                               >
-                                {isSelected ? `✓ ${dia}` : dia}
+                                {isSelected ? (
+                                  <>
+                                    <MaterialIcon name="check" size={13} />
+                                    <span>{dia}</span>
+                                  </>
+                                ) : dia}
                               </button>
                             );
                           })}
@@ -1456,7 +1475,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span>Horario de Atención</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">⏰</span>
+                            <span className="input-icon-left"><MaterialIcon name="schedule" size={16} /></span>
                             <input
                               type="text"
                               className="modern-form-input"
@@ -1523,14 +1542,16 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         {/* Cabecera con Buscador y Filtro por Especialidad */}
                         <div className="form-section-header" style={{ flexWrap: 'wrap', gap: '0.65rem' }}>
                           <h4 className="form-section-title">
-                            <span>🩺</span>
+                            <MaterialIcon name="medical_services" size={16} />
                             Staff Médico Asignado ({filteredDoctors.length} de {managingClinic.assignedDoctorsList?.length ?? 0})
                           </h4>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                             {/* Buscador de Médicos */}
                             <div style={{ position: 'relative', width: '210px' }}>
-                              <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '0.8rem' }}>🔍</span>
+                              <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex', alignItems: 'center' }}>
+                                <MaterialIcon name="search" size={15} />
+                              </span>
                               <input
                                 type="text"
                                 placeholder="Buscar médico o CMP..."
@@ -1586,11 +1607,13 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '2px', flexWrap: 'wrap' }}>
                                       <span style={{ fontSize: '0.74rem', color: '#64748b' }}>{doc.specialty}</span>
                                       <code style={{ color: '#7c3aed', fontWeight: 700, fontSize: '0.72rem' }}>{doc.cmp}</code>
-                                      <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', borderRadius: '6px', background: '#f1f5f9', color: '#475569' }}>
-                                        ⏰ {doc.shift || 'Mañana'}
+                                      <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', borderRadius: '6px', background: '#f1f5f9', color: '#475569', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                                        <MaterialIcon name="schedule" size={12} />
+                                        <span>{doc.shift || 'Mañana'}</span>
                                       </span>
-                                      <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', borderRadius: '6px', background: '#eff6ff', color: '#1d4ed8' }}>
-                                        🚪 {doc.room || 'Cons. 101'}
+                                      <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', borderRadius: '6px', background: '#eff6ff', color: '#1d4ed8', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                                        <MaterialIcon name="meeting_room" size={12} />
+                                        <span>{doc.room || 'Cons. 101'}</span>
                                       </span>
                                     </div>
                                   </div>
@@ -1648,7 +1671,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                       fontWeight: 700
                                     }}
                                   >
-                                    ✕
+                                    <MaterialIcon name="close" size={14} />
                                   </button>
                                 </div>
                               </div>
@@ -1661,7 +1684,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                       <div className="form-section-card" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
                         <div className="form-section-header" style={{ borderColor: '#dcfce7' }}>
                           <h4 className="form-section-title" style={{ color: '#166534' }}>
-                            <span>➕</span>
+                            <MaterialIcon name="add" size={16} />
                             Asignar Nuevo Profesional a esta Sede
                           </h4>
                           <span className="form-section-badge" style={{ background: '#dcfce7', color: '#15803d' }}>NUEVO INGRESO</span>
@@ -1671,7 +1694,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                           <div className="input-field-wrap">
                             <label className="input-field-label" style={{ color: '#166534' }}>Nombre Completo</label>
                             <div className="input-with-icon">
-                              <span className="input-icon-left">👤</span>
+                              <span className="input-icon-left"><MaterialIcon name="person" size={16} /></span>
                               <input
                                 type="text"
                                 placeholder="Dra. Lucía Mendoza"
@@ -1702,7 +1725,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                           <div className="input-field-wrap">
                             <label className="input-field-label" style={{ color: '#166534' }}>CMP / Colegiatura</label>
                             <div className="input-with-icon">
-                              <span className="input-icon-left">🪪</span>
+                              <span className="input-icon-left"><MaterialIcon name="badge" size={16} /></span>
                               <input
                                 type="text"
                                 placeholder="CMP 71829"
@@ -1767,7 +1790,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                               });
                               setNewDocName('');
                               setNewDocCmp('');
-                              showToast(`✓ Doctor(a) ${newDoc.name} asignado(a) al ${newDoc.room}.`);
+                              showToast(`Doctor(a) ${newDoc.name} asignado(a) al ${newDoc.room}.`);
                             }}
                           >
                             + Asignar Profesional
@@ -1784,7 +1807,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     <div className="form-section-card">
                       <div className="form-section-header">
                         <h4 className="form-section-title">
-                          <span>📋</span>
+                          <MaterialIcon name="assignment" size={16} />
                           Acreditación Sanitaria Nacional (SUSALUD / MINSA)
                         </h4>
                         <span className="form-section-badge">OBLIGATORIO</span>
@@ -1794,10 +1817,13 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         <div className="input-field-wrap">
                           <label className="input-field-label">
                             <span>Código Único RENIPRESS</span>
-                            <span style={{ fontSize: '0.68rem', color: '#16a34a', fontWeight: 700 }}>✓ Verificado</span>
+                            <span style={{ fontSize: '0.68rem', color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                              <MaterialIcon name="check" size={12} />
+                              <span>Verificado</span>
+                            </span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">🏛️</span>
+                            <span className="input-icon-left"><MaterialIcon name="account_balance" size={16} /></span>
                             <input
                               type="text"
                               className="modern-form-input monospace"
@@ -1832,7 +1858,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span>Director Médico Responsable (CMP)</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">👨‍⚕️</span>
+                            <span className="input-icon-left"><MaterialIcon name="medical_services" size={16} /></span>
                             <input
                               type="text"
                               className="modern-form-input"
@@ -1848,7 +1874,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             <span>Vencimiento Licencia Municipal</span>
                           </label>
                           <div className="input-with-icon">
-                            <span className="input-icon-left">📅</span>
+                            <span className="input-icon-left"><MaterialIcon name="calendar_today" size={16} /></span>
                             <input
                               type="text"
                               className="modern-form-input"
@@ -1877,7 +1903,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     <div className="form-section-card">
                       <div className="form-section-header">
                         <h4 className="form-section-title">
-                          <span>✍️</span>
+                          <MaterialIcon name="draw" size={16} />
                           Firma Digital Colegiada (Ley N° 27269)
                         </h4>
                         <span className="form-section-badge" style={{ background: '#f0fdf4', color: '#16a34a' }}>HABILITADA</span>
@@ -1905,7 +1931,10 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                   }}
                   title="Abrir la consola operativa de esta sede en modo supervisión"
                 >
-                  🚀 Abrir Consola de Sede
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <MaterialIcon name="open_in_new" size={16} />
+                    <span>Abrir Consola de Sede</span>
+                  </span>
                 </button>
 
                 <div style={{ display: 'flex', gap: '0.65rem' }}>
@@ -1952,9 +1981,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setFinanceClinic(null)}
-                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -1986,7 +2015,10 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <div className="pref-row" style={{ padding: '0.65rem 0.85rem' }}>
                     <div className="pref-info">
-                      <h4 style={{ fontSize: '0.8rem' }}>💳 Tarjetas Débito / Crédito (Niubiz & Izipay)</h4>
+                      <h4 style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <MaterialIcon name="credit_card" size={16} />
+                        <span>Tarjetas Débito / Crédito (Niubiz & Izipay)</span>
+                      </h4>
                       <p>48% de las transacciones</p>
                     </div>
                     <strong style={{ color: '#0f172a', fontSize: '0.85rem' }}>
@@ -1996,7 +2028,10 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
 
                   <div className="pref-row" style={{ padding: '0.65rem 0.85rem' }}>
                     <div className="pref-info">
-                      <h4 style={{ fontSize: '0.8rem' }}>📱 Billeteras Digitales (Yape & Plin)</h4>
+                      <h4 style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <MaterialIcon name="smartphone" size={16} />
+                        <span>Billeteras Digitales (Yape & Plin)</span>
+                      </h4>
                       <p>35% de las transacciones</p>
                     </div>
                     <strong style={{ color: '#0f172a', fontSize: '0.85rem' }}>
@@ -2006,7 +2041,10 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
 
                   <div className="pref-row" style={{ padding: '0.65rem 0.85rem' }}>
                     <div className="pref-info">
-                      <h4 style={{ fontSize: '0.8rem' }}>💵 Efectivo en Caja Chica (Ventanilla)</h4>
+                      <h4 style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <MaterialIcon name="payments" size={16} />
+                        <span>Efectivo en Caja Chica (Ventanilla)</span>
+                      </h4>
                       <p>17% de las transacciones</p>
                     </div>
                     <strong style={{ color: '#0f172a', fontSize: '0.85rem' }}>
@@ -2027,7 +2065,10 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                   onNavigate?.('cash-register');
                 }}
               >
-                💰 Ver Caja Chica de esta Sede →
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <MaterialIcon name="account_balance_wallet" size={15} />
+                  <span>Ver Caja Chica de esta Sede →</span>
+                </span>
               </button>
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -2046,7 +2087,10 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     alert(`Generando balance contable y liquidación médica para "${financeClinic.name}" (Ref: LIQ-${new Date().getFullYear()}-09). Descarga iniciada.`);
                   }}
                 >
-                  📄 Descargar Reporte (PDF)
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="description" size={15} />
+                    <span>Descargar Reporte (PDF)</span>
+                  </span>
                 </button>
               </div>
             </div>
@@ -2075,9 +2119,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAuditModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -2116,8 +2160,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
             </div>
 
             <div className="modal-footer-custom" style={{ justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', alignSelf: 'center' }}>
-                🔒 Registros criptográficamente firmados
+              <span style={{ fontSize: '0.72rem', color: '#64748b', alignSelf: 'center', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <MaterialIcon name="lock" size={14} />
+                <span>Registros criptográficamente firmados</span>
               </span>
               <button
                 type="button"

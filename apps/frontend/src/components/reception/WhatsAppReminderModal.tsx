@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { soundEffects } from '../../utils/soundEffects';
+import { MaterialIcon } from '../ui/MaterialIcon';
 
 interface WhatsAppAppointmentData {
   patientName: string;
@@ -37,15 +38,15 @@ export const WhatsAppReminderModal: React.FC<WhatsAppReminderModalProps> = ({
 
     if (template === 'reminder') {
       return (
-`👋 *¡Hola ${data.patientName}!*
+`*¡Hola ${data.patientName}!*
 
 Le recordamos su próxima cita médica en *Clínica VitalSalud*:
 
-👨‍⚕️ *Especialista:* ${doc}${spec}
-📅 *Fecha y Hora:* ${dt}
-📍 *Ubicación:* ${loc}
+*Especialista:* ${doc}${spec}
+*Fecha y Hora:* ${dt}
+*Ubicación:* ${loc}
 
-⚠️ *Recomendaciones:*
+*Recomendaciones:*
 • Llegar 15 minutos antes con su DNI.
 • Si requiere cancelar o reprogramar, responda a este mensaje con anticipación.
 
@@ -55,28 +56,28 @@ Le recordamos su próxima cita médica en *Clínica VitalSalud*:
 
     if (template === 'confirm') {
       return (
-`✅ *¡Cita Confirmada, ${data.patientName}!*
+`*¡Cita Confirmada, ${data.patientName}!*
 
 Su consulta con ${doc}${spec} ha sido validada con éxito.
 
-🗓 *Cita programada:* ${dt}
-🏥 *Consultorio:* Box 102 - Piso 1
-🎫 *Código de Triage:* #${Math.floor(1000 + Math.random() * 9000)}
+*Cita programada:* ${dt}
+*Consultorio:* Box 102 - Piso 1
+*Código de Triage:* #${Math.floor(1000 + Math.random() * 9000)}
 
 Por favor presente este mensaje en el counter de recepción al llegar.`
       );
     }
 
     return (
-`📋 *Receta Médica y Plan de Tratamiento*
+`*Receta Médica y Plan de Tratamiento*
 
 Estimado(a) *${data.patientName}*,
 El ${doc} ha emitido su receta médica electrónica y resumen de consulta.
 
-🔗 *Ver Receta Oficial con QR:*
+*Ver Receta Oficial con QR:*
 https://vitalsalud.pe/receta-digital/consulta-${Math.floor(100000 + Math.random() * 900000)}
 
-🏥 *Farmacia Institucional:* Puede reclamar sus medicamentos con su DNI directamente en nuestra farmacia con 15% de descuento.`
+*Farmacia Institucional:* Puede reclamar sus medicamentos con su DNI directamente en nuestra farmacia con 15% de descuento.`
     );
   };
 
@@ -108,8 +109,8 @@ https://vitalsalud.pe/receta-digital/consulta-${Math.floor(100000 + Math.random(
         {/* Header */}
         <div className="bg-emerald-600 dark:bg-emerald-700 px-6 py-4 text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-xl">
-              📱
+            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+              <MaterialIcon name="chat" size={20} color="#ffffff" />
             </div>
             <div>
               <h3 className="font-bold text-lg leading-tight">Enviar Mensaje WhatsApp</h3>
@@ -118,9 +119,9 @@ https://vitalsalud.pe/receta-digital/consulta-${Math.floor(100000 + Math.random(
           </div>
           <button 
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center"
           >
-            ✕
+            <MaterialIcon name="close" size={18} />
           </button>
         </div>
 
@@ -135,35 +136,38 @@ https://vitalsalud.pe/receta-digital/consulta-${Math.floor(100000 + Math.random(
               <button
                 type="button"
                 onClick={() => setTemplate('reminder')}
-                className={`py-2 px-3 text-xs font-medium rounded-lg border transition-all ${
+                className={`py-2 px-3 text-xs font-medium rounded-lg border transition-all flex items-center justify-center gap-1.5 ${
                   template === 'reminder'
                     ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-500 dark:text-emerald-300 font-bold shadow-sm'
                     : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                ⏰ Recordatorio
+                <MaterialIcon name="schedule" size={14} />
+                <span>Recordatorio</span>
               </button>
               <button
                 type="button"
                 onClick={() => setTemplate('confirm')}
-                className={`py-2 px-3 text-xs font-medium rounded-lg border transition-all ${
+                className={`py-2 px-3 text-xs font-medium rounded-lg border transition-all flex items-center justify-center gap-1.5 ${
                   template === 'confirm'
                     ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-500 dark:text-emerald-300 font-bold shadow-sm'
                     : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                ✅ Confirmación
+                <MaterialIcon name="check_circle" size={14} />
+                <span>Confirmación</span>
               </button>
               <button
                 type="button"
                 onClick={() => setTemplate('prescription')}
-                className={`py-2 px-3 text-xs font-medium rounded-lg border transition-all ${
+                className={`py-2 px-3 text-xs font-medium rounded-lg border transition-all flex items-center justify-center gap-1.5 ${
                   template === 'prescription'
                     ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-500 dark:text-emerald-300 font-bold shadow-sm'
                     : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                💊 Receta/Link
+                <MaterialIcon name="description" size={14} />
+                <span>Receta/Link</span>
               </button>
             </div>
           </div>
@@ -174,7 +178,9 @@ https://vitalsalud.pe/receta-digital/consulta-${Math.floor(100000 + Math.random(
               Teléfono WhatsApp del Paciente
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-sm text-slate-400">📞</span>
+              <span className="absolute left-3 top-2.5 text-sm text-slate-400 flex items-center">
+                <MaterialIcon name="call" size={16} />
+              </span>
               <input
                 type="text"
                 value={phone}
@@ -196,7 +202,7 @@ https://vitalsalud.pe/receta-digital/consulta-${Math.floor(100000 + Math.random(
                 {currentMessage}
                 <div className="text-[10px] text-right text-slate-500 dark:text-slate-300 mt-2 flex items-center justify-end gap-1">
                   <span>Ahora</span>
-                  <span>✓✓</span>
+                  <MaterialIcon name="done_all" size={14} color="#0284c7" />
                 </div>
               </div>
             </div>
@@ -210,7 +216,17 @@ https://vitalsalud.pe/receta-digital/consulta-${Math.floor(100000 + Math.random(
             onClick={handleCopy}
             className="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5"
           >
-            {copied ? '✅ Copiado' : '📋 Copiar Texto'}
+            {copied ? (
+              <>
+                <MaterialIcon name="check" size={14} />
+                <span>Copiado</span>
+              </>
+            ) : (
+              <>
+                <MaterialIcon name="content_copy" size={14} />
+                <span>Copiar Texto</span>
+              </>
+            )}
           </button>
 
           <div className="flex items-center gap-2">
@@ -226,7 +242,7 @@ https://vitalsalud.pe/receta-digital/consulta-${Math.floor(100000 + Math.random(
               onClick={handleSendWhatsApp}
               className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 rounded-lg shadow-md shadow-emerald-600/30 flex items-center gap-2 transition-all"
             >
-              <span>📲</span>
+              <MaterialIcon name="send" size={16} />
               <span>Abrir WhatsApp</span>
             </button>
           </div>

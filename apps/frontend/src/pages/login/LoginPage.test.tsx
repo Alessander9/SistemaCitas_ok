@@ -42,4 +42,19 @@ describe('LoginPage Component', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(screen.getByText(/Por favor ingresa tu correo electrónico y contraseña/i)).toBeInTheDocument();
   });
+
+  it('switches to Cloudflare Turnstile protected password recovery view when clicking forgot password link', () => {
+    render(<LoginPage />);
+    const forgotLink = screen.getByText(/¿Olvidaste tu contraseña\?/i);
+    fireEvent.click(forgotLink);
+
+    expect(screen.getByRole('heading', { name: /Recuperar Contraseña/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/Cloudflare Turnstile/i).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/Correo Electrónico Registrado/i)).toBeInTheDocument();
+
+    // Can return to login view
+    const backBtn = screen.getByRole('button', { name: /Volver al inicio de sesión/i });
+    fireEvent.click(backBtn);
+    expect(screen.getByRole('heading', { name: /Acceso al Personal VitalSalud/i })).toBeInTheDocument();
+  });
 });

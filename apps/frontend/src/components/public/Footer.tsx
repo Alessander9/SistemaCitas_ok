@@ -1,5 +1,6 @@
 import React from 'react';
 import './Footer.css';
+import { MaterialIcon } from '../ui/MaterialIcon';
 
 export const Footer: React.FC = () => {
   return (
@@ -23,9 +24,13 @@ export const Footer: React.FC = () => {
             Más de 15 años devolviendo movimiento y calidad de vida a nuestros pacientes.
           </p>
           <div className="footer-compliance-badges">
-            <span className="badge-ssl">🔒 SSL 256-bit</span>
+            <span className="badge-ssl" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <MaterialIcon name="lock" size={13} /> SSL 256-bit
+            </span>
             <span>•</span>
-            <span className="badge-law">🛡️ Ley N° 29733 (Protección de Datos)</span>
+            <span className="badge-law" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <MaterialIcon name="verified_user" size={13} /> Ley N° 29733 (Protección de Datos)
+            </span>
           </div>
         </div>
 
@@ -63,7 +68,9 @@ export const Footer: React.FC = () => {
               <a href="#consentimiento">Consentimiento Informado</a>
             </li>
             <li>
-              <a href="#libro-reclamaciones">📖 Libro de Reclamaciones</a>
+              <a href="#libro-reclamaciones" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <MaterialIcon name="menu_book" size={14} /> Libro de Reclamaciones
+              </a>
             </li>
           </ul>
         </div>
@@ -71,15 +78,15 @@ export const Footer: React.FC = () => {
         <div className="footer-col">
           <h4>Atención & Contacto</h4>
           <div className="footer-contact-item">
-            <span>📍</span>
+            <MaterialIcon name="location_on" size={16} />
             <span>Av. Javier Prado Este 2450, San Isidro, Lima</span>
           </div>
           <div className="footer-contact-item">
-            <span>📞</span>
+            <MaterialIcon name="call" size={16} />
             <span>(01) 480-9900 / +51 987 654 321</span>
           </div>
           <div className="footer-contact-item">
-            <span>⏰</span>
+            <MaterialIcon name="schedule" size={16} />
             <span>Lun a Sáb: 7:00 AM – 9:00 PM</span>
           </div>
         </div>

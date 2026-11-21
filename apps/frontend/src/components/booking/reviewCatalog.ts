@@ -185,13 +185,15 @@ function buildReasonBlock(patient: ReviewPatientInput): ReviewBlockModel | null 
 
 /** Payment breakdown of the review screen. The total is the service price. */
 export function buildPaymentSummary(service: ServiceCardModel | null): PaymentSummaryModel {
+  const normCurrency = service?.currency === 'USD' ? 'USD' : 'PEN';
+  const symbol = normCurrency === 'USD' ? '$' : 'S/';
   return {
     serviceName: service?.name ?? 'Servicio por definir',
-    priceLabel: service ? formatPriceLabel(service.price, service.currency) : '—',
+    priceLabel: service ? formatPriceLabel(service.price, normCurrency) : '—',
     durationLabel: service ? `${service.durationMinutes} minutos` : '—',
-    totalPrefix: service?.currency === 'PEN' || !service ? 'S/' : `${service.currency} `,
+    totalPrefix: symbol,
     totalValue: service ? service.price.toFixed(2) : '0.00',
-    totalCurrency: service?.currency || 'PEN',
+    totalCurrency: normCurrency,
     note: 'Podrás elegir el método de pago en el siguiente paso.',
   };
 }

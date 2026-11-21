@@ -1,4 +1,5 @@
 import React from 'react';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import { soundEffects } from '../../utils/soundEffects';
 
 interface PrescriptionItem {
@@ -60,7 +61,7 @@ export const DigitalPrescriptionModal: React.FC<DigitalPrescriptionModalProps> =
         {/* Modal Top Actions (Hidden on Print) */}
         <div className="bg-slate-900 text-white px-6 py-3.5 flex items-center justify-between print:hidden">
           <div className="flex items-center gap-2">
-            <span className="text-xl">📄</span>
+            <MaterialIcon name="description" size={20} />
             <div>
               <h3 className="font-bold text-sm">Receta Médica Electrónica Oficial</h3>
               <p className="text-[11px] text-slate-300">Norma Técnica de Salud MINSA - NTS N° 139-MINSA/DGIEM</p>
@@ -72,15 +73,15 @@ export const DigitalPrescriptionModal: React.FC<DigitalPrescriptionModalProps> =
               onClick={handlePrint}
               className="px-3.5 py-1.5 text-xs font-bold bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow flex items-center gap-1.5 transition-all"
             >
-              <span>🖨️</span>
+              <MaterialIcon name="print" size={16} />
               <span>Imprimir / Guardar PDF</span>
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10"
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 flex items-center justify-center"
             >
-              ✕
+              <MaterialIcon name="close" size={16} />
             </button>
           </div>
         </div>
@@ -91,7 +92,7 @@ export const DigitalPrescriptionModal: React.FC<DigitalPrescriptionModalProps> =
           <div className="flex items-start justify-between border-b-2 border-primary-600 pb-4 mb-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-primary-600 text-white flex items-center justify-center font-bold text-2xl shadow">
-                ⚕️
+                <MaterialIcon name="medical_services" size={24} />
               </div>
               <div>
                 <h1 className="text-lg font-black tracking-tight text-primary-700 dark:text-primary-400 print:text-primary-700 uppercase">
@@ -198,7 +199,7 @@ export const DigitalPrescriptionModal: React.FC<DigitalPrescriptionModalProps> =
           {data.indications && (
             <div className="mb-6 p-3.5 rounded-xl border border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/20 text-xs">
               <h3 className="font-bold text-amber-800 dark:text-amber-300 mb-1 flex items-center gap-1.5">
-                <span>⚠️</span>
+                <MaterialIcon name="warning" size={16} />
                 <span>Indicaciones y Cuidados Generales:</span>
               </h3>
               <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed">
@@ -254,8 +255,9 @@ export const DigitalPrescriptionModal: React.FC<DigitalPrescriptionModalProps> =
 
         {/* Footer info & WhatsApp button */}
         <div className="bg-slate-50 dark:bg-slate-800/80 px-6 py-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between print:hidden">
-          <span className="text-xs text-slate-500">
-            💡 Consejo: Presione Imprimir para generar el PDF listo para entrega física o envío.
+          <span className="text-xs text-slate-500 inline-flex items-center gap-1.5">
+            <MaterialIcon name="lightbulb" size={16} />
+            <span>Consejo: Presione Imprimir para generar el PDF listo para entrega física o envío.</span>
           </span>
           <button
             type="button"

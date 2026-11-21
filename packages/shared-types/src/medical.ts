@@ -35,6 +35,12 @@ export interface Professional {
   id: string;
   clinicId: string;
   userId?: string;
+  user?: {
+    id?: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+  };
   firstName: string;
   lastName: string;
   licenseNumber?: string;

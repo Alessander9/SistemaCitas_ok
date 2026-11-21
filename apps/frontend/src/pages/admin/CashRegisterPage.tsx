@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './CashRegisterPage.css';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import {
   IconCash,
   IconPlus,
@@ -116,10 +117,11 @@ export function CashRegisterPage({
               type="button"
               className="cash-btn ghost"
               onClick={onNavigateToBooking}
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem' }}
+              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               title="Ir a agenda de citas y cobros pendientes"
             >
-              📅 Ver Citas & Cobros ↗
+              <MaterialIcon name="calendar_today" size={15} />
+              <span>Ver Citas & Cobros ↗</span>
             </button>
           )}
           {onNavigateToInventory && (
@@ -127,10 +129,11 @@ export function CashRegisterPage({
               type="button"
               className="cash-btn ghost"
               onClick={onNavigateToInventory}
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem' }}
+              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               title="Ir a kardex de inventario médico"
             >
-              📦 Ver Inventario ↗
+              <MaterialIcon name="inventory_2" size={15} />
+              <span>Ver Inventario ↗</span>
             </button>
           )}
           {register && (
@@ -144,7 +147,9 @@ export function CashRegisterPage({
 
       {!register && (
         <div className="cash-no-session">
-          <div className="no-session-icon">🏦</div>
+          <div className="no-session-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MaterialIcon name="point_of_sale" size={48} color="#0284c7" />
+          </div>
           <h2>No hay caja abierta en este turno</h2>
           <p>Abre la caja para comenzar a registrar los cobros y movimientos del día.</p>
           <button

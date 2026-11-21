@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import './BodyMapPicker.css';
 
 export interface PainPoint {
@@ -129,7 +130,7 @@ export const BodyMapPicker: React.FC<BodyMapPickerProps> = ({
       <div className="bodymap-header">
         <div>
           <h4 className="bodymap-title">
-            <span>🩻</span>
+            <MaterialIcon name="accessibility_new" size={20} />
             <span>Mapeo Anatómico del Dolor EVA</span>
           </h4>
           <p className="bodymap-desc">
@@ -305,7 +306,7 @@ export const BodyMapPicker: React.FC<BodyMapPickerProps> = ({
               <h5 className="list-card-title">Puntos Registrados ({points.length})</h5>
               {points.length === 0 ? (
                 <div className="list-card-empty">
-                  <span>🎯</span>
+                  <MaterialIcon name="my_location" size={28} />
                   <p>No hay puntos de dolor marcados. Haz clic sobre cualquier articulación del cuerpo.</p>
                 </div>
               ) : (
@@ -332,8 +333,9 @@ export const BodyMapPicker: React.FC<BodyMapPickerProps> = ({
                           className="btn-item-delete"
                           onClick={() => handleRemovePoint(p.zone)}
                           title="Eliminar este punto"
+                          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                         >
-                          ✕
+                          <MaterialIcon name="close" size={14} />
                         </button>
                       )}
                     </div>

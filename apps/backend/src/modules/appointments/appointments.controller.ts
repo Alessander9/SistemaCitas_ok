@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { CreatePublicBookingDto } from './dto/create-public-booking.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 import { CurrentTenant, CurrentUser, Public, Roles } from '../../common/decorators';
@@ -71,6 +72,26 @@ export class AppointmentsController {
     @Param('id') id: string,
   ): Promise<Appointment> {
     return this.appointmentsService.findOne(clinicId, id);
+  }
+
+  @Public()
+  @Post('public-book')
+  @HttpCode(HttpStatus.CREATED)
+  async publicBook(
+    @CurrentTenant() clinicId: string,
+    @Body() dto: CreatePublicBookingDto,
+  ) {
+    return this.appointmentsService.createPublicBooking(clinicId, dto);
+  }
+
+  @Public()
+  @Post('book')
+  @HttpCode(HttpStatus.CREATED)
+  async book(
+    @CurrentTenant() clinicId: string,
+    @Body() dto: CreatePublicBookingDto,
+  ) {
+    return this.appointmentsService.createPublicBooking(clinicId, dto);
   }
 
   @Post()

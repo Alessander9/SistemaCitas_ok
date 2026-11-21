@@ -29,6 +29,7 @@ export interface AppointmentPatientStepProps {
   location?: string;
   date: string;
   time: string;
+  showSummary?: boolean;
 }
 
 const DEFAULT_LOCATION = 'Sede San Isidro';
@@ -49,6 +50,7 @@ export const AppointmentPatientStep: React.FC<AppointmentPatientStepProps> = ({
   location = DEFAULT_LOCATION,
   date,
   time,
+  showSummary = true,
 }) => {
   const [touched, setTouched] = useState<Partial<Record<PatientFieldId, boolean>>>({});
   const [lookupState, setLookupState] = useState<PatientLookupState>('idle');
@@ -138,7 +140,7 @@ export const AppointmentPatientStep: React.FC<AppointmentPatientStepProps> = ({
         </div>
       </div>
 
-      <div className="apx-patient-layout">
+      <div className={`apx-patient-layout ${!showSummary ? 'apx-patient-layout--single' : ''}`}>
         <div className="apx-patient-layout__main">
           <PatientForm
             values={values}
@@ -152,28 +154,30 @@ export const AppointmentPatientStep: React.FC<AppointmentPatientStepProps> = ({
           />
         </div>
 
-        <div className="apx-patient-layout__aside">
-          <AppointmentSummary
-            dateLabel={date ? formatFullDate(date) : undefined}
-            timeRangeLabel={timeRangeLabel}
-            durationLabel={service ? `${service.durationMinutes} minutos` : undefined}
-            professionalName={professional?.name}
-            professionalLicense={professional?.licenseNumber}
-            professionalProfession={professional?.profession}
-            professionalPhotoUrl={professional?.photoUrl}
-            specialtyName={specialty?.name}
-            specialtyIconKey={specialty?.icon}
-            serviceName={service?.name}
-            location={location}
-            priceLabel={
-              service
-                ? `${service.currency === 'PEN' ? 'S/' : service.currency} ${service.price.toFixed(2)}`
-                : undefined
-            }
-            statusTitle="Estás a un paso de confirmar tu cita"
-            statusMessage="Completa tus datos para continuar."
-          />
-        </div>
+        {showSummary && (
+          <div className="apx-patient-layout__aside">
+            <AppointmentSummary
+              dateLabel={date ? formatFullDate(date) : undefined}
+              timeRangeLabel={timeRangeLabel}
+              durationLabel={service ? `${service.durationMinutes} minutos` : undefined}
+              professionalName={professional?.name}
+              professionalLicense={professional?.licenseNumber}
+              professionalProfession={professional?.profession}
+              professionalPhotoUrl={professional?.photoUrl}
+              specialtyName={specialty?.name}
+              specialtyIconKey={specialty?.icon}
+              serviceName={service?.name}
+              location={location}
+              priceLabel={
+                service
+                  ? `${service.currency === 'PEN' ? 'S/' : service.currency} ${service.price.toFixed(2)}`
+                  : undefined
+              }
+              statusTitle="Estás a un paso de confirmar tu cita"
+              statusMessage="Completa tus datos para continuar."
+            />
+          </div>
+        )}
       </div>
     </section>
   );

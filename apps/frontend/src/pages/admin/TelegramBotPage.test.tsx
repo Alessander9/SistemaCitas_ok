@@ -36,7 +36,7 @@ describe('TelegramBotPage', () => {
     fireEvent.click(pendientesBtn);
 
     expect(screen.getByText(/Solicitud de Cita Pendiente/)).toBeTruthy();
-    const acceptBtn = screen.getByText('✅ Aceptar');
+    const acceptBtn = screen.getByRole('button', { name: /Aceptar/i });
     expect(acceptBtn).toBeTruthy();
 
     fireEvent.click(acceptBtn);

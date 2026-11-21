@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import './TelegramBotPage.css';
 
 interface ChatMessage {
@@ -17,7 +18,7 @@ export function TelegramBotPage() {
     {
       id: 'm1',
       sender: 'bot',
-      text: '👋 ¡Hola Dr. Alejandro! Tu cuenta médica está vinculada al bot de CitasSistema.\n\nEscribe /hoy para consultar tu agenda del día o /pendientes para revisar solicitudes.',
+      text: '¡Hola Dr. Alejandro! Tu cuenta médica está vinculada al bot de CitasSistema.\n\nEscribe /hoy para consultar tu agenda del día o /pendientes para revisar solicitudes.',
       time: '08:00 AM',
     },
   ]);
@@ -37,7 +38,7 @@ export function TelegramBotPage() {
       {
         id: `m_${Date.now()}`,
         sender: 'bot',
-        text: `🎉 *¡Cuenta vinculada exitosamente!*\n\nHola Dr. Alejandro, a partir de ahora recibirás notificaciones y el resumen diario a las 9:00 PM.`,
+        text: `*¡Cuenta vinculada exitosamente!*\n\nHola Dr. Alejandro, a partir de ahora recibirás notificaciones y el resumen diario a las 9:00 PM.`,
         time,
       },
     ]);
@@ -56,39 +57,39 @@ export function TelegramBotPage() {
       botReply = {
         id: `b_${Date.now()}`,
         sender: 'bot',
-        text: `📅 *Citas de Hoy* (3):\n\n1. *09:00* — Lucía Ramos\n   _Terapia Manual_ ✅\n\n2. *11:30* — Roberto Vargas\n   _Evaluación Inicial_ ✅\n\n3. *16:00* — Carmen Morales\n   _Rehabilitación Lumbar_ ⏳`,
+        text: `*Citas de Hoy* (3):\n\n1. *09:00* — Lucía Ramos\n   _Terapia Manual_ [Confirmada]\n\n2. *11:30* — Roberto Vargas\n   _Evaluación Inicial_ [Confirmada]\n\n3. *16:00* — Carmen Morales\n   _Rehabilitación Lumbar_ [Pendiente]`,
         time,
       };
     } else if (text === '/manana') {
       botReply = {
         id: `b_${Date.now()}`,
         sender: 'bot',
-        text: `📅 *Citas para Mañana* (2):\n\n1. *08:30* — Valeria Paz\n   _Kinesiología Deportiva_ ✅\n\n2. *10:00* — Mario Duarte\n   _Descarga Muscular_ ✅`,
+        text: `*Citas para Mañana* (2):\n\n1. *08:30* — Valeria Paz\n   _Kinesiología Deportiva_ [Confirmada]\n\n2. *10:00* — Mario Duarte\n   _Descarga Muscular_ [Confirmada]`,
         time,
       };
     } else if (text === '/pendientes') {
       botReply = {
         id: `b_${Date.now()}`,
         sender: 'bot',
-        text: `⏳ *Solicitud de Cita Pendiente*:\n\n👤 *Paciente:* Esteban Quito\n🩺 *Servicio:* Terapia de Ondas de Choque\n📅 *Fecha:* 04/09/2026 a las 15:00`,
+        text: `*Solicitud de Cita Pendiente*:\n\n*Paciente:* Esteban Quito\n*Servicio:* Terapia de Ondas de Choque\n*Fecha:* 04/09/2026 a las 15:00`,
         time,
         inlineButtons: [
-          { text: '✅ Aceptar', action: 'accept', apptId: 'appt-101' },
-          { text: '❌ Rechazar', action: 'reject', apptId: 'appt-101' },
+          { text: 'Aceptar', action: 'accept', apptId: 'appt-101' },
+          { text: 'Rechazar', action: 'reject', apptId: 'appt-101' },
         ],
       };
     } else if (text === '/ingresos') {
       botReply = {
         id: `b_${Date.now()}`,
         sender: 'bot',
-        text: `💰 *Resumen Financiero del Día*:\n\n• *Ingresos Totales:* S/ 850.00\n• *Pagos Procesados:* 6 transacciones`,
+        text: `*Resumen Financiero del Día*:\n\n• *Ingresos Totales:* S/ 850.00\n• *Pagos Procesados:* 6 transacciones`,
         time,
       };
     } else {
       botReply = {
         id: `b_${Date.now()}`,
         sender: 'bot',
-        text: `🩺 *Comandos disponibles*:\n• /hoy — Tu agenda de hoy\n• /manana — Tu agenda de mañana\n• /pendientes — Citas pendientes con botones interactivos\n• /ingresos — Resumen de cobros del día`,
+        text: `*Comandos disponibles*:\n• /hoy — Tu agenda de hoy\n• /manana — Tu agenda de mañana\n• /pendientes — Citas pendientes con botones interactivos\n• /ingresos — Resumen de cobros del día`,
         time,
       };
     }
@@ -100,8 +101,8 @@ export function TelegramBotPage() {
   const handleInlineAction = (action: string, _apptId: string) => {
     const time = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
     const replyText = action === 'accept'
-      ? `✅ *Cita confirmada exitosamente.* Se ha notificado al paciente.`
-      : `❌ *Cita rechazada.* Se ha liberado el horario.`;
+      ? `*Cita confirmada exitosamente.* Se ha notificado al paciente.`
+      : `*Cita rechazada.* Se ha liberado el horario.`;
 
     setMessages(prev => [
       ...prev,
@@ -114,11 +115,11 @@ export function TelegramBotPage() {
     const summaryMsg: ChatMessage = {
       id: `b_9pm_${Date.now()}`,
       sender: 'bot',
-      text: `🌙 *Resumen de tu agenda para mañana (03/09/2026)*:\n\n1. *08:30* — Valeria Paz (Kinesiología Deportiva)\n2. *10:00* — Mario Duarte (Descarga Muscular)\n3. *14:30* — Sofía Delgado (Evaluación Postural)\n\n¡Que descanses! 💤`,
+      text: `*Resumen de tu agenda para mañana (03/09/2026)*:\n\n1. *08:30* — Valeria Paz (Kinesiología Deportiva)\n2. *10:00* — Mario Duarte (Descarga Muscular)\n3. *14:30* — Sofía Delgado (Evaluación Postural)\n\n¡Que descanses!`,
       time,
     };
     setMessages(prev => [...prev, summaryMsg]);
-    setSummaryNotification('✅ Resumen 9:00 PM enviado al chat de Telegram del profesional');
+    setSummaryNotification('Resumen 9:00 PM enviado al chat de Telegram del profesional');
     setTimeout(() => setSummaryNotification(null), 4000);
   };
 
@@ -134,7 +135,10 @@ export function TelegramBotPage() {
           {isLinked ? (
             <span className="tg-badge linked" id="tg-status-badge">● Bot Conectado (@CitasSistemaBot)</span>
           ) : (
-            <span className="tg-badge pending" id="tg-status-badge">⚠️ Pendiente de Vinculación</span>
+            <span className="tg-badge pending" id="tg-status-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <MaterialIcon name="warning" size={14} />
+              <span>Pendiente de Vinculación</span>
+            </span>
           )}
         </div>
       </div>
@@ -162,15 +166,19 @@ export function TelegramBotPage() {
                     id="btn-simulate-link"
                     className="tg-btn primary sm"
                     onClick={handleSimulateLink}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                   >
-                    ⚡ Simular Vinculación Exitosa
+                    <MaterialIcon name="bolt" size={16} />
+                    <span>Simular Vinculación Exitosa</span>
                   </button>
                   <button
                     id="btn-generate-code"
                     className="tg-btn ghost sm"
                     onClick={handleGenerateCode}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                   >
-                    🔄 Generar Nuevo Código
+                    <MaterialIcon name="refresh" size={16} />
+                    <span>Generar Nuevo Código</span>
                   </button>
                 </div>
               </div>
@@ -188,8 +196,10 @@ export function TelegramBotPage() {
               id="btn-trigger-9pm"
               className="tg-btn secondary"
               onClick={handleTrigger9PMSummary}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             >
-              🌙 Probar Envío Resumen 9 PM
+              <MaterialIcon name="nights_stay" size={16} />
+              <span>Probar Envío Resumen 9 PM</span>
             </button>
           </div>
         </div>
@@ -197,7 +207,9 @@ export function TelegramBotPage() {
         {/* Right Column: Telegram Interactive Simulator */}
         <div className="telegram-chat-mockup" id="telegram-chat-mockup">
           <div className="chat-top-bar">
-            <div className="bot-avatar">🤖</div>
+            <div className="bot-avatar">
+              <MaterialIcon name="smart_toy" size={20} />
+            </div>
             <div className="bot-info">
               <span className="bot-name">CitasSistema Bot</span>
               <span className="bot-status">bot verificado</span>
@@ -255,8 +267,8 @@ export function TelegramBotPage() {
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
             />
-            <button id="btn-send-msg" type="submit" className="tg-send-btn">
-              ➤
+            <button id="btn-send-msg" type="submit" className="tg-send-btn" aria-label="Enviar">
+              <MaterialIcon name="send" size={16} />
             </button>
           </form>
         </div>

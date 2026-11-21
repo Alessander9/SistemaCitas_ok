@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import {
   IconStethoscope,
   IconSearch,
@@ -45,7 +46,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
   onOpenConsultation,
 }) => {
   const [mainView, setMainView] = useState<'queue' | 'weekly'>(initialTab);
-  
+
   useEffect(() => {
     if (initialTab) {
       setMainView(initialTab);
@@ -261,7 +262,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
             : prev.appliedTechniques,
         };
       });
-      showToast(`🎙️ Ficha de ${selectedPatient.patientName} actualizada por voz.`);
+      showToast(`Ficha de ${selectedPatient.patientName} actualizada por voz.`);
     } else {
       // Si no hay paciente seleccionado, actualizar el paciente en consulta
       const inConsultation = patientsQueue.find(p => p.status === 'in_progress');
@@ -280,9 +281,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
           }
           return p;
         }));
-        showToast(`🎙️ Notas por voz registradas para ${inConsultation.patientName}.`);
+        showToast(`Notas por voz registradas para ${inConsultation.patientName}.`);
       } else {
-        showToast(`🎙️ Dictado recibido. Abre una ficha para autollenar todos los campos.`);
+        showToast(`Dictado recibido. Abre una ficha para autollenar todos los campos.`);
       }
     }
   }, [selectedPatient, patientsQueue]);
@@ -312,9 +313,10 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.1rem' }}
+            aria-label="Cerrar"
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
-            ✕
+            <MaterialIcon name="close" size={16} />
           </button>
         </div>
       )}
@@ -393,8 +395,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
             {patientsQueue.filter(p => p.status === 'completed').length} Recetas
           </div>
           <div className="kpi-footer">
-            <span style={{ color: '#7c3aed', fontWeight: 600 }}>
-              ✓ Firmada digitalmente con validez MINSA
+            <span style={{ color: '#7c3aed', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <MaterialIcon name="check" size={14} />
+              <span>Firmada digitalmente con validez MINSA</span>
             </span>
           </div>
         </div>
@@ -407,7 +410,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
           onClick={() => setMainView('queue')}
           className={`clinical-tab-btn ${mainView === 'queue' ? 'active' : ''}`}
         >
-          <span>⚡</span>
+          <MaterialIcon name="bolt" size={16} />
           <span>Cola de Pacientes Hoy ({patientsQueue.length})</span>
         </button>
         <button
@@ -415,7 +418,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
           onClick={() => setMainView('weekly')}
           className={`clinical-tab-btn ${mainView === 'weekly' ? 'active' : ''}`}
         >
-          <span>📅</span>
+          <MaterialIcon name="calendar_today" size={16} />
           <span>Mi Agenda Semanal (11 - 16 Sep)</span>
         </button>
       </div>
@@ -552,31 +555,34 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                     {/* Fila de Estado de Consulta */}
                     <div className="patient-status-row">
                       {isInProgress && (
-                        <span className="patient-status-indicator in-progress">
-                          🟢 En Consulta Médica (Box 101)
+                        <span className="patient-status-indicator in-progress" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <MaterialIcon name="radio_button_checked" size={12} />
+                          <span>En Consulta Médica (Box 101)</span>
                         </span>
                       )}
                       {isWaiting && (
-                        <span className="patient-status-indicator waiting">
-                          ⏳ En Sala de Espera
+                        <span className="patient-status-indicator waiting" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <MaterialIcon name="hourglass_empty" size={12} />
+                          <span>En Sala de Espera</span>
                         </span>
                       )}
                       {isCompleted && (
-                        <span className="patient-status-indicator completed">
-                          ✓ Atendido · Receta Firmada
+                        <span className="patient-status-indicator completed" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <MaterialIcon name="check" size={12} />
+                          <span>Atendido · Receta Firmada</span>
                         </span>
                       )}
                     </div>
 
                     {/* Fila de Servicio y Motivo */}
                     <div className="patient-middle-row">
-                      <div className="patient-service-badge">
-                        <span>🩺</span>
+                      <div className="patient-service-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <MaterialIcon name="medical_services" size={14} />
                         <span>{patient.service}</span>
                       </div>
 
-                      <div className="patient-reason-box">
-                        <span>🎯</span>
+                      <div className="patient-reason-box" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <MaterialIcon name="flag" size={14} />
                         <span>Motivo: "{patient.reason}"</span>
                       </div>
                     </div>
@@ -586,8 +592,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                       {patient.appliedTechniques && patient.appliedTechniques.length > 0 && (
                         <div className="patient-tags-row">
                           {patient.appliedTechniques.slice(0, 3).map((tec) => (
-                            <span key={tec} className="patient-clinical-chip">
-                              ⚡ {tec}
+                            <span key={tec} className="patient-clinical-chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                              <MaterialIcon name="bolt" size={12} />
+                              <span>{tec}</span>
                             </span>
                           ))}
                         </div>
@@ -595,7 +602,10 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
 
                       <div className="patient-progress-container">
                         <div className="patient-progress-labels">
-                          <span>📊 Progreso: <strong style={{ color: '#0284c7' }}>{patient.sessionProgress}</strong></span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <MaterialIcon name="bar_chart" size={14} />
+                            <span>Progreso: <strong style={{ color: '#0284c7' }}>{patient.sessionProgress}</strong></span>
+                          </span>
                           <span style={{ color: progressPct === 100 ? '#16a34a' : '#0284c7', fontWeight: 800 }}>{progressPct}%</span>
                         </div>
                         <div className="session-progress-bar-track">
@@ -613,8 +623,10 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                         type="button"
                         className="btn-action-ghost"
                         onClick={() => setSelectedPatient(patient)}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
                       >
-                        📋 Ficha Rápida
+                        <MaterialIcon name="assignment" size={14} />
+                        <span>Ficha Rápida</span>
                       </button>
                       <button
                         type="button"
@@ -622,7 +634,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                         onClick={() => {
                           const updated = patientsQueue.map(p => p.id === patient.id ? { ...p, status: 'in_progress' as const, statusText: 'En Consulta Ahora' } : p);
                           setPatientsQueue(updated);
-                          showToast(`✓ Paciente ${patient.patientName} llamado al consultorio.`);
+                          showToast(`Paciente ${patient.patientName} llamado al consultorio.`);
                           onOpenConsultation();
                         }}
                       >
@@ -686,17 +698,21 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
 
             {/* KPI Strip de Rendimiento Semanal */}
             <div className="weekly-stats-strip">
-              <span className="weekly-stat-pill" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0369a1' }}>
-                📊 <strong>28 Citas</strong> esta semana
+              <span className="weekly-stat-pill" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0369a1', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <MaterialIcon name="bar_chart" size={14} />
+                <span><strong>28 Citas</strong> esta semana</span>
               </span>
-              <span className="weekly-stat-pill" style={{ background: '#f0fdf4', borderColor: '#86efac', color: '#15803d' }}>
-                ⏱️ <strong>88%</strong> Ocupación
+              <span className="weekly-stat-pill" style={{ background: '#f0fdf4', borderColor: '#86efac', color: '#15803d', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <MaterialIcon name="schedule" size={14} />
+                <span><strong>88%</strong> Ocupación</span>
               </span>
-              <span className="weekly-stat-pill" style={{ background: '#ecfdf5', borderColor: '#a7f3d0', color: '#047857' }}>
-                🟢 <strong>6 Libres</strong>
+              <span className="weekly-stat-pill" style={{ background: '#ecfdf5', borderColor: '#a7f3d0', color: '#047857', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <MaterialIcon name="check_circle" size={14} />
+                <span><strong>6 Libres</strong></span>
               </span>
-              <span className="weekly-stat-pill" style={{ background: '#fef3c7', borderColor: '#fde68a', color: '#b45309' }}>
-                🔒 <strong>2 Bloqueos</strong>
+              <span className="weekly-stat-pill" style={{ background: '#fef3c7', borderColor: '#fde68a', color: '#b45309', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <MaterialIcon name="lock" size={14} />
+                <span><strong>2 Bloqueos</strong></span>
               </span>
             </div>
 
@@ -704,10 +720,11 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
               <button
                 type="button"
                 className="btn-action-ghost"
-                style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626', fontWeight: 800 }}
+                style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 onClick={() => setIsBlockModalOpen(true)}
               >
-                🚫 Bloquear Franja
+                <MaterialIcon name="block" size={14} />
+                <span>Bloquear Franja</span>
               </button>
             </div>
           </div>
@@ -744,7 +761,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
           <div className="doctor-day-schedule-card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.65rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '1.35rem' }}>📅</span>
+                <MaterialIcon name="calendar_today" size={24} />
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, color: '#0f172a' }}>
                     Agenda Médica: {currentDayData.date}
@@ -769,7 +786,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
             <div>
               <div className="shift-group-title">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <span>🌅</span>
+                  <MaterialIcon name="wb_sunny" size={16} />
                   <span>Turno Mañana (08:00 AM – 01:00 PM)</span>
                 </div>
                 <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
@@ -803,10 +820,14 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                               <span className="slot-type-badge">{slot.note || 'Sesión Programada'}</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap', marginTop: '3px' }}>
-                              <div className="slot-service-sub">
-                                <span>🩺 {slot.service}</span>
+                              <div className="slot-service-sub" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <MaterialIcon name="medical_services" size={14} />
+                                <span>{slot.service}</span>
                               </div>
-                              <span className="slot-box-pill">📍 {slot.room}</span>
+                              <span className="slot-box-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <MaterialIcon name="location_on" size={12} />
+                                <span>{slot.room}</span>
+                              </span>
                             </div>
                           </>
                         )}
@@ -814,8 +835,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                         {slot.status === 'available' && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                             <div>
-                              <div className="slot-patient-title" style={{ color: '#059669', fontSize: '0.9rem' }}>
-                                🟢 Horario Libre Disponible
+                              <div className="slot-patient-title" style={{ color: '#059669', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                <MaterialIcon name="check_circle" size={14} />
+                                <span>Horario Libre Disponible</span>
                               </div>
                               <div className="slot-service-sub" style={{ color: '#64748b' }}>
                                 {slot.note || 'Espacio habilitado para agendar sobrecupo o urgencia'}
@@ -827,8 +849,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                         {slot.status === 'blocked' && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                             <div>
-                              <div className="slot-patient-title" style={{ color: '#dc2626', fontSize: '0.9rem' }}>
-                                🔒 Franja Horaria Bloqueada
+                              <div className="slot-patient-title" style={{ color: '#dc2626', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                <MaterialIcon name="lock" size={14} />
+                                <span>Franja Horaria Bloqueada</span>
                               </div>
                               <div className="slot-service-sub" style={{ color: '#b91c1c' }}>
                                 Motivo: {slot.note || 'Capacitación o pausa médica'}
@@ -845,20 +868,21 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                             <button
                               type="button"
                               className="btn-action-ghost"
-                              style={{ padding: '0.4rem 0.75rem', fontSize: '0.76rem' }}
+                              style={{ padding: '0.4rem 0.75rem', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                               onClick={() => {
                                 showToast(`Notificación enviada a recepción para preparar al paciente.`);
                               }}
                             >
-                              💬 Avisar
+                              <MaterialIcon name="chat" size={14} />
+                              <span>Avisar</span>
                             </button>
                             <button
                               type="button"
                               className="btn-call-consultation primary"
-                              style={{ padding: '0.4rem 0.95rem', fontSize: '0.76rem' }}
+                              style={{ padding: '0.4rem 0.95rem', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                               onClick={onOpenConsultation}
                             >
-                              <span>🩺</span>
+                              <MaterialIcon name="medical_services" size={14} />
                               <span>Atender →</span>
                             </button>
                           </>
@@ -900,7 +924,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
             <div>
               <div className="shift-group-title" style={{ marginTop: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <span>🌇</span>
+                  <MaterialIcon name="bedtime" size={16} />
                   <span>Turno Tarde (02:30 PM – 07:30 PM)</span>
                 </div>
                 <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
@@ -934,10 +958,14 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                               <span className="slot-type-badge">{slot.note || 'Sesión Programada'}</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap', marginTop: '3px' }}>
-                              <div className="slot-service-sub">
-                                <span>🩺 {slot.service}</span>
+                              <div className="slot-service-sub" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <MaterialIcon name="medical_services" size={14} />
+                                <span>{slot.service}</span>
                               </div>
-                              <span className="slot-box-pill">📍 {slot.room}</span>
+                              <span className="slot-box-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <MaterialIcon name="location_on" size={12} />
+                                <span>{slot.room}</span>
+                              </span>
                             </div>
                           </>
                         )}
@@ -945,8 +973,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                         {slot.status === 'available' && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                             <div>
-                              <div className="slot-patient-title" style={{ color: '#059669', fontSize: '0.9rem' }}>
-                                🟢 Horario Libre Disponible
+                              <div className="slot-patient-title" style={{ color: '#059669', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                <MaterialIcon name="check_circle" size={14} />
+                                <span>Horario Libre Disponible</span>
                               </div>
                               <div className="slot-service-sub" style={{ color: '#64748b' }}>
                                 {slot.note || 'Espacio habilitado para agendar sobrecupo o urgencia'}
@@ -958,8 +987,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                         {slot.status === 'blocked' && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                             <div>
-                              <div className="slot-patient-title" style={{ color: '#dc2626', fontSize: '0.9rem' }}>
-                                🔒 Franja Horaria Bloqueada
+                              <div className="slot-patient-title" style={{ color: '#dc2626', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                <MaterialIcon name="lock" size={14} />
+                                <span>Franja Horaria Bloqueada</span>
                               </div>
                               <div className="slot-service-sub" style={{ color: '#b91c1c' }}>
                                 Motivo: {slot.note || 'Capacitación o pausa médica'}
@@ -976,20 +1006,21 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                             <button
                               type="button"
                               className="btn-action-ghost"
-                              style={{ padding: '0.4rem 0.75rem', fontSize: '0.76rem' }}
+                              style={{ padding: '0.4rem 0.75rem', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                               onClick={() => {
                                 showToast(`Notificación enviada a recepción para preparar al paciente.`);
                               }}
                             >
-                              💬 Avisar
+                              <MaterialIcon name="chat" size={14} />
+                              <span>Avisar</span>
                             </button>
                             <button
                               type="button"
                               className="btn-call-consultation primary"
-                              style={{ padding: '0.4rem 0.95rem', fontSize: '0.76rem' }}
+                              style={{ padding: '0.4rem 0.95rem', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                               onClick={onOpenConsultation}
                             >
-                              <span>🩺</span>
+                              <MaterialIcon name="medical_services" size={14} />
                               <span>Atender →</span>
                             </button>
                           </>
@@ -1037,8 +1068,8 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
           <div className="modal-content-custom" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px', width: '96%' }}>
             <div className="modal-header-custom">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
-                  🚫
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MaterialIcon name="block" size={20} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
@@ -1052,9 +1083,10 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsBlockModalOpen(false)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -1101,13 +1133,14 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
               <button
                 type="button"
                 className="cash-btn primary"
-                style={{ background: '#dc2626', borderColor: '#dc2626' }}
+                style={{ background: '#dc2626', borderColor: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 onClick={() => {
-                  showToast(`✓ Horario ${blockTime} bloqueado por ${blockReason}.`);
+                  showToast(`Horario ${blockTime} bloqueado por ${blockReason}.`);
                   setIsBlockModalOpen(false);
                 }}
               >
-                🔒 Confirmar Bloqueo
+                <MaterialIcon name="lock" size={14} />
+                <span>Confirmar Bloqueo</span>
               </button>
             </div>
           </div>
@@ -1136,9 +1169,10 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedPatient(null)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -1146,9 +1180,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
               {/* Tarjeta 1: Escala EVA */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>🩺</span>
-                    Control de Dolor (Escala EVA)
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="medical_services" size={18} />
+                    <span>Control de Dolor (Escala EVA)</span>
                   </h4>
                   <span className="status-pill status-confirmed" style={{ fontSize: '0.72rem' }}>
                     EVA Actual: {selectedPatient.evaLast}/10
@@ -1215,9 +1249,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
               {/* Tarjeta 2: Fase de Tratamiento y Técnicas */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>⚡</span>
-                    Fase de Rehabilitación & Técnicas Aplicadas
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="bolt" size={18} />
+                    <span>Fase de Rehabilitación & Técnicas Aplicadas</span>
                   </h4>
                   <span className="form-section-badge">SESIÓN {selectedPatient.sessionProgress}</span>
                 </div>
@@ -1266,10 +1300,20 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                             color: selected ? '#0284c7' : '#64748b',
                             fontSize: '0.72rem',
                             fontWeight: 700,
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.2rem',
                           }}
                         >
-                          {selected ? `✓ ${tec}` : tec}
+                          {selected ? (
+                            <>
+                              <MaterialIcon name="check" size={12} />
+                              <span>{tec}</span>
+                            </>
+                          ) : (
+                            tec
+                          )}
                         </button>
                       );
                     })}
@@ -1280,9 +1324,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
               {/* Tarjeta 3: Notas de Evolución & Recomendaciones */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>📝</span>
-                    Notas de Evolución & Indicaciones al Paciente
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="edit_note" size={18} />
+                    <span>Notas de Evolución & Indicaciones al Paciente</span>
                   </h4>
                   <span className="form-section-badge">HISTORIA CLÍNICA</span>
                 </div>
@@ -1319,7 +1363,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                 style={{ background: '#0284c7', borderColor: '#0284c7' }}
                 onClick={() => {
                   setPatientsQueue(prev => prev.map(p => p.id === selectedPatient.id ? selectedPatient : p));
-                  showToast(`✓ Evolución de ${selectedPatient.patientName} registrada.`);
+                  showToast(`Evolución de ${selectedPatient.patientName} registrada.`);
                   setSelectedPatient(null);
                   onOpenConsultation();
                 }}
@@ -1341,7 +1385,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
                   style={{ background: '#16a34a', borderColor: '#16a34a' }}
                   onClick={() => {
                     setPatientsQueue(prev => prev.map(p => p.id === selectedPatient.id ? selectedPatient : p));
-                    showToast(`✓ Notas guardadas para ${selectedPatient.patientName}.`);
+                    showToast(`Notas guardadas para ${selectedPatient.patientName}.`);
                     setSelectedPatient(null);
                   }}
                 >

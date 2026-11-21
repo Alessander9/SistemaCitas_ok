@@ -4,9 +4,10 @@
    ============================================================ */
 
 .admin-dashboard-container {
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem 3rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.75rem 1rem 1.75rem;
   font-family: 'Outfit', 'Inter', sans-serif;
   color: #f1f5f9;
 }
@@ -17,10 +18,10 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1.25rem;
-  padding-bottom: 1.5rem;
+  gap: 1rem;
+  padding-bottom: 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 1.75rem;
+  margin-bottom: 1rem;
 }
 
 .dashboard-welcome {

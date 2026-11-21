@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import {
   CardPaymentFormValues,
   YapePaymentFormValues,
@@ -92,7 +93,7 @@ export const AppointmentCheckoutStep: React.FC<AppointmentCheckoutStepProps> = (
   timeRangeLabel = '05:30 PM – 06:00 PM',
   location = 'Sede San Isidro',
   locationAddress = 'Av. Emilio Cavenecia 225, San Isidro, Lima',
-  patientName,
+  patientName: _patientName,
   isProcessing = false,
   onEditBooking,
   onTimerExpired,
@@ -308,8 +309,8 @@ export const AppointmentCheckoutStep: React.FC<AppointmentCheckoutStepProps> = (
                     <div className="apx-submethod-tab__sub">Visa, Mastercard, Amex</div>
                   </div>
                   {activeSubMethod === 'CARD' && (
-                    <span className="apx-submethod-tab__badge" aria-hidden="true">
-                      ✓
+                    <span className="apx-submethod-tab__badge" aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <MaterialIcon name="check" size={14} />
                     </span>
                   )}
                 </div>
@@ -336,8 +337,8 @@ export const AppointmentCheckoutStep: React.FC<AppointmentCheckoutStepProps> = (
                     <div className="apx-submethod-tab__sub">Pago desde tu app</div>
                   </div>
                   {activeSubMethod === 'YAPE' && (
-                    <span className="apx-submethod-tab__badge" aria-hidden="true">
-                      ✓
+                    <span className="apx-submethod-tab__badge" aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <MaterialIcon name="check" size={14} />
                     </span>
                   )}
                 </div>
@@ -364,8 +365,8 @@ export const AppointmentCheckoutStep: React.FC<AppointmentCheckoutStepProps> = (
                     <div className="apx-submethod-tab__sub">Pago desde tu app</div>
                   </div>
                   {activeSubMethod === 'PLIN' && (
-                    <span className="apx-submethod-tab__badge" aria-hidden="true">
-                      ✓
+                    <span className="apx-submethod-tab__badge" aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <MaterialIcon name="check" size={14} />
                     </span>
                   )}
                 </div>
@@ -395,8 +396,8 @@ export const AppointmentCheckoutStep: React.FC<AppointmentCheckoutStepProps> = (
                     <div className="apx-submethod-tab__sub">Pago por transferencia</div>
                   </div>
                   {activeSubMethod === 'TRANSFER' && (
-                    <span className="apx-submethod-tab__badge" aria-hidden="true">
-                      ✓
+                    <span className="apx-submethod-tab__badge" aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <MaterialIcon name="check" size={14} />
                     </span>
                   )}
                 </div>

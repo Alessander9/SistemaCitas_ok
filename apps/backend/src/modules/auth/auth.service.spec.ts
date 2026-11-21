@@ -311,4 +311,110 @@ describe('AuthService (Unit & Security Tests)', () => {
       );
     });
   });
+
+  // ===========================================================================
+  // CLOUDFLARE TURNSTILE & PASSWORD RESET
+  // ===========================================================================
+  describe('Cloudflare Turnstile & Password Reset', () => {
+    it('should verify test-token and dummy tokens without external network dependency', async () => {
+      const isValid = await service.verifyTurnstileToken('test-token');
+      expect(isValid).toBe(true);
+
+      const isDummyValid = await service.verifyTurnstileToken('XXXX.DUMMY.TOKEN.XXXX');
+      expect(isDummyValid).toBe(true);
+
+      const isBlankValid = await service.verifyTurnstileToken('');
+      expect(isBlankValid).toBe(false);
+    });
+
+    it('should reject forgotPassword if turnstile token is empty', async () => {
+      await expect(
+        service.forgotPassword({
+          email: 'admin@clinica.pe',
+          turnstileToken: '',
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should generate reset token and call emailsService for valid user', async () => {
+      const mockEmailsService = {
+        sendPasswordResetEmail: jest.fn().mockResolvedValue({ status: 'sent' }),
+      };
+      (service as any).emailsService = mockEmailsService;
+
+      db.query
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: mockUserId,
+              clinic_id: mockClinicId,
+              email: 'admin@clinica.pe',
+              first_name: 'Alessander',
+            },
+          ],
+        }) // query user
+        .mockResolvedValueOnce({ rowCount: 1 }); // insert reset token
+
+      const res = await service.forgotPassword({
+        email: 'admin@clinica.pe',
+        turnstileToken: 'test-token',
+      });
+
+      expect(res.message).toContain('instrucciones');
+      expect(mockEmailsService.sendPasswordResetEmail).toHaveBeenCalledWith(
+        mockClinicId,
+        'admin@clinica.pe',
+        expect.stringContaining('view=reset-password&token='),
+        'Alessander',
+      );
+    });
+
+    it('should reset password with valid token and revoke refresh tokens', async () => {
+      db.query.mockResolvedValueOnce({
+        rows: [
+          {
+            id: 'reset-row-1',
+            user_id: mockUserId,
+            expires_at: new Date(Date.now() + 3600000).toISOString(),
+            used_at: null,
+          },
+        ],
+      });
+
+      const mockClient = { query: jest.fn() };
+      (db as any).transaction = jest.fn().mockImplementation(async (callback) => {
+        return callback(mockClient);
+      });
+
+      const res = await service.resetPassword({
+        token: 'valid-reset-token-12345',
+        newPassword: 'NewSecurePassword123!',
+      });
+
+      expect(res.message).toContain('actualizada');
+      expect(mockClient.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE users SET password_hash = $1'),
+        expect.any(Array),
+      );
+      expect(mockClient.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE password_reset_tokens SET used_at = NOW()'),
+        ['reset-row-1'],
+      );
+      expect(mockClient.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE refresh_tokens SET is_revoked = true'),
+        [mockUserId],
+      );
+    });
+
+    it('should throw BadRequestException if reset token is expired or not found', async () => {
+      db.query.mockResolvedValueOnce({ rows: [] });
+
+      await expect(
+        service.resetPassword({
+          token: 'expired-or-invalid-token',
+          newPassword: 'NewSecurePassword123!',
+        }),
+      ).rejects.toThrow();
+    });
+  });
 });

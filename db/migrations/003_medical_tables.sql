@@ -32,7 +32,7 @@ CREATE TABLE services (
   description TEXT,
   duration_minutes INT NOT NULL DEFAULT 30,
   price NUMERIC(10, 2) NOT NULL DEFAULT 0,
-  currency VARCHAR(3) DEFAULT 'ARS',
+  currency VARCHAR(3) DEFAULT 'PEN',
   requires_deposit BOOLEAN DEFAULT false,
   deposit_amount NUMERIC(10, 2) DEFAULT 0,
   is_active BOOLEAN DEFAULT true,

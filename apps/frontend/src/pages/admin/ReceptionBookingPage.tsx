@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../dashboards/ClinicalDashboard.css';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import {
   IconCalendar,
   IconSearch,
@@ -71,7 +72,7 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
     setNewDni(dni);
     setNewName(name);
     setNewPhone(phone);
-    showToast(`✓ Datos del paciente ${name} cargados.`);
+    showToast(`Datos del paciente ${name} cargados.`);
   };
 
   const [slotsData, setSlotsData] = useState<Record<string, SlotItem[]>>({
@@ -198,7 +199,7 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
   const handleConfirmBooking = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim() || !newDni.trim()) {
-      showToast('⚠️ Por favor completa DNI y Nombre del paciente.');
+      showToast('Por favor completa DNI y Nombre del paciente.');
       return;
     }
 
@@ -213,7 +214,7 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
       price: newPrice,
       paid: newPayMode === 'immediate',
       status: 'occupied',
-      statusLabel: isUrgent ? '🚨 Urgencia / Pendiente' : 'Confirmada / Pendiente',
+      statusLabel: isUrgent ? 'Urgencia / Pendiente' : 'Confirmada / Pendiente',
     };
 
     setSlotsData((prev) => {
@@ -225,7 +226,7 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
       return { ...prev, [selectedDay]: updated };
     });
 
-    showToast(`✓ ¡Cita agendada con éxito para ${newName} a las ${newTime}! Notificación enviada a WhatsApp.`);
+    showToast(`¡Cita agendada con éxito para ${newName} a las ${newTime}! Notificación enviada a WhatsApp.`);
     setIsBookingModalOpen(false);
     setNewDni('');
     setNewName('');
@@ -257,9 +258,10 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', marginLeft: '0.5rem' }}
+            aria-label="Cerrar"
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}
           >
-            ✕
+            <MaterialIcon name="close" size={16} />
           </button>
         </div>
       )}
@@ -298,7 +300,7 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
               title="Abrir la ventana de caja chica y cobros"
             >
               <IconCash className="w-4 h-4" />
-              <span>🏦 Caja Chica</span>
+              <span>Caja Chica</span>
             </button>
           )}
           <button
@@ -307,7 +309,10 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
             onClick={() => handleOpenBooking()}
           >
             <IconCalendar className="w-4 h-4" />
-            <span>⚡ + Nueva Cita Express</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+              <MaterialIcon name="bolt" size={16} />
+              <span>+ Nueva Cita Express</span>
+            </span>
           </button>
         </div>
       </div>
@@ -333,15 +338,16 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
           <div className="kpi-header">
             <span className="kpi-label" style={{ color: '#166534' }}>Horarios Disponibles</span>
             <div className="kpi-icon-wrap kpi-icon-emerald">
-              <span>🟢</span>
+              <MaterialIcon name="check_circle" size={18} style={{ color: '#16a34a' }} />
             </div>
           </div>
           <div className="kpi-value" style={{ color: '#15803d' }}>
             {currentSlots.filter((s) => s.status === 'available').length} Libres
           </div>
           <div className="kpi-footer">
-            <span style={{ color: '#166534', fontWeight: 600 }}>
-              ✓ Habilitados para ventanilla
+            <span style={{ color: '#166534', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <MaterialIcon name="check" size={14} />
+              <span>Habilitados para ventanilla</span>
             </span>
           </div>
         </div>
@@ -499,19 +505,30 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                           <h4 className="slot-patient-title">{slot.patient}</h4>
                           <span style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'monospace' }}>DNI {slot.dni}</span>
                           {slot.paid ? (
-                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#16a34a', background: '#f0fdf4', padding: '0.15rem 0.5rem', borderRadius: '6px', border: '1px solid #86efac' }}>
-                              ✓ Pagado ({slot.price})
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#16a34a', background: '#f0fdf4', padding: '0.15rem 0.5rem', borderRadius: '6px', border: '1px solid #86efac', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                              <MaterialIcon name="check" size={12} />
+                              <span>Pagado ({slot.price})</span>
                             </span>
                           ) : (
-                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b45309', background: '#fef3c7', padding: '0.15rem 0.5rem', borderRadius: '6px', border: '1px solid #fde68a' }}>
-                              💳 Pendiente ({slot.price})
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b45309', background: '#fef3c7', padding: '0.15rem 0.5rem', borderRadius: '6px', border: '1px solid #fde68a', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                              <MaterialIcon name="credit_card" size={12} />
+                              <span>Pendiente ({slot.price})</span>
                             </span>
                           )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap', marginTop: '3px' }}>
-                          <span className="slot-service-sub">🩺 {slot.service}</span>
-                          <span style={{ fontSize: '0.74rem', color: '#475569', fontWeight: 700 }}>👨‍⚕️ {slot.doctor}</span>
-                          <span className="slot-box-pill">📍 {slot.room}</span>
+                          <span className="slot-service-sub" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <MaterialIcon name="medical_services" size={14} />
+                            <span>{slot.service}</span>
+                          </span>
+                          <span style={{ fontSize: '0.74rem', color: '#475569', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <MaterialIcon name="person" size={14} />
+                            <span>{slot.doctor}</span>
+                          </span>
+                          <span className="slot-box-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <MaterialIcon name="location_on" size={12} />
+                            <span>{slot.room}</span>
+                          </span>
                         </div>
                       </>
                     )}
@@ -519,12 +536,19 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                     {isAvailable && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div>
-                          <div className="slot-patient-title" style={{ color: '#059669', fontSize: '0.92rem' }}>
-                            🟢 Horario Libre Disponible para Ventanilla
+                          <div className="slot-patient-title" style={{ color: '#059669', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <MaterialIcon name="check_circle" size={16} />
+                            <span>Horario Libre Disponible para Ventanilla</span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '2px' }}>
-                            <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>👨‍⚕️ {slot.doctor}</span>
-                            <span className="slot-box-pill">📍 {slot.room}</span>
+                            <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <MaterialIcon name="person" size={14} />
+                              <span>{slot.doctor}</span>
+                            </span>
+                            <span className="slot-box-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <MaterialIcon name="location_on" size={12} />
+                              <span>{slot.room}</span>
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -532,8 +556,9 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
 
                     {isBlocked && (
                       <div>
-                        <div className="slot-patient-title" style={{ color: '#dc2626', fontSize: '0.92rem' }}>
-                          🔒 Franja Horaria Bloqueada
+                        <div className="slot-patient-title" style={{ color: '#dc2626', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <MaterialIcon name="lock" size={16} />
+                          <span>Franja Horaria Bloqueada</span>
                         </div>
                         <div style={{ fontSize: '0.74rem', color: '#b91c1c' }}>
                           {slot.service || 'Capacitación o pausa médica programada'} · {slot.doctor} ({slot.room})
@@ -548,10 +573,11 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                       <button
                         type="button"
                         className="btn-action-ghost"
-                        style={{ padding: '0.45rem 0.85rem', fontSize: '0.76rem' }}
+                        style={{ padding: '0.45rem 0.85rem', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                         onClick={() => showToast(`Notificación enviada a ${slot.doctor} para preparar el consultorio.`)}
                       >
-                        💬 Avisar Doctor
+                        <MaterialIcon name="chat" size={14} />
+                        <span>Avisar Doctor</span>
                       </button>
                     )}
 
@@ -585,8 +611,8 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
           <div className="modal-content-custom" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '640px', width: '96%', padding: 0, overflow: 'hidden' }}>
             <div className="modal-header-custom" style={{ padding: '1.25rem 1.5rem', background: '#ffffff', borderBottom: '1.5px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#f0f9ff', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bae6fd', fontSize: '1.35rem' }}>
-                  ⚡
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#f0f9ff', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bae6fd' }}>
+                  <MaterialIcon name="bolt" size={24} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
@@ -600,9 +626,10 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
               <button
                 type="button"
                 onClick={() => setIsBookingModalOpen(false)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -612,8 +639,9 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                 {/* Sección 1: Datos del Paciente */}
                 <div className="form-section-card">
                   <div className="form-section-header">
-                    <h4 className="form-section-title">
-                      <span>👤</span> Datos del Paciente
+                    <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MaterialIcon name="person" size={18} />
+                      <span>Datos del Paciente</span>
                     </h4>
                     <span className="form-section-badge">IDENTIFICACIÓN</span>
                   </div>
@@ -623,18 +651,20 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                     <button
                       type="button"
                       className="btn-action-ghost"
-                      style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7' }}
+                      style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                       onClick={() => handleQuickPatient('74819203', 'Luciana Paredes Soto', '987 654 321')}
                     >
-                      ⚡ Luciana Paredes (DNI 74819203)
+                      <MaterialIcon name="bolt" size={14} />
+                      <span>Luciana Paredes (DNI 74819203)</span>
                     </button>
                     <button
                       type="button"
                       className="btn-action-ghost"
-                      style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7' }}
+                      style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                       onClick={() => handleQuickPatient('48291044', 'Gonzalo Salazar Diez', '912 345 678')}
                     >
-                      ⚡ Gonzalo Salazar (DNI 48291044)
+                      <MaterialIcon name="bolt" size={14} />
+                      <span>Gonzalo Salazar (DNI 48291044)</span>
                     </button>
                   </div>
 
@@ -677,8 +707,9 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                 {/* Sección 2: Especialidad, Servicio y Médico */}
                 <div className="form-section-card">
                   <div className="form-section-header">
-                    <h4 className="form-section-title">
-                      <span>🩺</span> Servicio Clínico & Profesional Asignado
+                    <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MaterialIcon name="medical_services" size={18} />
+                      <span>Servicio Clínico & Profesional Asignado</span>
                     </h4>
                     <span className="form-section-badge">ASIGNACIÓN</span>
                   </div>
@@ -731,8 +762,9 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                 {/* Sección 3: Fecha, Horario y Cobro */}
                 <div className="form-section-card">
                   <div className="form-section-header">
-                    <h4 className="form-section-title">
-                      <span>📅</span> Fecha, Franja Horaria y Cobro
+                    <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MaterialIcon name="calendar_today" size={18} />
+                      <span>Fecha, Franja Horaria y Cobro</span>
                     </h4>
                     <span className="form-section-badge">HORARIO & CAJA</span>
                   </div>
@@ -789,8 +821,9 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                       onChange={(e) => setIsUrgent(e.target.checked)}
                       style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                     />
-                    <label htmlFor="chk-urgent-booking" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', cursor: 'pointer' }}>
-                      🚨 Sobrecupo de Urgencia / Dolor Agudo (Prioridad de atención en consultorio)
+                    <label htmlFor="chk-urgent-booking" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MaterialIcon name="warning" size={16} style={{ color: '#d97706' }} />
+                      <span>Sobrecupo de Urgencia / Dolor Agudo (Prioridad de atención en consultorio)</span>
                     </label>
                   </div>
                 </div>
@@ -813,9 +846,13 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                     fontSize: '0.86rem',
                     fontWeight: 800,
                     boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
                   }}
                 >
-                  ⚡ Confirmar Cita & Notificar
+                  <MaterialIcon name="bolt" size={16} />
+                  <span>Confirmar Cita & Notificar</span>
                 </button>
               </div>
             </form>

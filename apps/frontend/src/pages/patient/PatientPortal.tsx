@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import './PatientPortal.css';
 
 interface PatientPortalProps {
@@ -142,9 +143,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', marginLeft: '0.5rem' }}
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', marginLeft: '0.5rem', display: 'flex', alignItems: 'center' }}
+            title="Cerrar notificación"
           >
-            ✕
+            <MaterialIcon name="close" size={16} />
           </button>
         </div>
       )}
@@ -196,28 +198,28 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             className={`portal-tab-btn ${activeTab === 'citas' ? 'active' : ''}`}
             onClick={() => setActiveTab('citas')}
           >
-            <span>📅</span> Mis Citas ({upcomingAppointments.length})
+            <MaterialIcon name="calendar_month" size={18} /> Mis Citas ({upcomingAppointments.length})
           </button>
           <button
             type="button"
             className={`portal-tab-btn ${activeTab === 'tratamientos' ? 'active' : ''}`}
             onClick={() => setActiveTab('tratamientos')}
           >
-            <span>🩺</span> Mis Tratamientos y Recetas ({digitalPrescriptions.length})
+            <MaterialIcon name="medical_services" size={18} /> Mis Tratamientos y Recetas ({digitalPrescriptions.length})
           </button>
           <button
             type="button"
             className={`portal-tab-btn ${activeTab === 'pagos' ? 'active' : ''}`}
             onClick={() => setActiveTab('pagos')}
           >
-            <span>🧾</span> Mis Comprobantes de Pago ({paymentReceipts.length})
+            <MaterialIcon name="receipt_long" size={18} /> Mis Comprobantes de Pago ({paymentReceipts.length})
           </button>
           <button
             type="button"
             className={`portal-tab-btn ${activeTab === 'perfil' ? 'active' : ''}`}
             onClick={() => setActiveTab('perfil')}
           >
-            <span>👤</span> Ficha Médica y Perfil
+            <MaterialIcon name="person" size={18} /> Ficha Médica y Perfil
           </button>
         </div>
 
@@ -242,8 +244,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           Especialista: <strong>{appt.professionalName}</strong> • {appt.time} ({appt.duration})
                         </p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '0.74rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '6px', background: appt.status === 'confirmed' ? '#ecfdf5' : '#fffbeb', color: appt.status === 'confirmed' ? '#065f46' : '#92400e', border: `1px solid ${appt.status === 'confirmed' ? '#a7f3d0' : '#fde68a'}` }}>
-                            {appt.status === 'confirmed' ? '✓ Confirmada' : '⏳ Pendiente'}
+                          <span style={{ fontSize: '0.74rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '6px', background: appt.status === 'confirmed' ? '#ecfdf5' : '#fffbeb', color: appt.status === 'confirmed' ? '#065f46' : '#92400e', border: `1px solid ${appt.status === 'confirmed' ? '#a7f3d0' : '#fde68a'}`, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <MaterialIcon name={appt.status === 'confirmed' ? 'check_circle' : 'schedule'} size={13} />
+                            <span>{appt.status === 'confirmed' ? 'Confirmada' : 'Pendiente'}</span>
                           </span>
                           <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
                             {appt.notes}
@@ -255,10 +258,11 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <button
                         type="button"
-                        style={{ padding: '0.5rem 0.95rem', borderRadius: '10px', background: '#ffffff', border: '1.5px solid #cbd5e1', color: '#0284c7', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
-                        onClick={() => showToast(`📄 Recordatorio de cita ${appt.id} descargado.`)}
+                        style={{ padding: '0.5rem 0.95rem', borderRadius: '10px', background: '#ffffff', border: '1.5px solid #cbd5e1', color: '#0284c7', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        onClick={() => showToast(`Recordatorio de cita ${appt.id} descargado.`)}
                       >
-                        📄 Recordatorio
+                        <MaterialIcon name="description" size={15} />
+                        <span>Recordatorio</span>
                       </button>
                       <button
                         type="button"
@@ -303,11 +307,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem', marginTop: '1rem' }}>
                     <div className="treatment-meta-box">
-                      <strong style={{ display: 'block', color: '#0f172a', marginBottom: '0.25rem' }}>🩺 Diagnóstico Clínico</strong>
+                      <strong style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#0f172a', marginBottom: '0.25rem' }}>
+                        <MaterialIcon name="medical_services" size={16} />
+                        <span>Diagnóstico Clínico</span>
+                      </strong>
                       <span>{t.diagnostics}</span>
                     </div>
                     <div className="treatment-meta-box">
-                      <strong style={{ display: 'block', color: '#0f172a', marginBottom: '0.25rem' }}>📋 Pautas y Ejercicios Domiciliarios</strong>
+                      <strong style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#0f172a', marginBottom: '0.25rem' }}>
+                        <MaterialIcon name="assignment" size={16} />
+                        <span>Pautas y Ejercicios Domiciliarios</span>
+                      </strong>
                       <span>{t.homeExercises}</span>
                     </div>
                   </div>
@@ -326,8 +336,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     Prescripciones oficiales autorizadas para farmacias a nivel nacional.
                   </p>
                 </div>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '0.25rem 0.65rem', borderRadius: '8px' }}>
-                  🛡️ Validez Legal Ley N° 27269
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '0.25rem 0.65rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <MaterialIcon name="verified_user" size={14} />
+                  <span>Validez Legal Ley N° 27269</span>
                 </span>
               </div>
 
@@ -356,9 +367,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <button
                       type="button"
                       style={{ padding: '0.65rem 1.15rem', borderRadius: '12px', background: '#7c3aed', color: '#ffffff', border: 'none', fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px -2px rgba(124, 58, 237, 0.35)' }}
-                      onClick={() => showToast(`📄 Descargando ${rx.code} oficial en PDF con código QR y firma digital colegiada...`)}
+                      onClick={() => showToast(`Descargando ${rx.code} oficial en PDF con código QR y firma digital colegiada...`)}
                     >
-                      <span>📥</span>
+                      <MaterialIcon name="download" size={16} />
                       <span>Descargar Receta PDF</span>
                     </button>
                   </div>
@@ -380,8 +391,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   Boletas electrónicas emitidas y validadas ante SUNAT por Clínica Sanitas.
                 </p>
               </div>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#15803d', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.35rem 0.85rem', borderRadius: '10px' }}>
-                ✓ Saldo Pendiente: S/ 0.00 (Al Día)
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#15803d', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.35rem 0.85rem', borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <MaterialIcon name="check_circle" size={14} />
+                <span>Saldo Pendiente: S/ 0.00 (Al Día)</span>
               </span>
             </div>
 
@@ -395,8 +407,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '0.15rem 0.45rem', borderRadius: '6px' }}>{rec.status}</span>
                       </div>
                       <p style={{ margin: '0 0 0.25rem', fontSize: '0.82rem', color: '#475569' }}>{rec.service}</p>
-                      <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        📅 {rec.date} • {rec.method} • Ref: {rec.authCode}
+                      <span style={{ fontSize: '0.74rem', color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <MaterialIcon name="calendar_today" size={13} />
+                        <span>{rec.date} • {rec.method} • Ref: {rec.authCode}</span>
                       </span>
                     </div>
 
@@ -405,9 +418,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <button
                         type="button"
                         style={{ padding: '0.55rem 1rem', borderRadius: '10px', background: '#ffffff', border: '1.5px solid #cbd5e1', color: '#0369a1', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                        onClick={() => showToast(`🧾 Descargando ${rec.number} autorizada por SUNAT en PDF...`)}
+                        onClick={() => showToast(`Descargando ${rec.number} autorizada por SUNAT en PDF...`)}
                       >
-                        <span>🧾</span>
+                        <MaterialIcon name="receipt_long" size={16} />
                         <span>Descargar Boleta</span>
                       </button>
                     </div>
@@ -460,7 +473,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               <div style={{ gridColumn: '1 / -1', borderTop: '1.5px solid #e2e8f0', paddingTop: '1rem', background: '#ecfdf5', padding: '1rem 1.25rem', borderRadius: '12px', border: '1px solid #a7f3d0' }}>
                 <span className="profile-field-label" style={{ color: '#047857' }}>Consentimiento de Privacidad</span>
                 <div style={{ color: '#065f46', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
-                  <span>🛡️</span> Consentimiento de tratamiento de datos personales aceptado conforme a la Ley N° 29733 (Perú).
+                  <MaterialIcon name="verified_user" size={16} />
+                  <span>Consentimiento de tratamiento de datos personales aceptado conforme a la Ley N° 29733 (Perú).</span>
                 </div>
               </div>
             </div>

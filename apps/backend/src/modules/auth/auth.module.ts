@@ -5,11 +5,13 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { DatabaseModule } from '../../database/database.module';
+import { EmailsModule } from '../emails/emails.module';
 import { JwtAuthGuard, RolesGuard, PermissionsGuard, TenantGuard } from '../../common/guards';
 
 @Module({
   imports: [
     DatabaseModule,
+    EmailsModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({}),
   ],

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './ClinicalDashboard.css';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import {
   IconCash,
   IconCalendar,
@@ -90,7 +91,7 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
     setNewPatientDni(dni);
     setNewPatientName(name);
     setNewPatientPhone(phone);
-    showToast(`✓ Datos del paciente ${name} cargados automáticamente.`);
+    showToast(`Datos del paciente ${name} cargados automáticamente.`);
   };
 
   const handleQuickFullPatient = (dni: string, name: string, phone: string, email: string) => {
@@ -98,13 +99,13 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
     setFullName(name);
     setFullPhone(phone);
     setFullEmail(email);
-    showToast(`✓ Datos de filiación de ${name} cargados.`);
+    showToast(`Datos de filiación de ${name} cargados.`);
   };
 
   const handleConfirmFastBooking = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPatientName.trim() || !newPatientDni.trim()) {
-      showToast('⚠️ Por favor ingresa el DNI y Nombre del paciente.');
+      showToast('Por favor ingresa el DNI y Nombre del paciente.');
       return;
     }
 
@@ -122,7 +123,7 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
     };
 
     setAppointments((prev) => [newApt, ...prev]);
-    showToast(`✓ ¡Cita agendada con éxito! Paciente: ${newPatientName} · ${newTime}. Notificación enviada a WhatsApp.`);
+    showToast(`¡Cita agendada con éxito! Paciente: ${newPatientName} · ${newTime}. Notificación enviada a WhatsApp.`);
     setIsFastBookingOpen(false);
 
     // Reset Form
@@ -134,7 +135,7 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
   const handleConfirmFullBooking = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !fullDni.trim()) {
-      showToast('⚠️ Por favor ingresa el DNI y Nombre del paciente.');
+      showToast('Por favor ingresa el DNI y Nombre del paciente.');
       return;
     }
 
@@ -152,7 +153,7 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
     };
 
     setAppointments((prev) => [newApt, ...prev]);
-    showToast(`✓ ¡Cita Normal Completa Registrada! Paciente: ${fullName} · ${fullDoctor} (${fullRoom}) a las ${fullTime}.`);
+    showToast(`¡Cita Normal Completa Registrada! Paciente: ${fullName} · ${fullDoctor} (${fullRoom}) a las ${fullTime}.`);
     setIsFullBookingOpen(false);
     setFullTab('patient');
 
@@ -224,7 +225,7 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
       ),
     );
     const p = appointments.find(a => a.id === id);
-    showToast(`✓ Check-In completado para ${p?.patientName || 'paciente'}. Asignado a Sala de Espera.`);
+    showToast(`Check-In completado para ${p?.patientName || 'paciente'}. Asignado a Sala de Espera.`);
     setTriageAppointment(null);
   };
 
@@ -233,7 +234,7 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
       prev.map((apt) => (apt.id === id ? { ...apt, paid: true } : apt)),
     );
     const p = appointments.find(a => a.id === id);
-    showToast(`✓ Cobro de ${p?.price} procesado vía ${method} para ${p?.patientName}.`);
+    showToast(`Cobro de ${p?.price} procesado vía ${method} para ${p?.patientName}.`);
     setPaymentAppointment(null);
   };
 
@@ -276,7 +277,7 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
       prev.map((a) => (a.id === apptId ? { ...a, status: mappedStatus, statusLabel: mappedLabel } : a)),
     );
     const p = appointments.find((a) => a.id === apptId);
-    showToast(`✓ Estado de ${p?.patientName || 'paciente'} actualizado a: ${mappedLabel}`);
+    showToast(`Estado de ${p?.patientName || 'paciente'} actualizado a: ${mappedLabel}`);
   };
 
   return (
@@ -304,9 +305,10 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', marginLeft: '0.5rem' }}
+            aria-label="Cerrar"
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}
           >
-            ✕
+            <MaterialIcon name="close" size={16} />
           </button>
         </div>
       )}
@@ -331,35 +333,40 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
             <button
               type="button"
               className="btn-secondary"
-              style={{ background: '#faf5ff', borderColor: '#e9d5ff', color: '#7c3aed', fontWeight: 800 }}
+              style={{ background: '#faf5ff', borderColor: '#e9d5ff', color: '#7c3aed', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
               onClick={onNavigateToBooking}
               title="Abrir vista de agenda médica por box y profesional"
             >
-              📅 Ver Calendario Completo ↗
+              <MaterialIcon name="calendar_today" size={16} />
+              <span>Ver Calendario Completo ↗</span>
             </button>
           )}
           <button
             type="button"
             className="btn-secondary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             onClick={onNavigateToCash}
           >
-            🏦 Abrir Caja Chica
+            <MaterialIcon name="point_of_sale" size={16} />
+            <span>Abrir Caja Chica</span>
           </button>
           <button
             type="button"
             className="btn-secondary"
-            style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0369a1', fontWeight: 700 }}
+            style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0369a1', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             onClick={() => setIsFastBookingOpen(true)}
           >
-            ⚡ Cita Rápida (Ventanilla)
+            <MaterialIcon name="bolt" size={16} />
+            <span>Cita Rápida (Ventanilla)</span>
           </button>
           <button
             type="button"
             className="btn-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             onClick={() => setIsFullBookingOpen(true)}
           >
-            <IconCalendar className="w-4 h-4" />
-            <span>📋 + Agendar Cita Normal (Completa)</span>
+            <MaterialIcon name="assignment" size={16} />
+            <span>+ Agendar Cita Normal (Completa)</span>
           </button>
         </div>
       </div>
@@ -471,7 +478,7 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                 transition: 'all 0.15s ease',
               }}
             >
-              <span>📊</span>
+              <MaterialIcon name="view_kanban" size={16} />
               <span>Tablero Kanban</span>
             </button>
             <button
@@ -496,7 +503,7 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                 transition: 'all 0.15s ease',
               }}
             >
-              <span>📋</span>
+              <MaterialIcon name="format_list_bulleted" size={16} />
               <span>Vista Lista</span>
             </button>
           </div>
@@ -641,7 +648,11 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                           <td style={{ padding: '0.85rem 1rem' }}>
                             {apt.temperature && apt.bloodPressure ? (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: '#f0fdf4', border: '1px solid #86efac', padding: '0.2rem 0.55rem', borderRadius: '6px', fontSize: '0.72rem', color: '#166534', fontWeight: 700 }}>
-                                🌡️ {apt.temperature} · 💓 {apt.bloodPressure}
+                                <MaterialIcon name="thermostat" size={14} />
+                                <span>{apt.temperature}</span>
+                                <span>·</span>
+                                <MaterialIcon name="favorite" size={14} />
+                                <span>{apt.bloodPressure}</span>
                               </span>
                             ) : (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '0.2rem 0.55rem', borderRadius: '6px', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>
@@ -653,17 +664,19 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                           {/* Pago */}
                           <td style={{ padding: '0.85rem 1rem' }}>
                             {apt.paid ? (
-                              <span className="badge-status badge-attended" style={{ display: 'inline-flex' }}>
-                                ✓ Pagado ({apt.price})
+                              <span className="badge-status badge-attended" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <MaterialIcon name="check" size={12} />
+                                <span>Pagado ({apt.price})</span>
                               </span>
                             ) : (
                               <button
                                 type="button"
                                 className="btn-action-ghost"
-                                style={{ padding: '0.3rem 0.65rem', fontSize: '0.74rem', background: '#fef3c7', borderColor: '#fde68a', color: '#b45309', fontWeight: 800 }}
+                                style={{ padding: '0.3rem 0.65rem', fontSize: '0.74rem', background: '#fef3c7', borderColor: '#fde68a', color: '#b45309', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                                 onClick={() => setPaymentAppointment(apt)}
                               >
-                                💳 Cobrar {apt.price}
+                                <MaterialIcon name="credit_card" size={14} />
+                                <span>Cobrar {apt.price}</span>
                               </button>
                             )}
                           </td>
@@ -700,39 +713,42 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                                 type="button"
                                 title="Enviar WhatsApp"
                                 onClick={() => setActiveWhatsApp(apt)}
-                                style={{ background: 'none', border: '1px solid #bbf7d0', color: '#16a34a', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem' }}
+                                style={{ background: 'none', border: '1px solid #bbf7d0', color: '#16a34a', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                               >
-                                📲
+                                <MaterialIcon name="smartphone" size={14} />
                               </button>
                               <button
                                 type="button"
                                 title="Ver Receta Oficial"
                                 onClick={() => setActiveRx(apt)}
-                                style={{ background: 'none', border: '1px solid #bae6fd', color: '#0284c7', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem' }}
+                                style={{ background: 'none', border: '1px solid #bae6fd', color: '#0284c7', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                               >
-                                📄
+                                <MaterialIcon name="description" size={14} />
                               </button>
                               {apt.status === 'pending_arrival' ? (
                                 <button
                                   type="button"
                                   className="btn-call-consultation primary"
-                                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.76rem', background: '#16a34a', borderColor: '#16a34a' }}
+                                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.76rem', background: '#16a34a', borderColor: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                                   onClick={() => setTriageAppointment(apt)}
                                 >
-                                  👋 Llegada
+                                  <MaterialIcon name="how_to_reg" size={14} />
+                                  <span>Llegada</span>
                                 </button>
                               ) : apt.status === 'waiting' ? (
                                 <button
                                   type="button"
                                   className="btn-action-ghost"
-                                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.74rem', background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7' }}
+                                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.74rem', background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                                   onClick={() => showToast(`Notificación enviada al médico: ${apt.patientName} espera en sala.`)}
                                 >
-                                  💬 Avisar
+                                  <MaterialIcon name="chat" size={14} />
+                                  <span>Avisar</span>
                                 </button>
                               ) : (
-                                <span style={{ fontSize: '0.76rem', color: '#16a34a', fontWeight: 800 }}>
-                                  🟢 En Atención
+                                <span style={{ fontSize: '0.76rem', color: '#16a34a', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                  <MaterialIcon name="radio_button_checked" size={12} />
+                                  <span>En Atención</span>
                                 </span>
                               )}
                             </div>
@@ -753,8 +769,8 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
           <div className="modal-content-custom" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '580px', width: '96%', padding: 0, overflow: 'hidden' }}>
             <div className="modal-header-custom" style={{ padding: '1.25rem 1.5rem', background: '#ffffff', borderBottom: '1.5px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#ecfdf5', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bbf7d0', fontSize: '1.25rem' }}>
-                  🩺
+                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#ecfdf5', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bbf7d0' }}>
+                  <MaterialIcon name="medical_services" size={20} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
@@ -768,9 +784,10 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setTriageAppointment(null)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -778,9 +795,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
               {/* Tarjeta 1: Constantes Vitales */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>🌡️</span>
-                    Signos Vitales de Ingreso
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="thermostat" size={18} />
+                    <span>Signos Vitales de Ingreso</span>
                   </h4>
                   <span className="form-section-badge">NORMATIVA MINSA</span>
                 </div>
@@ -789,7 +806,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                   <div className="input-field-wrap">
                     <label className="input-field-label">Temperatura (°C)</label>
                     <div className="input-with-icon">
-                      <span className="input-icon-left">🌡️</span>
+                      <span className="input-icon-left">
+                        <MaterialIcon name="thermostat" size={16} />
+                      </span>
                       <input
                         type="text"
                         className="modern-form-input"
@@ -803,7 +822,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                   <div className="input-field-wrap">
                     <label className="input-field-label">Presión Arterial (PA)</label>
                     <div className="input-with-icon">
-                      <span className="input-icon-left">💓</span>
+                      <span className="input-icon-left">
+                        <MaterialIcon name="favorite" size={16} />
+                      </span>
                       <input
                         type="text"
                         className="modern-form-input"
@@ -817,7 +838,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                   <div className="input-field-wrap">
                     <label className="input-field-label">Saturación de Oxígeno (SpO2)</label>
                     <div className="input-with-icon">
-                      <span className="input-icon-left">🫁</span>
+                      <span className="input-icon-left">
+                        <MaterialIcon name="air" size={16} />
+                      </span>
                       <input
                         type="text"
                         className="modern-form-input"
@@ -831,7 +854,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                   <div className="input-field-wrap">
                     <label className="input-field-label">Frecuencia Cardíaca (Pulso)</label>
                     <div className="input-with-icon">
-                      <span className="input-icon-left">⏱️</span>
+                      <span className="input-icon-left">
+                        <MaterialIcon name="schedule" size={16} />
+                      </span>
                       <input
                         type="text"
                         className="modern-form-input"
@@ -847,9 +872,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
               {/* Tarjeta 2: Prioridad de Atención & Destino */}
               <div className="form-section-card">
                 <div className="form-section-header">
-                  <h4 className="form-section-title">
-                    <span>🚶</span>
-                    Prioridad y Asignación de Sala
+                  <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <MaterialIcon name="meeting_room" size={18} />
+                    <span>Prioridad y Asignación de Sala</span>
                   </h4>
                   <span className="form-section-badge">UBICACIÓN</span>
                 </div>
@@ -887,14 +912,15 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
               <button
                 type="button"
                 className="btn-call-consultation primary"
-                style={{ background: '#16a34a', borderColor: '#16a34a' }}
+                style={{ background: '#16a34a', borderColor: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 onClick={() => {
                   const temp = (document.getElementById('tri-temp') as HTMLInputElement)?.value || '36.5 °C';
                   const bp = (document.getElementById('tri-bp') as HTMLInputElement)?.value || '120/80';
                   handleCheckIn(triageAppointment.id, temp, bp);
                 }}
               >
-                ✓ Confirmar Check-In & Enviar a Sala
+                <MaterialIcon name="check" size={16} />
+                <span>Confirmar Check-In & Enviar a Sala</span>
               </button>
             </div>
           </div>
@@ -907,8 +933,8 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
           <div className="modal-content-custom" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px', width: '96%', padding: 0, overflow: 'hidden' }}>
             <div className="modal-header-custom" style={{ padding: '1.25rem 1.5rem', background: '#ffffff', borderBottom: '1.5px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fde68a', fontSize: '1.25rem' }}>
-                  💳
+                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fde68a' }}>
+                  <MaterialIcon name="credit_card" size={20} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
@@ -922,9 +948,10 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setPaymentAppointment(null)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -961,10 +988,10 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                         transition: 'all 140ms ease'
                       }}
                     >
-                      {method === 'Yape' && '🟣'}
-                      {method === 'Plin' && '🔵'}
-                      {method === 'POS Tarjeta' && '💳'}
-                      {method === 'Efectivo' && '💵'}
+                      {method === 'Yape' && <MaterialIcon name="smartphone" size={16} />}
+                      {method === 'Plin' && <MaterialIcon name="account_balance_wallet" size={16} />}
+                      {method === 'POS Tarjeta' && <MaterialIcon name="credit_card" size={16} />}
+                      {method === 'Efectivo' && <MaterialIcon name="payments" size={16} />}
                       {method}
                     </button>
                   ))}
@@ -983,9 +1010,11 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
               <button
                 type="button"
                 className="btn-call-consultation primary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 onClick={() => handleMarkPaid(paymentAppointment.id, paymentMethod)}
               >
-                ✓ Registrar Cobro & Emitir Boleta
+                <MaterialIcon name="check" size={16} />
+                <span>Registrar Cobro & Emitir Boleta</span>
               </button>
             </div>
           </div>
@@ -999,8 +1028,8 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
             {/* Header del Modal */}
             <div className="modal-header-custom" style={{ padding: '1.25rem 1.5rem', background: '#ffffff', borderBottom: '1.5px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#f0f9ff', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bae6fd', fontSize: '1.35rem' }}>
-                  ⚡
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#f0f9ff', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bae6fd' }}>
+                  <MaterialIcon name="bolt" size={24} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
@@ -1014,9 +1043,10 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsFastBookingOpen(false)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
@@ -1027,9 +1057,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                 {/* Sección 1: Datos del Paciente */}
                 <div className="form-section-card">
                   <div className="form-section-header">
-                    <h4 className="form-section-title">
-                      <span>👤</span>
-                      Datos del Paciente
+                    <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MaterialIcon name="person" size={18} />
+                      <span>Datos del Paciente</span>
                     </h4>
                     <span className="form-section-badge">IDENTIFICACIÓN</span>
                   </div>
@@ -1040,18 +1070,20 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                     <button
                       type="button"
                       className="btn-action-ghost"
-                      style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7' }}
+                      style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                       onClick={() => handleQuickPatientSelect('74819203', 'Luciana Paredes Soto', '987 654 321')}
                     >
-                      ⚡ Luciana Paredes (DNI 74819203)
+                      <MaterialIcon name="bolt" size={14} />
+                      <span>Luciana Paredes (DNI 74819203)</span>
                     </button>
                     <button
                       type="button"
                       className="btn-action-ghost"
-                      style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7' }}
+                      style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                       onClick={() => handleQuickPatientSelect('48291044', 'Gonzalo Salazar Diez', '912 345 678')}
                     >
-                      ⚡ Gonzalo Salazar (DNI 48291044)
+                      <MaterialIcon name="bolt" size={14} />
+                      <span>Gonzalo Salazar (DNI 48291044)</span>
                     </button>
                   </div>
 
@@ -1094,9 +1126,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                 {/* Sección 2: Especialidad, Servicio y Médico */}
                 <div className="form-section-card">
                   <div className="form-section-header">
-                    <h4 className="form-section-title">
-                      <span>🩺</span>
-                      Servicio Clínico & Profesional Asignado
+                    <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MaterialIcon name="medical_services" size={18} />
+                      <span>Servicio Clínico & Profesional Asignado</span>
                     </h4>
                     <span className="form-section-badge">ASIGNACIÓN</span>
                   </div>
@@ -1143,9 +1175,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                 {/* Sección 3: Fecha, Horario y Cobro */}
                 <div className="form-section-card">
                   <div className="form-section-header">
-                    <h4 className="form-section-title">
-                      <span>📅</span>
-                      Fecha, Franja Horaria y Cobro
+                    <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MaterialIcon name="calendar_today" size={18} />
+                      <span>Fecha, Franja Horaria y Cobro</span>
                     </h4>
                     <span className="form-section-badge">HORARIO & CAJA</span>
                   </div>
@@ -1198,8 +1230,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                       onChange={(e) => setIsUrgent(e.target.checked)}
                       style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                     />
-                    <label htmlFor="chk-urgent" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', cursor: 'pointer' }}>
-                      🚨 Sobrecupo de Urgencia / Dolor Agudo (Prioridad de atención en consultorio)
+                    <label htmlFor="chk-urgent" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MaterialIcon name="warning" size={16} style={{ color: '#d97706' }} />
+                      <span>Sobrecupo de Urgencia / Dolor Agudo (Prioridad de atención en consultorio)</span>
                     </label>
                   </div>
                 </div>
@@ -1223,9 +1256,13 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                     fontSize: '0.86rem',
                     fontWeight: 800,
                     boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
                   }}
                 >
-                  ⚡ Confirmar Cita & Notificar
+                  <MaterialIcon name="bolt" size={16} />
+                  <span>Confirmar Cita & Notificar</span>
                 </button>
               </div>
             </form>
@@ -1240,8 +1277,8 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
             {/* Header del Modal */}
             <div className="modal-header-custom" style={{ padding: '1.25rem 1.5rem', background: '#ffffff', borderBottom: '1.5px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bfdbfe', fontSize: '1.35rem' }}>
-                  📋
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bfdbfe' }}>
+                  <MaterialIcon name="assignment" size={24} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.18rem', fontWeight: 900, color: '#0f172a' }}>
@@ -1255,19 +1292,20 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsFullBookingOpen(false)}
-                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer', color: '#64748b' }}
+                aria-label="Cerrar"
+                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <MaterialIcon name="close" size={18} />
               </button>
             </div>
 
             {/* Pestañas de Navegación del Formulario */}
             <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#ffffff', padding: '0 1.5rem' }}>
               {[
-                { key: 'patient', label: '1. Filiación & Contacto', icon: '👤' },
-                { key: 'clinical', label: '2. Motivo & Clínica', icon: '🩺' },
-                { key: 'schedule', label: '3. Médico & Horario', icon: '📅' },
-                { key: 'billing', label: '4. Facturación & Pago', icon: '💳' },
+                { key: 'patient', label: '1. Filiación & Contacto', icon: 'person' },
+                { key: 'clinical', label: '2. Motivo & Clínica', icon: 'medical_services' },
+                { key: 'schedule', label: '3. Médico & Horario', icon: 'calendar_today' },
+                { key: 'billing', label: '4. Facturación & Pago', icon: 'credit_card' },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -1288,8 +1326,8 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                     transition: 'all 120ms ease'
                   }}
                 >
-                  <span>{tab.icon}</span>
-                  {tab.label}
+                  <MaterialIcon name={tab.icon} size={16} />
+                  <span>{tab.label}</span>
                 </button>
               ))}
             </div>
@@ -1306,25 +1344,28 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                       <button
                         type="button"
                         className="btn-action-ghost"
-                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7' }}
+                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                         onClick={() => handleQuickFullPatient('74819203', 'Luciana Paredes Soto', '987 654 321', 'luciana.paredes@gmail.com')}
                       >
-                        ⚡ Luciana Paredes (DNI 74819203)
+                        <MaterialIcon name="bolt" size={14} />
+                        <span>Luciana Paredes (DNI 74819203)</span>
                       </button>
                       <button
                         type="button"
                         className="btn-action-ghost"
-                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7' }}
+                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: '#ffffff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                         onClick={() => handleQuickFullPatient('48291044', 'Gonzalo Salazar Diez', '912 345 678', 'gonzalo.salazar@outlook.com')}
                       >
-                        ⚡ Gonzalo Salazar (DNI 48291044)
+                        <MaterialIcon name="bolt" size={14} />
+                        <span>Gonzalo Salazar (DNI 48291044)</span>
                       </button>
                     </div>
 
                     <div className="form-section-card">
                       <div className="form-section-header">
-                        <h4 className="form-section-title">
-                          <span>👤</span> Datos Personales y Documento
+                        <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <MaterialIcon name="person" size={18} />
+                          <span>Datos Personales y Documento</span>
                         </h4>
                         <span className="form-section-badge">IDENTIFICACIÓN</span>
                       </div>
@@ -1381,8 +1422,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
 
                     <div className="form-section-card">
                       <div className="form-section-header">
-                        <h4 className="form-section-title">
-                          <span>📍</span> Información de Contacto y Residencia
+                        <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <MaterialIcon name="location_on" size={18} />
+                          <span>Información de Contacto y Residencia</span>
                         </h4>
                         <span className="form-section-badge">UBICACIÓN</span>
                       </div>
@@ -1429,8 +1471,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                   <>
                     <div className="form-section-card">
                       <div className="form-section-header">
-                        <h4 className="form-section-title">
-                          <span>🩺</span> Especialidad y Servicio Terapéutico
+                        <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <MaterialIcon name="medical_services" size={18} />
+                          <span>Especialidad y Servicio Terapéutico</span>
                         </h4>
                         <span className="form-section-badge">ÁREA MÉDICA</span>
                       </div>
@@ -1475,8 +1518,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
 
                     <div className="form-section-card">
                       <div className="form-section-header">
-                        <h4 className="form-section-title">
-                          <span>📝</span> Motivo de Consulta & Antecedentes
+                        <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <MaterialIcon name="edit_note" size={18} />
+                          <span>Motivo de Consulta & Antecedentes</span>
                         </h4>
                         <span className="form-section-badge">HISTORIA CLÍNICA</span>
                       </div>
@@ -1510,8 +1554,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                 {fullTab === 'schedule' && (
                   <div className="form-section-card">
                     <div className="form-section-header">
-                      <h4 className="form-section-title">
-                        <span>📅</span> Asignación de Profesional, Box y Horario
+                      <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <MaterialIcon name="calendar_today" size={18} />
+                        <span>Asignación de Profesional, Box y Horario</span>
                       </h4>
                       <span className="form-section-badge">AGENDA</span>
                     </div>
@@ -1585,8 +1630,9 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                 {fullTab === 'billing' && (
                   <div className="form-section-card">
                     <div className="form-section-header">
-                      <h4 className="form-section-title">
-                        <span>💳</span> Comprobante y Liquidación
+                      <h4 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <MaterialIcon name="credit_card" size={18} />
+                        <span>Comprobante y Liquidación</span>
                       </h4>
                       <span className="form-section-badge">CAJA</span>
                     </div>
@@ -1616,11 +1662,11 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                           value={fullPayMethod}
                           onChange={(e) => setFullPayMethod(e.target.value as any)}
                         >
-                          <option value="Yape">🟣 Yape</option>
-                          <option value="Plin">🔵 Plin</option>
-                          <option value="POS Tarjeta">💳 Tarjeta Débito / Crédito</option>
-                          <option value="Efectivo">💵 Efectivo</option>
-                          <option value="Convenio EPS">🛡️ Seguro / Convenio EPS</option>
+                          <option value="Yape">Yape</option>
+                          <option value="Plin">Plin</option>
+                          <option value="POS Tarjeta">Tarjeta Débito / Crédito</option>
+                          <option value="Efectivo">Efectivo</option>
+                          <option value="Convenio EPS">Seguro / Convenio EPS</option>
                         </select>
                       </div>
                     </div>
@@ -1632,8 +1678,8 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                         value={fullPayStatus}
                         onChange={(e) => setFullPayStatus(e.target.value as any)}
                       >
-                        <option value="immediate">✓ Cobrado en este Momento ({fullPrice})</option>
-                        <option value="post_consultation">⏳ Cobrar al Finalizar la Consulta</option>
+                        <option value="immediate">Cobrado en este Momento ({fullPrice})</option>
+                        <option value="post_consultation">Cobrar al Finalizar la Consulta</option>
                       </select>
                     </div>
                   </div>
@@ -1689,9 +1735,13 @@ export const ReceptionDashboard: React.FC<ReceptionDashboardProps> = ({
                       fontSize: '0.86rem',
                       fontWeight: 800,
                       boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
                     }}
                   >
-                    ✓ Registrar Cita Completa & Notificar
+                    <MaterialIcon name="check" size={16} />
+                    <span>Registrar Cita Completa & Notificar</span>
                   </button>
                 </div>
               </div>

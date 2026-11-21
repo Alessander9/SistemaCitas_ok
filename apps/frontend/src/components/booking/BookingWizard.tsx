@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import { MOCK_SPECIALTIES, MOCK_SERVICES, MOCK_PROFESSIONALS } from '../../data/mockData';
 import { Specialty, MedicalService, Professional } from '@citassistema/shared-types';
 import { fetchSpecialties, fetchServices, fetchProfessionals, createAppointment } from '../../services/api';
@@ -8,6 +9,7 @@ import {
   AppointmentHeader,
   AppointmentNavigation,
   AppointmentPatientStep,
+  AppointmentReceiptModal,
   AppointmentReviewStep,
   AppointmentScheduleStep,
   AppointmentSelectionStep,
@@ -28,6 +30,7 @@ import {
   ReviewPatientInput,
   validatePatientForm,
 } from './index';
+import { StickyBookingSidebar } from './StickyBookingSidebar';
 import type { PatientLookupMatch } from '../../services/api';
 import {
   APPOINTMENT_TOTAL_STEPS,
@@ -113,6 +116,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
 
   // Confirmation Details (Step 6)
   const [bookingCode, setBookingCode] = useState<string>('CIT-2026-8491');
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [returnToReview, setReturnToReview] = useState<boolean>(false);
@@ -337,6 +341,31 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     setStep(4);
   };
 
+  const handleAddToGoogleCalendar = () => {
+    const title = encodeURIComponent(
+      `Cita Médica: ${selectedService?.name || 'Consulta Médica'} - VitalSalud`,
+    );
+    const details = encodeURIComponent(
+      `Código de Reserva: ${bookingCode}\n` +
+      `Especialidad: ${selectedSpecialty?.name || 'Medicina General'}\n` +
+      `Servicio: ${selectedService?.name || 'Consulta Médica'}\n` +
+      `Profesional: ${scheduleProfessional?.name || 'Médico Asignado'}\n` +
+      `Paciente: ${patientFirstName || 'Paciente'} ${patientLastName || ''} (${patientDocType || 'DNI'}: ${patientDocNumber || ''})\n` +
+      `Sede: Av. Javier Prado Este 2465, San Isidro, Lima\n\n` +
+      `Por favor presentarse 15 minutos antes de la hora programada para el control de triaje.`,
+    );
+    const location = encodeURIComponent('VitalSalud - Av. Javier Prado Este 2465, San Isidro, Lima');
+
+    let datesParam = '';
+    if (selectedDate) {
+      const cleanDate = selectedDate.replace(/-/g, '');
+      datesParam = `&dates=${cleanDate}T153000Z/${cleanDate}T163000Z`;
+    }
+
+    const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}${datesParam}`;
+    window.open(gcalUrl, '_blank', 'noopener,noreferrer');
+  };
+
   const handlePatientFieldChange = (field: PatientFieldId, value: string) => {
     switch (field) {
       case 'documentType':
@@ -389,7 +418,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
 
   return (
     <div className="wizard-page-container">
-      <div className="wizard-shell">
+      <div className="wizard-shell wizard-shell--wide">
         {/* Booking header + visual milestone stepper */}
         <AppointmentHeader
           currentStep={step}
@@ -410,52 +439,70 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
 
         {/* Content Body based on step */}
         <div className={`wizard-content${step <= 2 ? ' wizard-content--flush' : ''}`}>
-          {/* PASO 1: Especialidad, Servicio y Profesional */}
-          {step === 1 && (
-            <AppointmentSelectionStep
-              specialties={specialtiesList}
-              services={servicesList}
-              professionals={professionalsList}
-              selectedSpecialtyId={selectedSpecialty?.id ?? null}
-              selectedServiceId={selectedService?.id ?? null}
-              selectedProfessionalId={selectedProfessionalId}
-              onSelectSpecialty={(specialty) => {
-                setSelectedSpecialty(specialty);
-                setSelectedService(null);
-              }}
-              onSelectService={setSelectedService}
-              onSelectProfessional={setSelectedProfessionalId}
-            />
-          )}
+          <div className={step <= 3 ? 'apx-split-layout' : ''}>
+            <div className={step <= 3 ? 'apx-split-main' : ''}>
+              {/* PASO 1: Especialidad, Servicio y Profesional */}
+              {step === 1 && (
+                <AppointmentSelectionStep
+                  specialties={specialtiesList}
+                  services={servicesList}
+                  professionals={professionalsList}
+                  selectedSpecialtyId={selectedSpecialty?.id ?? null}
+                  selectedServiceId={selectedService?.id ?? null}
+                  selectedProfessionalId={selectedProfessionalId}
+                  onSelectSpecialty={(specialty) => {
+                    setSelectedSpecialty(specialty);
+                    setSelectedService(null);
+                  }}
+                  onSelectService={setSelectedService}
+                  onSelectProfessional={setSelectedProfessionalId}
+                />
+              )}
 
-          {/* PASO 2: Fecha y Horario integrados */}
-          {step === 2 && scheduleSpecialty && scheduleService && (
-            <AppointmentScheduleStep
-              specialty={scheduleSpecialty}
-              service={scheduleService}
-              professional={scheduleProfessional}
-              professionalId={manualProfessionalId ?? undefined}
-              selectedDate={selectedDate}
-              selectedTime={selectedTime}
-              onSelectDate={setSelectedDate}
-              onSelectTime={setSelectedTime}
-              onEdit={() => setStep(1)}
-            />
-          )}
+              {/* PASO 2: Fecha y Horario integrados */}
+              {step === 2 && scheduleSpecialty && scheduleService && (
+                <AppointmentScheduleStep
+                  specialty={scheduleSpecialty}
+                  service={scheduleService}
+                  professional={scheduleProfessional}
+                  professionalId={manualProfessionalId ?? undefined}
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                  onSelectDate={setSelectedDate}
+                  onSelectTime={setSelectedTime}
+                  onEdit={() => setStep(1)}
+                />
+              )}
 
-          {/* PASO 3: Datos del paciente */}
-          {step === 3 && (
-            <AppointmentPatientStep
-              values={patientValues}
-              onChange={handlePatientFieldChange}
-              onApplyPatient={handleApplyPatient}
-              specialty={scheduleSpecialty}
-              service={scheduleService}
-              professional={scheduleProfessional}
-              date={selectedDate}
-              time={selectedTime}
-            />
-          )}
+              {/* PASO 3: Datos del paciente */}
+              {step === 3 && (
+                <AppointmentPatientStep
+                  values={patientValues}
+                  onChange={handlePatientFieldChange}
+                  onApplyPatient={handleApplyPatient}
+                  specialty={scheduleSpecialty}
+                  service={scheduleService}
+                  professional={scheduleProfessional}
+                  date={selectedDate}
+                  time={selectedTime}
+                  showSummary={false}
+                />
+              )}
+            </div>
+
+            {step <= 3 && (
+              <StickyBookingSidebar
+                step={step}
+                totalSteps={APPOINTMENT_TOTAL_STEPS}
+                specialty={selectedSpecialty}
+                service={selectedService}
+                professionalRecord={selectedProfessionalRecord}
+                autoAssignProfessional={autoAssignProfessional}
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+              />
+            )}
+          </div>
 
           {/* PASO 4: Revisión de la cita + Políticas integradas */}
           {step === 4 && (
@@ -500,7 +547,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
               transferValues={transferValues}
               onTransferChange={setTransferValues}
               price={selectedService?.price ?? 150}
-              currency={selectedService?.currency ?? 'PEN'}
+              currency={selectedService?.currency === 'USD' ? 'USD' : 'PEN'}
               specialtyName={scheduleSpecialty?.name ?? 'Traumatología y Ortopedia'}
               serviceName={scheduleService?.name ?? 'Consulta Médica Traumatológica'}
               durationLabel={
@@ -551,24 +598,34 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
                 <div className="booking-code-val">{bookingCode}</div>
               </div>
 
-              <div style={{ maxWidth: '480px', margin: '0 auto', fontSize: '0.9rem', color: 'var(--slate-400)' }}>
-                <span>📅 {selectedDate || '2026-09-24'} a las {selectedTime || '05:30 PM'} hrs</span> • <span>🩺 {selectedService?.name || 'Consulta Médica'}</span>
+              <div style={{ maxWidth: '480px', margin: '0 auto', fontSize: '0.9rem', color: 'var(--slate-400)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <MaterialIcon name="calendar_today" size={16} /> {selectedDate || '2026-09-24'} a las {selectedTime || '05:30 PM'} hrs
+                </span>
+                •
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <MaterialIcon name="medical_services" size={16} /> {selectedService?.name || 'Consulta Médica'}
+                </span>
               </div>
 
               <div className="post-booking-actions" style={{ marginTop: '1.5rem' }}>
                 <button
                   type="button"
                   className="btn-secondary-action"
-                  onClick={() => alert('Evento generado: cita agendada en tu calendario.')}
+                  onClick={handleAddToGoogleCalendar}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
                 >
-                  📅 Añadir a Google Calendar
+                  <MaterialIcon name="event" size={18} />
+                  <span>Añadir a Google Calendar</span>
                 </button>
                 <button
                   type="button"
                   className="btn-secondary-action"
-                  onClick={() => alert(`Descargando comprobante para código ${bookingCode}...`)}
+                  onClick={() => setIsReceiptModalOpen(true)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
                 >
-                  📄 Descargar Comprobante PDF
+                  <MaterialIcon name="description" size={18} />
+                  <span>Descargar Comprobante PDF</span>
                 </button>
               </div>
 
@@ -620,6 +677,31 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
           />
         )}
       </div>
+
+      {isReceiptModalOpen && (
+        <AppointmentReceiptModal
+          isOpen={isReceiptModalOpen}
+          onClose={() => setIsReceiptModalOpen(false)}
+          bookingCode={bookingCode}
+          specialtyName={selectedSpecialty?.name || 'Traumatología y Ortopedia'}
+          serviceName={selectedService?.name || 'Consulta Médica Traumatológica'}
+          servicePrice={selectedService?.price ?? 150}
+          serviceDuration={selectedService?.durationMinutes ?? 30}
+          doctorName={scheduleProfessional?.name || 'Dr. Carlos Mendoza Ruiz'}
+          doctorLicense={scheduleProfessional?.licenseNumber || 'CMP-48291 • RNE-24190'}
+          appointmentDate={selectedDate || '2026-11-21'}
+          appointmentTime={selectedTime || '10:30 hrs'}
+          patientName={`${patientFirstName || 'Luis'} ${patientLastName || 'Fernández'}`.trim()}
+          patientDocType={patientDocType || 'DNI'}
+          patientDocNumber={patientDocNumber || '08502322'}
+          patientPhone={patientPhone || '+51 987 654 321'}
+          patientEmail={patientEmail || 'arsrq@gmail.com'}
+          paymentMethod={paymentMethod}
+          paymentSubMethod={paymentMethod === 'TARJETA' ? onlineSubMethod : undefined}
+          location="Sede San Isidro"
+          locationAddress="Av. Javier Prado Este 2465, San Isidro, Lima"
+        />
+      )}
     </div>
   );
 };

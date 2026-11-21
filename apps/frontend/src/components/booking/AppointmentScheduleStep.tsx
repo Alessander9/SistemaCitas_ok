@@ -6,10 +6,11 @@ import { SelectedAppointment } from './SelectedAppointment';
 import { WeekCalendar } from './WeekCalendar';
 import { WeekNavigation } from './WeekNavigation';
 import { IconCalendar } from '../ui/Icons';
-import { IconClock, IconLocation } from './AppointmentIcons';
+import { IconCheck, IconClock, IconLocation, IconMoon, IconSun, IconSunrise } from './AppointmentIcons';
 import {
   buildAvailabilityIndex,
   buildCalendarMonth,
+  buildDayAvailability,
   buildWeekAvailability,
   findSlot,
   toSlotAvailabilityList,
@@ -19,6 +20,7 @@ import {
   addMonths,
   buildMonthWeeks,
   formatLongDate,
+  formatTime12,
   formatTimeRange,
   startOfWeek,
   todayIso,
@@ -164,9 +166,27 @@ export const AppointmentScheduleStep: React.FC<AppointmentScheduleStepProps> = (
     [weekStart, weekSlots, selectedDate, today],
   );
 
+  const allSlots = useMemo(() => {
+    if (weekSlots.length === 0) return monthSlots;
+    if (monthSlots.length === 0) return weekSlots;
+    const map = new Map<string, SlotAvailability>();
+    for (const s of monthSlots) {
+      map.set(`${s.date}_${s.startTime}`, s);
+    }
+    for (const s of weekSlots) {
+      map.set(`${s.date}_${s.startTime}`, s);
+    }
+    return Array.from(map.values());
+  }, [monthSlots, weekSlots]);
+
   const selectedDay = week.days.find((day) => day.date === selectedDate) ?? null;
-  const selectedSlot = findSlot(weekSlots, selectedDate, selectedTime);
+  const selectedSlot = findSlot(allSlots, selectedDate, selectedTime);
   const isComplete = Boolean(selectedDate && selectedTime && selectedSlot);
+
+  const dayAvailability = useMemo(
+    () => (selectedDate ? buildDayAvailability({ date: selectedDate, slots: allSlots }) : null),
+    [selectedDate, allSlots],
+  );
 
   const summaryItems: BookingSummaryItem[] = [
     {
@@ -228,8 +248,8 @@ export const AppointmentScheduleStep: React.FC<AppointmentScheduleStepProps> = (
                 {selectedDate ? formatLongDate(selectedDate) : 'Elige una fecha en el calendario'}
               </h3>
               <p className="apx-daypanel__count">
-                {selectedDate && selectedDay
-                  ? `${selectedDay.availableCount} horarios disponibles`
+                {selectedDate
+                  ? `${dayAvailability?.availableCount ?? selectedDay?.availableCount ?? 0} horarios disponibles`
                   : 'Los horarios publicados de ese día aparecerán aquí.'}
               </p>
             </div>
@@ -238,40 +258,109 @@ export const AppointmentScheduleStep: React.FC<AppointmentScheduleStepProps> = (
           <div className="apx-daypanel__stats">
             <div className="apx-stat">
               <span className="apx-stat__icon" aria-hidden="true">
-                <IconCalendar size={18} />
+                <IconCalendar size={14} />
               </span>
-              <strong>{selectedDay?.availableCount ?? 0}</strong>
-              <span>Horarios disponibles</span>
+              <div className="apx-stat__info">
+                <strong>{dayAvailability?.availableCount ?? selectedDay?.availableCount ?? 0}</strong>
+                <span>Horarios disponibles</span>
+              </div>
             </div>
 
             <div className="apx-stat">
               <span className="apx-stat__icon" aria-hidden="true">
-                <IconClock size={18} />
+                <IconClock size={14} />
               </span>
-              <strong>{service.durationMinutes} min</strong>
-              <span>Duración del servicio</span>
+              <div className="apx-stat__info">
+                <strong>{service.durationMinutes} min</strong>
+                <span>Duración del servicio</span>
+              </div>
             </div>
 
             <div className="apx-stat">
               <span className="apx-stat__icon" aria-hidden="true">
-                <IconLocation size={18} />
+                <IconLocation size={14} />
               </span>
-              <strong>{location}</strong>
-              <span>Sede de atención</span>
+              <div className="apx-stat__info">
+                <strong title={location}>{location}</strong>
+                <span>Sede de atención</span>
+              </div>
             </div>
           </div>
 
-          <div className="apx-daypanel__hint">
-            <span className="apx-daypanel__hint-icon" aria-hidden="true">
-              <IconClock size={20} />
-            </span>
-            <div>
-              <strong>Selecciona un horario en el calendario semanal</strong>
-              <p>
-                Haz clic en el turno que prefieras. Cada turno ocupa la duración real del servicio.
-              </p>
+          {dayAvailability && dayAvailability.groups.length > 0 ? (
+            <div className="apx-daypanel__slots" aria-label="Horarios disponibles del día">
+              <div className="apx-daypanel__slots-header">
+                <span className="apx-daypanel__slots-instruction">
+                  Elige tu turno directamente aquí:
+                </span>
+                {selectedTime && (
+                  <span className="apx-daypanel__selected-pill">
+                    <IconCheck size={12} /> {formatTime12(selectedTime)} seleccionado
+                  </span>
+                )}
+              </div>
+              {dayAvailability.groups.map((group) => {
+                const GroupIcon =
+                  group.id === 'morning' ? IconSunrise : group.id === 'afternoon' ? IconSun : IconMoon;
+                return (
+                  <div key={group.id} className="apx-daypanel-group">
+                    <div className="apx-daypanel-group__header">
+                      <span className="apx-daypanel-group__title">
+                        <GroupIcon size={15} />
+                        <strong>{group.label}</strong>
+                        <span className="apx-daypanel-group__hours">({group.rangeLabel})</span>
+                      </span>
+                      <span className="apx-daypanel-group__count">
+                        {group.availableCount} {group.availableCount === 1 ? 'cupo' : 'cupos'}
+                      </span>
+                    </div>
+                    <div className="apx-daypanel-group__pills">
+                      {group.slots.map((slot) => {
+                        const isSelected = slot.date === selectedDate && slot.startTime === selectedTime;
+                        const isBookable = slot.state === 'available' || isSelected;
+                        return (
+                          <button
+                            key={slot.slotId}
+                            type="button"
+                            disabled={!isBookable}
+                            aria-pressed={isSelected}
+                            className={`apx-time-pill ${isSelected ? 'is-selected' : ''} ${!isBookable ? 'is-disabled' : ''}`}
+                            onClick={() => handleSelectTime(slot)}
+                            title={
+                              !isBookable
+                                ? 'Horario no disponible'
+                                : `Reservar a las ${formatTime12(slot.startTime)}`
+                            }
+                          >
+                            {isSelected && <IconCheck size={13} />}
+                            <span>{formatTime12(slot.startTime)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          ) : (
+            <div className="apx-daypanel__hint">
+              <span className="apx-daypanel__hint-icon" aria-hidden="true">
+                <IconClock size={20} />
+              </span>
+              <div>
+                <strong>
+                  {selectedDate
+                    ? 'Sin horarios publicados para este día'
+                    : 'Selecciona una fecha en el calendario'}
+                </strong>
+                <p>
+                  {selectedDate
+                    ? 'Prueba seleccionando otro día marcado con punto verde en el calendario.'
+                    : 'Haz clic en una fecha disponible para ver los turnos de mañana, tarde y noche.'}
+                </p>
+              </div>
+            </div>
+          )}
         </section>
       </div>
 
@@ -322,7 +411,7 @@ export const AppointmentScheduleStep: React.FC<AppointmentScheduleStepProps> = (
             specialtyName={specialty.name}
             specialtyIconKey={specialty.icon}
             location={location}
-            priceLabel={`${service.currency === 'PEN' ? 'S/' : service.currency} ${service.price.toFixed(2)}`}
+            priceLabel={`S/ ${service.price.toFixed(2)}`}
             onEdit={isComplete ? onEdit : undefined}
           />
         </div>

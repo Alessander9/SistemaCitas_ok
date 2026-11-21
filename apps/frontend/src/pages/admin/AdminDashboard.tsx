@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './AdminDashboard.css';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 
 interface AdminDashboardProps {
   userRole?: string;
@@ -84,7 +85,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Header Banner */}
       <header className="dashboard-header">
         <div className="dashboard-welcome">
-          <div className="user-avatar-badge">👨‍⚕️</div>
+          <div className="user-avatar-badge" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MaterialIcon name="person" size={24} />
+          </div>
           <div>
             <div className="badge-role">
               <span className="dot-online"></span>
@@ -100,22 +103,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             type="button"
             className="btn-dash-action cta"
             onClick={() => onNavigate('clinical-consultation')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            🩺 Nueva Consulta Clínica (EVA)
+            <MaterialIcon name="medical_services" size={16} />
+            <span>Nueva Consulta Clínica (EVA)</span>
           </button>
           <button
             type="button"
             className="btn-dash-action"
             onClick={() => onNavigate('booking')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            📅 Agendar Nueva Cita
+            <MaterialIcon name="calendar_today" size={16} />
+            <span>Agendar Nueva Cita</span>
           </button>
           <button
             type="button"
             className="btn-dash-logout"
             onClick={onLogout}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            🚪 Cerrar Sesión
+            <MaterialIcon name="logout" size={16} />
+            <span>Cerrar Sesión</span>
           </button>
         </div>
       </header>
@@ -125,7 +134,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="kpi-card teal">
           <div className="kpi-header">
             <span className="kpi-title">Citas de Hoy</span>
-            <span className="kpi-icon">📅</span>
+            <span className="kpi-icon"><MaterialIcon name="calendar_today" size={20} /></span>
           </div>
           <div className="kpi-value">14</div>
           <div className="kpi-footer">
@@ -136,7 +145,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="kpi-card blue">
           <div className="kpi-header">
             <span className="kpi-title">Ingresos Caja Hoy</span>
-            <span className="kpi-icon">💰</span>
+            <span className="kpi-icon"><MaterialIcon name="payments" size={20} /></span>
           </div>
           <div className="kpi-value">S/ 1,420.00</div>
           <div className="kpi-footer">
@@ -147,7 +156,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="kpi-card indigo">
           <div className="kpi-header">
             <span className="kpi-title">Pacientes Atendidos</span>
-            <span className="kpi-icon">👥</span>
+            <span className="kpi-icon"><MaterialIcon name="groups" size={20} /></span>
           </div>
           <div className="kpi-value">8 / 14</div>
           <div className="kpi-footer">
@@ -158,7 +167,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="kpi-card amber">
           <div className="kpi-header">
             <span className="kpi-title">Alertas de Inventario</span>
-            <span className="kpi-icon">📦</span>
+            <span className="kpi-icon"><MaterialIcon name="inventory_2" size={20} /></span>
           </div>
           <div className="kpi-value">2</div>
           <div className="kpi-footer">
@@ -169,10 +178,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* Operational Modules Quick Navigation */}
       <section className="dashboard-section">
-        <h2 className="section-heading">⚡ Módulos y Operaciones Clínicas</h2>
+        <h2 className="section-heading" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <MaterialIcon name="bolt" size={22} color="#0284c7" />
+          <span>Módulos y Operaciones Clínicas</span>
+        </h2>
         <div className="modules-grid">
           <div className="module-card" onClick={() => onNavigate('clinical-consultation')}>
-            <div className="module-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>🩺</div>
+            <div className="module-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcon name="medical_services" size={24} />
+            </div>
             <div className="module-info">
               <h3>Historia Clínica & Escala EVA</h3>
               <p>Registro de anamnesis, dolor 0-10, diagnósticos CIE-10 y prescripciones médicas.</p>
@@ -181,7 +195,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="module-card" onClick={() => onNavigate('cash-register')}>
-            <div className="module-icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>🏦</div>
+            <div className="module-icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcon name="point_of_sale" size={24} />
+            </div>
             <div className="module-info">
               <h3>Caja Chica & Arqueo Diario</h3>
               <p>Apertura, cobro de citas, registro de egresos, cálculo de sobrantes/faltantes y cierre.</p>
@@ -190,7 +206,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="module-card" onClick={() => onNavigate('inventory')}>
-            <div className="module-icon" style={{ background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8' }}>📦</div>
+            <div className="module-icon" style={{ background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcon name="inventory_2" size={24} />
+            </div>
             <div className="module-info">
               <h3>Kardex de Inventario</h3>
               <p>Control de insumos médicos, movimientos de entrada/salida y alertas de stock mínimo.</p>
@@ -199,7 +217,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="module-card" onClick={() => onNavigate('communications')}>
-            <div className="module-icon" style={{ background: 'rgba(13, 148, 136, 0.2)', color: '#2dd4bf' }}>✉️</div>
+            <div className="module-icon" style={{ background: 'rgba(13, 148, 136, 0.2)', color: '#2dd4bf', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcon name="mail" size={24} />
+            </div>
             <div className="module-info">
               <h3>Emails & Recordatorios 24h</h3>
               <p>Editor de plantillas dinámicas, auditoría de envíos y disparador del barrido de recordatorios.</p>
@@ -208,7 +228,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="module-card" onClick={() => onNavigate('telegram-bot')}>
-            <div className="module-icon" style={{ background: 'rgba(2, 132, 199, 0.2)', color: '#38bdf8' }}>🤖</div>
+            <div className="module-icon" style={{ background: 'rgba(2, 132, 199, 0.2)', color: '#38bdf8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcon name="smart_toy" size={24} />
+            </div>
             <div className="module-info">
               <h3>Bot de Telegram</h3>
               <p>Vinculación de cuentas médicas mediante código /start, comandos /hoy y alertas push.</p>
@@ -217,7 +239,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="module-card" onClick={() => onNavigate('patient-portal')}>
-            <div className="module-icon" style={{ background: 'rgba(236, 72, 153, 0.2)', color: '#f472b6' }}>👤</div>
+            <div className="module-icon" style={{ background: 'rgba(236, 72, 153, 0.2)', color: '#f472b6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcon name="person" size={24} />
+            </div>
             <div className="module-info">
               <h3>Portal del Paciente</h3>
               <p>Vista del paciente con historial de citas, descarga de recetas y comprobantes de pago.</p>
@@ -231,7 +255,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <section className="dashboard-section">
         <div className="section-header-flex">
           <div>
-            <h2 className="section-heading">📋 Agenda en Vivo de Hoy</h2>
+            <h2 className="section-heading" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <MaterialIcon name="assignment" size={22} color="#0284c7" />
+              <span>Agenda en Vivo de Hoy</span>
+            </h2>
             <p className="section-subtext">Citas programadas para la fecha actual · 02 de Septiembre, 2026</p>
           </div>
           <div className="tab-filters">
@@ -288,16 +315,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         className="btn-table-action primary"
                         title="Atender en Consulta"
                         onClick={() => onNavigate('clinical-consultation')}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        🩺 Atender
+                        <MaterialIcon name="medical_services" size={14} />
+                        <span>Atender</span>
                       </button>
                       <button
                         type="button"
                         className="btn-table-action secondary"
                         title="Cobrar en Caja"
                         onClick={() => onNavigate('cash-register')}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        💳 Cobro
+                        <MaterialIcon name="credit_card" size={14} />
+                        <span>Cobro</span>
                       </button>
                     </div>
                   </td>

@@ -43,8 +43,8 @@ export async function createClinic(pool: Pool, overrides: ClinicData = {}): Prom
     phone: overrides.phone ?? '+54 11 0000-0000',
     email: overrides.email ?? `test${clinicCounter}@clinic.com`,
     address: overrides.address ?? 'Calle Falsa 123',
-    timezone: overrides.timezone ?? 'America/Buenos_Aires',
-    currency: overrides.currency ?? 'ARS',
+    timezone: overrides.timezone ?? 'America/Lima',
+    currency: overrides.currency ?? 'PEN',
     is_active: overrides.is_active ?? true,
   });
 }

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import './ClinicalConsultationView.css';
+import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import {
   VoiceConsultationAssistant,
   ParsedClinicalVoiceData,
@@ -127,7 +128,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
     }
 
     if (updatedNames.length > 0) {
-      setVoiceBannerMsg(`🎙️ Campos autollenados por voz: ${updatedNames.join(', ')}`);
+      setVoiceBannerMsg(`Campos autollenados por voz: ${updatedNames.join(', ')}`);
       setTimeout(() => setVoiceBannerMsg(null), 3500);
     }
   }, [triggerHighlight]);
@@ -212,11 +213,11 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
             <button
               type="button"
               className="btn-action-ghost"
-              style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 800, background: '#faf5ff', borderColor: '#e9d5ff', color: '#7c3aed' }}
+              style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 800, background: '#faf5ff', borderColor: '#e9d5ff', color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               onClick={onNavigateToBooking}
               title="Agendar próxima sesión o interconsulta para este paciente"
             >
-              📅 Agendar Siguiente Cita ↗
+              <MaterialIcon name="calendar_today" size={16} /> Agendar Siguiente Cita ↗
             </button>
           )}
 
@@ -224,24 +225,24 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
             <button
               type="button"
               className="btn-action-ghost"
-              style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 800, background: '#f0fdf4', borderColor: '#bbf7d0', color: '#16a34a' }}
+              style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 800, background: '#f0fdf4', borderColor: '#bbf7d0', color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               onClick={onNavigateToCash}
               title="Derivar al paciente para cobro en caja chica"
             >
-              💵 Derivar a Caja ↗
+              <MaterialIcon name="payments" size={16} /> Derivar a Caja ↗
             </button>
           )}
 
           <button
             type="button"
             className="btn-action-ghost"
-            style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 700 }}
+            style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
             onClick={() => {
               window.print();
             }}
             title="Imprimir receta médica o ficha de atención"
           >
-            🖨️ Imprimir
+            <MaterialIcon name="print" size={16} /> Imprimir
           </button>
         </div>
       </div>
@@ -263,14 +264,14 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-            <span className="clinical-tag" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626' }}>
-              🛡️ Alergias: Ninguna
+            <span className="clinical-tag" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <MaterialIcon name="security" size={14} /> Alergias: Ninguna
             </span>
-            <span className="clinical-tag" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7' }}>
-              🩸 Grupo: O+
+            <span className="clinical-tag" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <MaterialIcon name="water_drop" size={14} /> Grupo: O+
             </span>
-            <span className="clinical-tag" style={{ background: '#f5f3ff', borderColor: '#ddd6fe', color: '#7c3aed' }}>
-              💎 Particular
+            <span className="clinical-tag" style={{ background: '#f5f3ff', borderColor: '#ddd6fe', color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <MaterialIcon name="star" size={14} /> Particular
             </span>
           </div>
 
@@ -292,13 +293,13 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '0.35rem' }}>
               <div className="vital-box-item">
                 <span style={{ fontSize: '0.68rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 700 }}>
-                  💓 Presión (PA)
+                  <MaterialIcon name="favorite" size={14} color="#e11d48" /> Presión (PA)
                 </span>
                 <strong style={{ fontSize: '0.86rem', color: '#0f172a', display: 'block', marginTop: '2px' }}>120/80 mmHg</strong>
               </div>
               <div className="vital-box-item">
                 <span style={{ fontSize: '0.68rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 700 }}>
-                  🌡️ Temperatura
+                  <MaterialIcon name="device_thermostat" size={14} color="#d97706" /> Temperatura
                 </span>
                 <strong style={{ fontSize: '0.86rem', color: '#0f172a', display: 'block', marginTop: '2px' }}>36.6 °C</strong>
               </div>
@@ -317,14 +318,14 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
         <main className="clinical-main-card">
           {savedSuccess && (
             <div className="success-banner-custom">
-              <span style={{ fontSize: '1.25rem' }}>✓</span>
+              <MaterialIcon name="check_circle" size={20} color="#16a34a" />
               <span>Atención médica y evolución registradas exitosamente en la historia clínica del paciente.</span>
             </div>
           )}
 
           {voiceBannerMsg && (
             <div className="success-banner-custom" style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', borderColor: '#7dd3fc', color: '#0369a1' }}>
-              <span style={{ fontSize: '1.2rem' }}>🎙️</span>
+              <MaterialIcon name="mic" size={20} color="#0284c7" />
               <span>{voiceBannerMsg}</span>
             </div>
           )}
@@ -336,21 +337,21 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
               className={`clinical-tab-btn ${activeTab === 'evolucion' ? 'active' : ''}`}
               onClick={() => setActiveTab('evolucion')}
             >
-              <span>📋</span> Historia Clínica & Consulta
+              <MaterialIcon name="assignment" size={16} /> Historia Clínica & Consulta
             </button>
             <button
               type="button"
               className={`clinical-tab-btn ${activeTab === 'sesion' ? 'active' : ''}`}
               onClick={() => setActiveTab('sesion')}
             >
-              <span>⚡</span> Evolución de Sesión Terapéutica
+              <MaterialIcon name="bolt" size={16} /> Evolución de Sesión Terapéutica
             </button>
             <button
               type="button"
               className={`clinical-tab-btn ${activeTab === 'receta' ? 'active' : ''}`}
               onClick={() => setActiveTab('receta')}
             >
-              <span>💊</span> Receta Médica Digital
+              <MaterialIcon name="medication" size={16} /> Receta Médica Digital
             </button>
           </div>
 
@@ -362,7 +363,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                 <div className="clinical-section-card">
                   <div className="clinical-section-header">
                     <h4 className="clinical-section-title">
-                      <span>🎯</span>
+                      <MaterialIcon name="my_location" size={18} color="#0284c7" />
                       Motivo de Consulta & Anamnesis
                     </h4>
                     <span className="clinical-tag" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0369a1' }}>
@@ -469,7 +470,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                 <div className="clinical-section-card">
                   <div className="clinical-section-header">
                     <h4 className="clinical-section-title">
-                      <span>📋</span>
+                      <MaterialIcon name="assignment" size={18} color="#7c3aed" />
                       Diagnóstico Clínico (CIE-10) & Plan de Tratamiento
                     </h4>
                     <span className="clinical-tag" style={{ background: '#f5f3ff', borderColor: '#ddd6fe', color: '#7c3aed' }}>
@@ -514,7 +515,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                 <div className="clinical-section-card">
                   <div className="clinical-section-header">
                     <h4 className="clinical-section-title">
-                      <span>🩺</span>
+                      <MaterialIcon name="medical_services" size={18} color="#15803d" />
                       Evolución del Dolor en la Sesión (Antes vs Después)
                     </h4>
                     <span className="clinical-tag" style={{ background: '#ecfdf5', borderColor: '#86efac', color: '#15803d' }}>
@@ -561,7 +562,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                 <div className={`clinical-section-card ${highlightedFields.techniques ? 'voice-filled-highlight' : ''}`}>
                   <div className="clinical-section-header">
                     <h4 className="clinical-section-title">
-                      <span>⚡</span>
+                      <MaterialIcon name="bolt" size={18} color="#0284c7" />
                       Técnicas y Procedimientos Aplicados en la Sesión
                     </h4>
                     <span className="clinical-tag" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7' }}>
@@ -576,8 +577,10 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                         type="button"
                         className={`technique-chip ${selectedTechniques.includes(tech) ? 'selected' : ''}`}
                         onClick={() => toggleTechnique(tech)}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        {selectedTechniques.includes(tech) ? '✓ ' : '+ '}{tech}
+                        <MaterialIcon name={selectedTechniques.includes(tech) ? "check" : "add"} size={14} />
+                        <span>{tech}</span>
                       </button>
                     ))}
                   </div>
@@ -587,7 +590,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                 <div className="clinical-section-card">
                   <div className="clinical-section-header">
                     <h4 className="clinical-section-title">
-                      <span>📝</span>
+                      <MaterialIcon name="edit_note" size={18} color="#0284c7" />
                       Evolución y Observaciones de la Sesión
                     </h4>
                     <span className="clinical-tag">HISTORIAL</span>
@@ -616,7 +619,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                 <div className={`clinical-section-card ${highlightedFields.medications ? 'voice-filled-highlight' : ''}`}>
                   <div className="clinical-section-header">
                     <h4 className="clinical-section-title">
-                      <span>💊</span>
+                      <MaterialIcon name="medication" size={18} color="#0284c7" />
                       Medicamentos Prescritos
                     </h4>
                     <button
@@ -697,8 +700,9 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                         className="btn-rx-delete"
                         title="Eliminar medicamento"
                         onClick={() => setMedications(medications.filter((_, i) => i !== idx))}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
-                        ✕
+                        <MaterialIcon name="close" size={16} />
                       </button>
                     </div>
                   ))}
@@ -707,8 +711,8 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                 {/* Sello de Firma Digital */}
                 <div className="clinical-section-card" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)', borderColor: '#86efac' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#15803d', fontSize: '1.35rem', boxShadow: '0 2px 6px rgba(22, 163, 74, 0.2)' }}>
-                      ✍️
+                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#15803d', boxShadow: '0 2px 6px rgba(22, 163, 74, 0.2)' }}>
+                      <MaterialIcon name="draw" size={24} color="#15803d" />
                     </div>
                     <div>
                       <strong style={{ color: '#14532d', fontSize: '0.92rem', display: 'block' }}>
@@ -741,9 +745,13 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
                   fontSize: '0.88rem',
                   fontWeight: 900,
                   boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
                 }}
               >
-                💾 Guardar Ficha y Evolución
+                <MaterialIcon name="save" size={18} />
+                <span>Guardar Ficha y Evolución</span>
               </button>
             </div>
           </form>

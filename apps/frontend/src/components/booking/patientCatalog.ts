@@ -235,7 +235,7 @@ export function validatePatientForm(values: PatientFormValues): PatientFormValid
 
 /**
  * True when a field can already show its "valid" mark: filled and passing its
- * own rule. Used for the ✓ feedback without waiting for a submit attempt.
+ * own rule. Used for the check feedback without waiting for a submit attempt.
  */
 export function isPatientFieldValid(values: PatientFormValues, field: PatientFieldId): boolean {
   switch (field) {

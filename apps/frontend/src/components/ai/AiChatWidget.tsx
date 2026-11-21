@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { MaterialIcon } from '../ui/MaterialIcon';
 import './AiChatWidget.css';
 
 export interface AiSuggestedAction {
@@ -32,16 +33,16 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
     {
       id: 'msg-welcome',
       sender: 'bot',
-      text: '¡Hola! 👋 Soy el asistente virtual de la Clínica VitalSalud.\n\nPuedo orientarte sobre nuestras terapias, precios, especialistas y ayudarte a agendar tu evaluación inicial en solo 2 minutos.',
+      text: '¡Hola! Soy el asistente virtual de la Clínica VitalSalud.\n\nPuedo orientarte sobre nuestras terapias, precios, especialistas y ayudarte a agendar tu evaluación inicial en solo 2 minutos.',
       time: 'Justo ahora',
       suggestedActions: [
-        { label: '💰 Ver Precios y Servicios', actionType: 'view_faq' },
+        { label: 'Ver Precios y Servicios', actionType: 'view_faq' },
         {
-          label: '📅 Reservar una Cita',
+          label: 'Reservar una Cita',
           actionType: 'book_service',
           payload: { specialtyId: 'spec-fisioterapia' },
         },
-        { label: '💬 WhatsApp de la Clínica', actionType: 'escalate_whatsapp' },
+        { label: 'WhatsApp de la Clínica', actionType: 'escalate_whatsapp' },
       ],
     },
   ]);
@@ -93,12 +94,12 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
           time,
           suggestedActions: [
             {
-              label: '📅 Agendar Evaluación en Fisioterapia',
+              label: 'Agendar Evaluación en Fisioterapia',
               actionType: 'book_service',
               payload: { specialtyId: 'spec-fisioterapia', serviceId: 'svc-fisioterapia' },
             },
             {
-              label: '💬 Consultar con Recepción (WhatsApp)',
+              label: 'Consultar con Recepción (WhatsApp)',
               actionType: 'escalate_whatsapp',
               payload: { phone: '+51987654321' },
             },
@@ -118,12 +119,12 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
           time,
           suggestedActions: [
             {
-              label: '📅 Agendar Terapia Manual (S/ 80)',
+              label: 'Agendar Terapia Manual (S/ 80)',
               actionType: 'book_service',
               payload: { specialtyId: 'spec-fisioterapia', serviceId: 'svc-terapia-manual' },
             },
             {
-              label: '📅 Agendar Rehabilitación (S/ 100)',
+              label: 'Agendar Rehabilitación (S/ 100)',
               actionType: 'book_service',
               payload: { specialtyId: 'spec-rehabilitacion', serviceId: 'svc-rehab-deportiva' },
             },
@@ -133,11 +134,11 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
         botReply = {
           id: `b_${Date.now()}`,
           sender: 'bot',
-          text: '📍 **Ubicación:** Av. Javier Prado Este 1234, San Isidro, Lima\n📞 **Teléfono:** +51 987 654 321\n💬 **WhatsApp:** +51 987 654 321\n⏰ **Horario:** Lunes a Sábado de 8:00 AM a 8:00 PM.',
+          text: 'Ubicación: Av. Javier Prado Este 1234, San Isidro, Lima\nTeléfono: +51 987 654 321\nWhatsApp: +51 987 654 321\nHorario: Lunes a Sábado de 8:00 AM a 8:00 PM.',
           time,
           suggestedActions: [
-            { label: '💬 Abrir WhatsApp', actionType: 'escalate_whatsapp', payload: { phone: '+51987654321' } },
-            { label: '📞 Llamar a Recepción', actionType: 'call_phone', payload: { phone: '+51987654321' } },
+            { label: 'Abrir WhatsApp', actionType: 'escalate_whatsapp', payload: { phone: '+51987654321' } },
+            { label: 'Llamar a Recepción', actionType: 'call_phone', payload: { phone: '+51987654321' } },
           ],
         };
       } else {
@@ -147,8 +148,8 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
           text: '¡Con gusto te ayudo! Puedes reservar tu cita médica en línea en solo 2 minutos seleccionando tu especialista y hora preferida.',
           time,
           suggestedActions: [
-            { label: '📅 Iniciar Reserva Online', actionType: 'book_service' },
-            { label: '💬 WhatsApp de Ayuda', actionType: 'escalate_whatsapp' },
+            { label: 'Iniciar Reserva Online', actionType: 'book_service' },
+            { label: 'WhatsApp de Ayuda', actionType: 'escalate_whatsapp' },
           ],
         };
       }
@@ -182,7 +183,9 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
           onClick={() => setIsOpen(true)}
           aria-label="Abrir Asistente Virtual"
         >
-          <span className="fab-icon">🤖</span>
+          <span className="fab-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MaterialIcon name="smart_toy" size={24} />
+          </span>
           <span className="fab-badge">Asistente IA</span>
         </button>
       )}
@@ -193,7 +196,9 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
           {/* Header */}
           <div className="ai-chat-header">
             <div className="ai-header-info">
-              <div className="ai-bot-avatar">🤖</div>
+              <div className="ai-bot-avatar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <MaterialIcon name="smart_toy" size={20} color="#ffffff" />
+              </div>
               <div>
                 <span className="ai-bot-name">Asistente Médico IA</span>
                 <span className="ai-online-status">● En línea · VitalSalud</span>
@@ -204,8 +209,9 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
               className="ai-close-btn"
               onClick={() => setIsOpen(false)}
               aria-label="Cerrar Asistente"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              ✕
+              <MaterialIcon name="close" size={18} />
             </button>
           </div>
 
@@ -250,13 +256,13 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
           {/* Quick Suggestions Chips */}
           <div className="ai-quick-chips">
             <button className="ai-chip" onClick={() => handleSendMessage('¿Cuáles son los precios?')}>
-              💰 Precios
+              <MaterialIcon name="payments" size={15} /> Precios
             </button>
             <button className="ai-chip" onClick={() => handleSendMessage('Tengo dolor de espalda')}>
-              🩺 Dolor muscular
+              <MaterialIcon name="medical_services" size={15} /> Dolor muscular
             </button>
             <button className="ai-chip" onClick={() => handleSendMessage('¿Dónde están ubicados?')}>
-              📍 Ubicación
+              <MaterialIcon name="location_on" size={15} /> Ubicación
             </button>
           </div>
 
@@ -276,8 +282,8 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
             />
-            <button id="btn-ai-send" type="submit" className="ai-send-button" aria-label="Enviar Mensaje">
-              ➤
+            <button id="btn-ai-send" type="submit" className="ai-send-button" aria-label="Enviar Mensaje" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcon name="send" size={18} />
             </button>
           </form>
         </div>
