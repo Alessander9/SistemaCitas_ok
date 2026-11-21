@@ -256,13 +256,20 @@
 }
 
 .pain-main-columns-layout.mode-3d {
-  grid-template-columns: minmax(0, 2.45fr) minmax(290px, 0.72fr);
+  grid-template-columns: minmax(0, 1.75fr) minmax(375px, 1fr);
   gap: 1.25rem;
 }
 
 .pain-main-columns-layout.mode-3d-expanded {
   grid-template-columns: 1fr;
   gap: 1.25rem;
+}
+
+@media (max-width: 1180px) {
+  .pain-main-columns-layout,
+  .pain-main-columns-layout.mode-3d {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 900px) {
@@ -676,6 +683,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .pain-field-label {
@@ -686,16 +695,17 @@
 
 .pain-eva-indicator-badge {
   color: #ffffff;
-  font-size: 0.74rem;
+  font-size: 0.73rem;
   font-weight: 800;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .pain-eva-selector {
   display: grid;
-  grid-template-columns: repeat(11, 1fr);
-  gap: 3px;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 4px;
 }
 
 .pain-eva-btn {
@@ -703,11 +713,12 @@
   background: #ffffff;
   border-radius: 6px;
   padding: 0.45rem 0;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 800;
   color: #334155;
   cursor: pointer;
   transition: all 120ms ease;
+  min-width: 0;
 }
 
 .pain-eva-btn:hover {
@@ -723,6 +734,8 @@
   border-radius: 8px;
   padding: 3px;
   gap: 3px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pain-segment-btn {
@@ -730,12 +743,15 @@
   background: transparent;
   padding: 0.45rem 0.5rem;
   border-radius: 6px;
-  font-size: 0.78rem;
+  font-size: 0.77rem;
   font-weight: 700;
   color: #64748b;
   cursor: pointer;
   transition: all 140ms ease;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pain-segment-btn.active {
@@ -758,14 +774,8 @@
 
 .pain-form-row-2col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-@media (max-width: 600px) {
-  .pain-form-row-2col {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.85rem;
 }
 
 .pain-chips-selector {

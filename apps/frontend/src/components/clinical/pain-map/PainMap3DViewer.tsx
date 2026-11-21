@@ -624,9 +624,9 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
 
     const fit = (view: string, extent = 0) => {
       const cw = el.clientWidth || 760;
-      const ch = el.clientHeight || 650;
+      const ch = el.clientHeight || 680;
       const mobile = cw < 768;
-      const normalDistance = mobile ? 3.2 : 2.55;
+      const normalDistance = mobile ? 3.55 : 3.18;
       const reservedHeight = mobile ? 220 : 160;
       const availableAspect = Math.max(
         0.35,
@@ -1171,16 +1171,11 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
       <div className="human-atlas-topbar">
         <div className="human-atlas-brand">
           <span className="human-atlas-live-dot" />
-          <div>
-            <div className="human-atlas-title-row">
-              <strong>Human Atlas 3D · BodyParts3D</strong>
-              <span className="human-atlas-badge">
-                {atlas ? `${atlas.parts.length.toLocaleString()} piezas` : '2,234 piezas'} · 3,432 FMA
-              </span>
-            </div>
-            <p className="human-atlas-meta-sub">
-              {visiblePieceCount.toLocaleString()} estructuras visibles · Haz clic en cualquier músculo, hueso, tendón o nervio
-            </p>
+          <div className="human-atlas-title-row">
+            <strong>Human Atlas 3D · BodyParts3D</strong>
+            <span className="human-atlas-badge">
+              {visiblePieceCount.toLocaleString()} / {atlas ? atlas.parts.length.toLocaleString() : '2,234'} piezas · 3,432 FMA
+            </span>
           </div>
         </div>
 

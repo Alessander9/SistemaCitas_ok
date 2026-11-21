@@ -91,7 +91,7 @@ export const PainPointForm: React.FC<PainPointFormProps> = ({
     if (score <= 3) return 'Dolor Leve (1-3/10)';
     if (score <= 6) return 'Dolor Moderado (4-6/10)';
     if (score <= 8) return 'Dolor Severo (7-8/10)';
-    return 'Dolor Crítico / Insupportable (9-10/10)';
+    return 'Dolor Crítico (9-10/10)';
   };
 
   const togglePainType = (typeId: string) => {

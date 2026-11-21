@@ -193,27 +193,27 @@ export interface ClinicalLayerPreset {
 export const CLINICAL_LAYER_PRESETS: ClinicalLayerPreset[] = [
   {
     id: 'musculoskeletal',
-    label: 'Fisioterapia (Músculo-Esquelético)',
+    label: 'Músculo-Esquelético',
     systems: ['skeletal', 'muscular', 'connective', 'nervous', 'integumentary'],
   },
   {
     id: 'myofascial',
-    label: 'Músculos, Tendones y Nervios',
+    label: 'Miofascial y Nervios',
     systems: ['muscular', 'connective', 'nervous'],
   },
   {
     id: 'skeletal',
-    label: 'Esqueleto y Articulaciones',
+    label: 'Esqueleto',
     systems: ['skeletal', 'connective'],
   },
   {
     id: 'organs',
-    label: 'Órganos Internos',
+    label: 'Órganos',
     systems: ['cardiac', 'respiratory', 'digestive', 'urinary', 'endocrine', 'reproductive'],
   },
   {
     id: 'all',
-    label: 'Todos (15 Sistemas · 2,234 piezas)',
+    label: 'Todos (2,234)',
     systems: ATLAS_SYSTEMS.map((s) => s.id),
   },
 ];
@@ -351,8 +351,17 @@ export class PointerTap {
  * para búsqueda bilingüe e inspección médica.
  */
 const ANATOMICAL_ES_DICTIONARY: [RegExp, string][] = [
-  [/\bright\b/gi, 'Derecho/a'],
-  [/\bleft\b/gi, 'Izquierdo/a'],
+  [/\biliocostalis lumborum\b/gi, 'Músculo Iliocostal Lumbar'],
+  [/\biliocostalis thoracis\b/gi, 'Músculo Iliocostal Torácico'],
+  [/\biliocostalis cervicis\b/gi, 'Músculo Iliocostal Cervical'],
+  [/\biliocostalis\b/gi, 'Músculo Iliocostal'],
+  [/\blongissimus thoracis\b/gi, 'Músculo Longísimo Torácico'],
+  [/\blongissimus cervicis\b/gi, 'Músculo Longísimo Cervical'],
+  [/\blongissimus capitis\b/gi, 'Músculo Longísimo de la Cabeza'],
+  [/\blongissimus\b/gi, 'Músculo Longísimo'],
+  [/\bspinalis\b/gi, 'Músculo Espinoso'],
+  [/\bmultifidus\b/gi, 'Músculo Multífido'],
+  [/\berector spinae\b/gi, 'Músculo Erector de la Columna'],
   [/\bsupraspinatus\b/gi, 'Músculo Supraespinoso'],
   [/\binfraspinatus\b/gi, 'Músculo Infraespinoso'],
   [/\bsubscapularis\b/gi, 'Músculo Subescapular'],
@@ -360,25 +369,30 @@ const ANATOMICAL_ES_DICTIONARY: [RegExp, string][] = [
   [/\bteres major\b/gi, 'Músculo Redondo Mayor'],
   [/\bdeltoid\b/gi, 'Músculo Deltoides'],
   [/\btrapezius\b/gi, 'Músculo Trapecio'],
-  [/\bsternocleidomastoid\b/gi, 'Músculo Esternocleidomastoideo (ECOM)'],
+  [/\bsternocleidomastoid\b/gi, 'Esternocleidomastoideo (ECOM)'],
   [/\bscalene|scalenus\b/gi, 'Músculo Escaleno'],
   [/\blevator scapulae\b/gi, 'Elevador de la Escápula'],
+  [/\brhomboid major\b/gi, 'Músculo Romboides Mayor'],
+  [/\brhomboid minor\b/gi, 'Músculo Romboides Menor'],
   [/\brhomboid\b/gi, 'Músculo Romboides'],
-  [/\blatissimus dorsi\b/gi, 'Dorsal Ancho'],
+  [/\blatissimus dorsi\b/gi, 'Músculo Dorsal Ancho'],
   [/\bpectoralis major\b/gi, 'Pectoral Mayor'],
   [/\bpectoralis minor\b/gi, 'Pectoral Menor'],
   [/\bserratus anterior\b/gi, 'Serrato Anterior'],
+  [/\bserratus posterior\b/gi, 'Serrato Posterior'],
   [/\bbiceps brachii\b/gi, 'Bíceps Braquial'],
   [/\btriceps brachii\b/gi, 'Tríceps Braquial'],
   [/\bbrachialis\b/gi, 'Músculo Braquial'],
+  [/\bcoracobrachialis\b/gi, 'Músculo Coracobraquial'],
   [/\bbrachioradialis\b/gi, 'Braquiorradial (Supinador Largo)'],
   [/\bpronator teres\b/gi, 'Pronador Redondo'],
   [/\brectus abdominis\b/gi, 'Recto Abdominal'],
-  [/\bexternal oblique\b/gi, 'Oblicuo Externo'],
-  [/\binternal oblique\b/gi, 'Oblicuo Interno'],
+  [/\bexternal oblique\b/gi, 'Oblicuo Externo del Abdomen'],
+  [/\binternal oblique\b/gi, 'Oblicuo Interno del Abdomen'],
   [/\btransversus abdominis\b/gi, 'Transverso del Abdomen'],
-  [/\bquadratus lumborum\b/gi, 'Cuadrado Lumbar'],
-  [/\bpsoas major|iliopsoas\b/gi, 'Psoas Ilíaco'],
+  [/\bquadratus lumborum\b/gi, 'Músculo Cuadrado Lumbar'],
+  [/\bpsoas major|iliopsoas\b/gi, 'Músculo Psoas Ilíaco'],
+  [/\bpsoas minor\b/gi, 'Músculo Psoas Menor'],
   [/\biliacus\b/gi, 'Músculo Ilíaco'],
   [/\bgluteus maximus\b/gi, 'Glúteo Mayor'],
   [/\bgluteus medius\b/gi, 'Glúteo Medio'],
@@ -436,13 +450,31 @@ const ANATOMICAL_ES_DICTIONARY: [RegExp, string][] = [
 ];
 
 export function translateAtlasNameEs(englishName: string): string {
-  let translated = englishName;
+  let sideSuffix = '';
+  let base = englishName.trim();
+
+  if (/^right\b/i.test(base)) {
+    sideSuffix = ' Derecho';
+    base = base.replace(/^right\s+/i, '');
+  } else if (/^left\b/i.test(base)) {
+    sideSuffix = ' Izquierdo';
+    base = base.replace(/^left\s+/i, '');
+  } else if (/\bof right\b/i.test(base)) {
+    sideSuffix = ' (Derecho)';
+    base = base.replace(/\bof right\b/gi, 'de');
+  } else if (/\bof left\b/i.test(base)) {
+    sideSuffix = ' (Izquierdo)';
+    base = base.replace(/\bof left\b/gi, 'de');
+  }
+
   for (const [regex, replacement] of ANATOMICAL_ES_DICTIONARY) {
-    if (regex.test(translated)) {
-      translated = translated.replace(regex, replacement);
+    if (regex.test(base)) {
+      base = base.replace(regex, replacement);
     }
   }
-  return translated;
+
+  base = base.replace(/\bright\b/gi, 'Derecho').replace(/\bleft\b/gi, 'Izquierdo');
+  return `${base.charAt(0).toUpperCase()}${base.slice(1)}${sideSuffix}`.trim();
 }
 
 export interface ClinicalAtlasMapping {
