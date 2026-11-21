@@ -864,7 +864,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
           const selected = selection.has(p.id);
           const isVis = s.isolate ? selected : visible.has(p.system) || selected;
           data.set([dx, dy, dz, isVis ? 1 : 0], i * 4);
-          selectedData[i * 4] = selected ? 255 : 0;
+          selectedData[i * 4] = selected && !s.isolate ? 255 : 0;
           markerPositions.set(
             isVis ? [c.x + dx, c.y + dy, c.z + dz] : [10000, 10000, 10000],
             i * 3,
