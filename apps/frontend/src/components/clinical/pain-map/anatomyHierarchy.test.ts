@@ -1,6 +1,6 @@
 // apps/frontend/src/components/clinical/pain-map/anatomyHierarchy.test.ts
 import { describe, it, expect } from 'vitest';
-import { layoutAnatomyLabels, relaxPositions, ScreenAnchor } from './labelLayout';
+import { layoutAnatomyLabels, layoutNumericMarkers, relaxPositions, ScreenAnchor } from './labelLayout';
 import { resolveDissectionView } from './anatomyHierarchy';
 import { HumanAtlasManifest } from './humanAtlasEngine';
 
@@ -43,19 +43,19 @@ describe('labelLayout Algorithm', () => {
 
     expect(left.length).toBe(2);
     expect(right.length).toBe(1);
+  });
 
-    // Verify elbow line structure
-    left.forEach((l) => {
-      expect(l.elbowX).toBeLessThan(l.anchorX);
-      expect(l.labelX).toBeLessThanOrEqual(l.elbowX);
-      expect(l.labelY).toBe(l.elbowY); // Horizontal final segment
-    });
-
-    right.forEach((l) => {
-      expect(l.elbowX).toBeGreaterThan(l.anchorX);
-      expect(l.labelX).toBeGreaterThanOrEqual(l.elbowX - 200);
-      expect(l.labelY).toBe(l.elbowY);
-    });
+  it('positions numeric markers directly on anatomy and gently separates overlaps', () => {
+    const anchors: ScreenAnchor[] = [
+      { id: '1', index: 1, name: 'Oblicuo externo', x: 200, y: 150, z: 0, isFacingCamera: true },
+      { id: '2', index: 2, name: 'Serrato anterior', x: 202, y: 152, z: 0, isFacingCamera: true },
+    ];
+    const laidOut = layoutNumericMarkers(anchors, 28);
+    expect(laidOut.length).toBe(2);
+    expect(laidOut[0].index).toBe(1);
+    expect(laidOut[1].index).toBe(2);
+    const dist = Math.hypot(laidOut[1].x - laidOut[0].x, laidOut[1].y - laidOut[0].y);
+    expect(dist).toBeGreaterThanOrEqual(24);
   });
 });
 
@@ -156,7 +156,14 @@ describe('anatomyHierarchy Resolver', () => {
     const itemLabels = virtualItems.map((v) => v.label);
     expect(itemLabels).toContain('Oblicuo interno del abdomen');
     expect(itemLabels).toContain('Transverso del abdomen');
-    expect(itemLabels).toContain('Dorsal ancho');
+    expect(itemLabels.some((l) => l.includes('Dorsal ancho'))).toBe(true);
+
+    // Verify 1-based correlative numbering across all layers
+    const allItems = view.layers.flatMap((l) => l.items);
+    allItems.forEach((item, idx) => {
+      expect(item.index).toBe(idx + 1);
+      expect(item.layerBadge).toBeDefined();
+    });
 
     // Landmarks array check
     expect(view.landmarks.length).toBeGreaterThanOrEqual(4);

@@ -1,10 +1,13 @@
 // apps/frontend/src/components/clinical/pain-map/labelLayout.ts
-// Pure algorithm for 2D screen layout of 3D anatomical labels with non-overlapping elbow connectors.
+// Pure algorithm for 2D screen layout of 3D anatomical numeric markers and labels.
 
 export interface ScreenAnchor {
   id: string;
+  index?: number;
   name: string;
   detail?: string;
+  description?: string;
+  layerBadge?: string;
   x: number; // Viewport screen X (0 to width)
   y: number; // Viewport screen Y (0 to height)
   z: number; // Viewport depth (-1 to 1)
@@ -14,8 +17,25 @@ export interface ScreenAnchor {
   color?: string;
 }
 
+export interface PlacedMarker {
+  id: string;
+  index: number;
+  name: string;
+  detail?: string;
+  description?: string;
+  layerBadge?: string;
+  x: number;
+  y: number;
+  z: number;
+  isFacingCamera: boolean;
+  isVirtual?: boolean;
+  isActive?: boolean;
+  color?: string;
+}
+
 export interface PlacedLabel {
   id: string;
+  index?: number;
   name: string;
   detail?: string;
   side: 'left' | 'right';
@@ -34,7 +54,7 @@ export interface PlacedLabel {
 export interface LayoutOptions {
   width: number;
   height: number;
-  minSpacing?: number; // Minimum vertical distance between labels (default 40)
+  minSpacing?: number;
   leftMargin?: number;
   rightMargin?: number;
   labelWidth?: number;
@@ -42,8 +62,65 @@ export interface LayoutOptions {
 }
 
 /**
- * Calculates non-overlapping label positions in left and right columns
- * with aesthetic elbow connector lines (anchor -> elbow -> label).
+ * Positions numeric circular markers directly on 3D structures with gentle
+ * collision relaxation so overlapping numbers repel without departing from their anatomy.
+ */
+export function layoutNumericMarkers(
+  anchors: ScreenAnchor[],
+  minDistance = 28,
+): PlacedMarker[] {
+  if (anchors.length === 0) return [];
+
+  const markers: PlacedMarker[] = anchors.map((a, i) => ({
+    id: a.id,
+    index: a.index ?? i + 1,
+    name: a.name,
+    detail: a.detail,
+    description: a.description,
+    layerBadge: a.layerBadge,
+    x: a.x,
+    y: a.y,
+    z: a.z,
+    isFacingCamera: a.isFacingCamera,
+    isVirtual: a.isVirtual,
+    isActive: a.isActive,
+    color: a.color,
+  }));
+
+  if (markers.length <= 1) return markers;
+
+  // 3-pass pairwise separation for clean readability
+  for (let pass = 0; pass < 3; pass++) {
+    for (let i = 0; i < markers.length; i++) {
+      for (let j = i + 1; j < markers.length; j++) {
+        const dx = markers[j].x - markers[i].x;
+        const dy = markers[j].y - markers[i].y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < minDistance && dist > 0.001) {
+          const overlap = (minDistance - dist) / 2;
+          const nx = dx / dist;
+          const ny = dy / dist;
+          markers[i].x -= nx * overlap;
+          markers[i].y -= ny * overlap;
+          markers[j].x += nx * overlap;
+          markers[j].y += ny * overlap;
+        } else if (dist <= 0.001) {
+          markers[j].x += minDistance / 2;
+          markers[j].y += minDistance / 2;
+        }
+      }
+    }
+  }
+
+  return markers.map((m) => ({
+    ...m,
+    x: Math.round(m.x),
+    y: Math.round(m.y),
+  }));
+}
+
+/**
+ * Legacy label layout algorithm kept for backwards compatibility and test suites.
  */
 export function layoutAnatomyLabels(
   anchors: ScreenAnchor[],
@@ -64,13 +141,10 @@ export function layoutAnatomyLabels(
   }
 
   const centerX = width / 2;
-
-  // 1. Partition anchors into left and right sides
   const leftAnchors: ScreenAnchor[] = [];
   const rightAnchors: ScreenAnchor[] = [];
 
   anchors.forEach((a) => {
-    // If anchor is on the left half and has enough room after leftMargin for the card
     const hasRoomOnLeft = a.x > leftMargin + 20;
     if (a.x < centerX && hasRoomOnLeft) {
       leftAnchors.push(a);
@@ -79,15 +153,12 @@ export function layoutAnatomyLabels(
     }
   });
 
-  // 2. Sort by Y coordinate ascending (top to bottom)
   leftAnchors.sort((a, b) => a.y - b.y);
   rightAnchors.sort((a, b) => a.y - b.y);
 
-  // Limit to max per side
   const activeLeft = leftAnchors.slice(0, maxLabelsPerSide);
   const activeRight = rightAnchors.slice(0, maxLabelsPerSide);
 
-  // 3. Relax Y positions to prevent overlaps
   const topBound = 65;
   const bottomBound = height - 160;
 
@@ -107,18 +178,17 @@ export function layoutAnatomyLabels(
 
   const result: PlacedLabel[] = [];
 
-  // Build Left Labels
   activeLeft.forEach((a, i) => {
     const placedY = relaxedLeftY[i];
     const targetLabelX = leftMargin;
     const cardRightEdge = targetLabelX + labelWidth;
-    // If anchor is further right than cardRightEdge, elbow is in between; otherwise just to the left of anchor
     const elbowX = a.x > cardRightEdge
       ? (cardRightEdge + a.x) / 2
       : Math.max(targetLabelX + 10, a.x - 20);
 
     result.push({
       id: a.id,
+      index: a.index ?? i + 1,
       name: a.name,
       detail: a.detail,
       side: 'left',
@@ -135,7 +205,6 @@ export function layoutAnatomyLabels(
     });
   });
 
-  // Build Right Labels
   activeRight.forEach((a, i) => {
     const placedY = relaxedRightY[i];
     const targetLabelX = Math.max(centerX + 40, width - rightMargin - labelWidth);
@@ -145,6 +214,7 @@ export function layoutAnatomyLabels(
 
     result.push({
       id: a.id,
+      index: a.index ?? i + 1,
       name: a.name,
       detail: a.detail,
       side: 'right',
@@ -164,10 +234,6 @@ export function layoutAnatomyLabels(
   return result;
 }
 
-/**
- * 2-pass 1D relaxation to ensure all coordinates maintain minSpacing
- * while staying clamped inside [minBound, maxBound].
- */
 export function relaxPositions(
   positions: number[],
   minSpacing: number,
@@ -180,7 +246,6 @@ export function relaxPositions(
 
   const pos = [...positions];
 
-  // Pass 1: Forward push
   pos[0] = Math.max(minBound, pos[0]);
   for (let i = 1; i < n; i++) {
     if (pos[i] < pos[i - 1] + minSpacing) {
@@ -188,7 +253,6 @@ export function relaxPositions(
     }
   }
 
-  // Pass 2: Backward push if exceeding maxBound
   if (pos[n - 1] > maxBound) {
     pos[n - 1] = maxBound;
     for (let i = n - 2; i >= 0; i--) {
@@ -198,7 +262,6 @@ export function relaxPositions(
     }
   }
 
-  // Clamp any bottom overflow gracefully
   for (let i = 0; i < n; i++) {
     pos[i] = Math.max(minBound, Math.min(maxBound, pos[i]));
   }

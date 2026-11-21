@@ -16,8 +16,11 @@ export interface VirtualLandmark {
 
 export interface DissectionItem {
   id: string;
+  index: number; // Número correlativo para marcadores 3D y leyenda (1, 2, 3...)
   label: string;
   detail?: string;
+  description?: string; // Breve descripción de función o características
+  layerBadge: 'Superficial' | 'Intermedio' | 'Profundo' | 'Estructura';
   partIds: string[]; // 3D parts associated with this item
   isVirtual?: boolean;
   virtualOffset?: [number, number, number];
@@ -205,8 +208,17 @@ function buildFromCuratedRegion(
   const landmarks: VirtualLandmark[] = [];
   const includes: string[] = [];
 
-  const mapLayerItems = (items: RegionalLayerItem[]): DissectionItem[] => {
+  let globalIndex = 1;
+
+  const mapLayerItems = (
+    items: RegionalLayerItem[],
+    defaultBadge: 'Superficial' | 'Intermedio' | 'Profundo' | 'Estructura',
+  ): DissectionItem[] => {
     return items.map((item) => {
+      const idx = globalIndex++;
+      const layerBadge = item.layerBadge || defaultBadge;
+      const description = item.descriptionEs || item.detailEs || 'Estructura anatómica de la región';
+
       if (item.isVirtual) {
         includes.push(item.labelEs);
         if (item.virtualOffset) {
@@ -221,8 +233,11 @@ function buildFromCuratedRegion(
         }
         return {
           id: item.id,
+          index: idx,
           label: item.labelEs,
           detail: item.detailEs,
+          description,
+          layerBadge,
           partIds: [],
           isVirtual: true,
           virtualOffset: item.virtualOffset,
@@ -260,8 +275,11 @@ function buildFromCuratedRegion(
 
       return {
         id: item.id,
+        index: idx,
         label: item.labelEs,
         detail: item.detailEs,
+        description,
+        layerBadge,
         partIds: matchedParts,
         isVirtual: false,
         defaultVisible: true,
@@ -271,10 +289,10 @@ function buildFromCuratedRegion(
   };
 
   const layers: DissectionLayer[] = [
-    { key: 'superficial' as const, label: 'Plano superficial', items: mapLayerItems(def.superficial) },
-    { key: 'intermedio' as const, label: 'Plano intermedio', items: mapLayerItems(def.intermedio) },
-    { key: 'profundo' as const, label: 'Plano profundo', items: mapLayerItems(def.profundo) },
-    { key: 'estructurasClave' as const, label: 'Estructuras clave', items: mapLayerItems(def.estructurasClave) },
+    { key: 'superficial' as const, label: 'Plano superficial', items: mapLayerItems(def.superficial, 'Superficial') },
+    { key: 'intermedio' as const, label: 'Plano intermedio', items: mapLayerItems(def.intermedio, 'Intermedio') },
+    { key: 'profundo' as const, label: 'Plano profundo', items: mapLayerItems(def.profundo, 'Profundo') },
+    { key: 'estructurasClave' as const, label: 'Estructuras clave', items: mapLayerItems(def.estructurasClave, 'Estructura') },
   ].filter((l) => l.items.length > 0);
 
   // Always ensure the focus part is included in the visible set
@@ -307,14 +325,17 @@ function buildFromComponents(
   const baseNameEs = translateAtlasNameEs(indexedPart.baseMuscle);
   const title = formatTitleWithoutDuplicateSide(baseNameEs, side);
 
-  const items: DissectionItem[] = indexedPart.components.map((cid) => {
+  const items: DissectionItem[] = indexedPart.components.map((cid, i) => {
     const p = partMap.get(cid);
     const rawLabel = p ? translateAtlasNameEs(p.name) : cid;
     const label = p ? simplifyPortionLabel(p.name, rawLabel) : rawLabel;
     return {
       id: cid,
+      index: i + 1,
       label,
       detail: cid === focusPart.id ? 'Porción seleccionada' : 'Porción anatómica',
+      description: `Fascículo funcional y porción muscular de ${baseNameEs}.`,
+      layerBadge: 'Superficial',
       partIds: [cid],
       defaultVisible: true,
       isActive: cid === focusPart.id,
@@ -353,14 +374,19 @@ function buildFromFmaGroup(
   const groupNameEs = translateAtlasNameEs(fma.name);
   const title = formatTitleWithoutDuplicateSide(groupNameEs, side);
 
-  const items: DissectionItem[] = fma.elements.map((eid) => {
+  const items: DissectionItem[] = fma.elements.map((eid, i) => {
     const p = partMap.get(eid);
     const rawLabel = p ? translateAtlasNameEs(p.name) : eid;
     const label = p ? simplifyPortionLabel(p.name, rawLabel) : rawLabel;
+    const layerBadge: 'Superficial' | 'Intermedio' | 'Profundo' =
+      i === 0 ? 'Superficial' : i < 3 ? 'Intermedio' : 'Profundo';
     return {
       id: eid,
+      index: i + 1,
       label,
       detail: eid === focusPart.id ? 'Músculo seleccionado' : 'Músculo del grupo',
+      description: `Estructura muscular integrante del grupo funcional ${groupNameEs}.`,
+      layerBadge,
       partIds: [eid],
       defaultVisible: true,
       isActive: eid === focusPart.id,
@@ -397,8 +423,11 @@ function buildFromSinglePart(
 
   const item: DissectionItem = {
     id: focusPart.id,
+    index: 1,
     label: nameEs,
     detail: 'Estructura anatómica individual',
+    description: 'Estructura aislada para examen anatomofuncional detallado.',
+    layerBadge: 'Superficial',
     partIds: [focusPart.id],
     defaultVisible: true,
     isActive: true,

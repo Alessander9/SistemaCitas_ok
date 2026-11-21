@@ -32,7 +32,7 @@ import {
   DissectionView,
   resolveDissectionView,
 } from './anatomyHierarchy';
-import { layoutAnatomyLabels, PlacedLabel, ScreenAnchor } from './labelLayout';
+import { layoutNumericMarkers, PlacedMarker, ScreenAnchor } from './labelLayout';
 
 export interface PainMap3DViewerProps {
   atlasUrl?: string;
@@ -115,7 +115,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
   const [dissectionView, setDissectionView] = useState<DissectionView | null>(null);
   const [hiddenDissectionItems, setHiddenDissectionItems] = useState<Set<string>>(new Set());
   const [hoveredLabelId, setHoveredLabelId] = useState<string | null>(null);
-  const [placedLabels, setPlacedLabels] = useState<PlacedLabel[]>([]);
+  const [placedLabels, setPlacedLabels] = useState<PlacedMarker[]>([]);
   const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
   // Referencias para callbacks actualizados dentro del bucle Three.js
@@ -1071,8 +1071,11 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
                     }
                     screenAnchors.push({
                       id: item.id,
+                      index: item.index,
                       name: item.label,
                       detail: item.detail,
+                      description: item.description,
+                      layerBadge: item.layerBadge,
                       x,
                       y,
                       z: screenPos.z,
@@ -1102,8 +1105,11 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
 
                       screenAnchors.push({
                         id: item.id,
+                        index: item.index,
                         name: item.label,
                         detail: item.detail,
+                        description: item.description,
+                        layerBadge: item.layerBadge,
                         x,
                         y,
                         z: screenPos.z,
@@ -1117,14 +1123,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
               });
             });
 
-            const laidOut = layoutAnatomyLabels(screenAnchors, {
-              width: cw,
-              height: ch,
-              minSpacing: 40,
-              labelWidth: cw > 768 ? 175 : 140,
-              leftMargin: cw > 768 ? 225 : 16,
-              rightMargin: 70,
-            });
+            const laidOut = layoutNumericMarkers(screenAnchors, 28);
 
             setPlacedLabelsRef.current?.(laidOut);
           }
@@ -1687,8 +1686,12 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
           </div>
         )}
 
-        {/* Controles de Cámara Derecha (3/4, Frontal, Lateral, Posterior, Giro, Reset) */}
-        <div className="human-atlas-camera-dock" role="toolbar" aria-label="Vistas de cámara 3D">
+        {/* Controles de Cámara (3/4, Frontal, Lateral, Posterior, Giro, Reset) */}
+        <div
+          className={`human-atlas-camera-dock ${sceneState.isolate ? 'dock-isolated' : ''}`}
+          role="toolbar"
+          aria-label="Vistas de cámara 3D"
+        >
           {(
             [
               { id: 'three-quarter', label: '¾', title: 'Vista 3/4 Oblicua' },

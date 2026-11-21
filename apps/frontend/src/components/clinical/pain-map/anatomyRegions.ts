@@ -7,6 +7,8 @@ export interface RegionalLayerItem {
   id: string; // FMA concept ID, part name pattern, or virtual ID
   labelEs: string;
   detailEs?: string;
+  descriptionEs?: string; // Breve descripción de función, ubicación o características
+  layerBadge?: 'Superficial' | 'Intermedio' | 'Profundo' | 'Estructura';
   isVirtual?: boolean;
   virtualOffset?: [number, number, number]; // Offset relative to region center
   normal?: [number, number, number]; // Orientation normal for camera facing
@@ -45,18 +47,24 @@ export const CURATED_DISSECTION_REGIONS: RegionalDissectionDef[] = [
         id: 'oblicuo_externo',
         labelEs: 'Oblicuo externo del abdomen',
         detailEs: 'Plano superficial',
+        descriptionEs: 'Músculo principal de la pared lateral. Sus fibras descienden en dirección oblicua.',
+        layerBadge: 'Superficial',
         partNamePattern: /external oblique/i,
       },
       {
         id: 'serrato_anterior_inf',
-        labelEs: 'Serrato anterior',
+        labelEs: 'Serrato anterior (porción inferior)',
         detailEs: 'Porción inferior',
+        descriptionEs: 'Digitaciones 9.ª – 12.ª costilla.',
+        layerBadge: 'Superficial',
         partNamePattern: /serratus anterior/i,
       },
       {
         id: 'dorsal_ancho_ant',
-        labelEs: 'Dorsal ancho',
+        labelEs: 'Dorsal ancho (borde anterior)',
         detailEs: 'Borde anterior · Sin modelo 3D',
+        descriptionEs: 'Limita la pared lateral.',
+        layerBadge: 'Superficial',
         isVirtual: true,
         virtualOffset: [-0.08, -0.04, -0.06],
         normal: [-0.7, 0, -0.7],
@@ -67,6 +75,8 @@ export const CURATED_DISSECTION_REGIONS: RegionalDissectionDef[] = [
         id: 'oblicuo_interno',
         labelEs: 'Oblicuo interno del abdomen',
         detailEs: 'Plano intermedio · Sin modelo 3D',
+        descriptionEs: 'Fibras ascendentes, debajo del oblicuo externo.',
+        layerBadge: 'Intermedio',
         isVirtual: true,
         virtualOffset: [-0.02, -0.08, 0.02],
         normal: [-0.5, 0, 0.8],
@@ -77,6 +87,8 @@ export const CURATED_DISSECTION_REGIONS: RegionalDissectionDef[] = [
         id: 'transverso_abdomen',
         labelEs: 'Transverso del abdomen',
         detailEs: 'Plano profundo · Sin modelo 3D',
+        descriptionEs: 'Fibras horizontales, la capa más interna.',
+        layerBadge: 'Profundo',
         isVirtual: true,
         virtualOffset: [0.01, -0.12, 0.01],
         normal: [0, 0, 1],
@@ -85,8 +97,10 @@ export const CURATED_DISSECTION_REGIONS: RegionalDissectionDef[] = [
     estructurasClave: [
       {
         id: 'aponeurosis_oblicuo',
-        labelEs: 'Aponeurosis del oblicuo externo',
+        labelEs: 'Aponeurosis del oblicuo externo (+ Línea semilunar)',
         detailEs: 'Estructura tendinosa',
+        descriptionEs: 'Lámina tendinosa y límite frontal entre el recto y los oblicuos.',
+        layerBadge: 'Estructura',
         isVirtual: true,
         virtualOffset: [0.03, -0.16, 0.05],
         normal: [0.3, 0, 0.9],
@@ -95,6 +109,8 @@ export const CURATED_DISSECTION_REGIONS: RegionalDissectionDef[] = [
         id: 'linea_semilunar',
         labelEs: 'Línea semilunar (de Spigelio)',
         detailEs: 'Transición miofascial',
+        descriptionEs: 'Borde lateral de la vaina de los rectos abdominales.',
+        layerBadge: 'Estructura',
         isVirtual: true,
         virtualOffset: [0.04, -0.06, 0.06],
         normal: [0.2, 0, 0.95],
@@ -103,6 +119,8 @@ export const CURATED_DISSECTION_REGIONS: RegionalDissectionDef[] = [
         id: 'linea_alba',
         labelEs: 'Línea alba',
         detailEs: 'Rafe tendinoso medio',
+        descriptionEs: 'Entrecruzamiento fibroso medio entre ambos rectos.',
+        layerBadge: 'Estructura',
         partNamePattern: /linea alba/i,
       },
     ],
