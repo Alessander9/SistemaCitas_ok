@@ -23,6 +23,7 @@ export const PainMapPicker: React.FC<PainMapPickerProps> = ({
   readOnly: _readOnly = false,
 }) => {
   const [displayMode, setDisplayMode] = useState<'2d' | '3d'>('2d');
+  const [is3DExpanded, setIs3DExpanded] = useState<boolean>(false);
   const {
     state,
     setView,
@@ -177,7 +178,15 @@ export const PainMapPicker: React.FC<PainMapPickerProps> = ({
       />
 
       {/* 3. Layout de Columnas: Visualizador Anatómico + Panel de Puntos/Ficha */}
-      <div className="pain-main-columns-layout">
+      <div
+        className={`pain-main-columns-layout ${
+          displayMode === '3d'
+            ? is3DExpanded
+              ? 'mode-3d-expanded'
+              : 'mode-3d'
+            : ''
+        }`}
+      >
         {/* Columna Izquierda: Visualizador 3D Human Atlas (BodyParts3D), Silueta General 2D o Detalle Zoom */}
         <div className="pain-visualizer-column">
           {displayMode === '3d' && (
@@ -191,6 +200,8 @@ export const PainMapPicker: React.FC<PainMapPickerProps> = ({
               onSelectRegion={selectRegion}
               onSelectStructure={selectStructure}
               onSelectPoint={editPoint}
+              isExpanded={is3DExpanded}
+              onToggleExpand={() => setIs3DExpanded((prev) => !prev)}
             />
           )}
 

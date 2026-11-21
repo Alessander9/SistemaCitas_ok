@@ -40,6 +40,8 @@ export interface PainMap3DViewerProps {
   onSelectPoint?: (point: PainPoint) => void;
   hoveredRegionCode?: string | null;
   onHoverRegion?: (code: string | null) => void;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 interface ViewerSceneState {
@@ -86,6 +88,8 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
   onSelectPoint,
   hoveredRegionCode: _hoveredRegionCode,
   onHoverRegion,
+  isExpanded = false,
+  onToggleExpand,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const [atlas, setAtlas] = useState<HumanAtlasManifest | null>(null);
@@ -619,10 +623,10 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
     })();
 
     const fit = (view: string, extent = 0) => {
-      const cw = el.clientWidth || 640;
-      const ch = el.clientHeight || 560;
+      const cw = el.clientWidth || 760;
+      const ch = el.clientHeight || 650;
       const mobile = cw < 768;
-      const normalDistance = mobile ? 3.4 : 2.95;
+      const normalDistance = mobile ? 3.2 : 2.55;
       const reservedHeight = mobile ? 220 : 160;
       const availableAspect = Math.max(
         0.35,
@@ -1162,7 +1166,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
   };
 
   return (
-    <div className="human-atlas-clinical-studio">
+    <div className={`human-atlas-clinical-studio ${isExpanded ? 'is-expanded' : ''}`}>
       {/* 1. Cabecera Superior del Estudio Anatómico 3D */}
       <div className="human-atlas-topbar">
         <div className="human-atlas-brand">
@@ -1210,6 +1214,22 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
             <MaterialIcon name="my_location" size={16} />
             <span>Puntos EVA ({clinicalCatalogStructures.length})</span>
           </button>
+
+          {onToggleExpand && (
+            <button
+              type="button"
+              className={`human-atlas-tool-btn ${isExpanded ? 'active' : ''}`}
+              onClick={onToggleExpand}
+              title={
+                isExpanded
+                  ? 'Contraer a vista de dos columnas'
+                  : 'Expandir Atlas 3D a ancho completo (100%)'
+              }
+            >
+              <MaterialIcon name={isExpanded ? 'fullscreen_exit' : 'fullscreen'} size={16} />
+              <span>{isExpanded ? '2 Columnas' : 'Ampliar 100%'}</span>
+            </button>
+          )}
 
           <button
             type="button"

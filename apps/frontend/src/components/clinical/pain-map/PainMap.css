@@ -255,6 +255,16 @@
   align-items: start;
 }
 
+.pain-main-columns-layout.mode-3d {
+  grid-template-columns: minmax(0, 1.95fr) minmax(330px, 0.85fr);
+  gap: 1.25rem;
+}
+
+.pain-main-columns-layout.mode-3d-expanded {
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
 @media (max-width: 900px) {
   .pain-main-columns-layout {
     grid-template-columns: 1fr;
@@ -1353,8 +1363,12 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 620px;
+  min-height: 780px;
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
+}
+
+.human-atlas-clinical-studio.is-expanded {
+  min-height: 880px;
 }
 
 .human-atlas-topbar {
@@ -1488,14 +1502,20 @@
 .human-atlas-viewport-area {
   position: relative;
   flex: 1;
-  min-height: 470px;
+  min-height: 650px;
   background: radial-gradient(circle at 50% 35%, #1e293b 0%, #0f172a 75%);
 }
 
 .human-atlas-canvas-host {
   width: 100%;
-  height: 470px;
+  height: 650px;
   position: relative;
+}
+
+.human-atlas-clinical-studio.is-expanded .human-atlas-viewport-area,
+.human-atlas-clinical-studio.is-expanded .human-atlas-canvas-host {
+  min-height: 760px;
+  height: 760px;
 }
 
 .human-atlas-hover-tooltip {
