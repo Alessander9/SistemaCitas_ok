@@ -140,6 +140,93 @@ export class PatientsService {
     return rows.length > 0 ? this.mapRow(rows[0]) : null;
   }
 
+  private toTitleCase(str: string): string {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .split(' ')
+      .filter((word) => word.length > 0)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  async lookupDocument(
+    clinicId: string,
+    documentType: string,
+    documentNumber: string,
+  ): Promise<{ patient: { firstName: string; lastName: string; phone?: string; email?: string } }> {
+    const cleanDoc = (documentNumber || '').trim();
+    if (!cleanDoc) {
+      throw new NotFoundException('Número de documento inválido.');
+    }
+
+    // Nivel 1: Caché en Base de Datos local (0 consultas a API externa)
+    const local = await this.findByNationalId(clinicId, cleanDoc);
+    if (local) {
+      return {
+        patient: {
+          firstName: local.firstName,
+          lastName: local.lastName,
+          phone: local.phone,
+          email: local.email,
+        },
+      };
+    }
+
+    // Nivel 2: Si es DNI peruano de 8 dígitos, consultar API de Decolecta
+    if ((documentType.toUpperCase() === 'DNI' || documentType === 'DNI') && /^\d{8}$/.test(cleanDoc)) {
+      const token = process.env.DNI_API_TOKEN;
+      if (token && token.trim()) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+          const response = await fetch(
+            `https://api.decolecta.com/v1/reniec/dni?numero=${encodeURIComponent(cleanDoc)}`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token.trim()}`,
+                'Content-Type': 'application/json',
+              },
+              signal: controller.signal,
+            },
+          );
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            const data = (await response.json()) as {
+              first_name?: string;
+              first_last_name?: string;
+              second_last_name?: string;
+              nombres?: string;
+              apellido_paterno?: string;
+              apellido_materno?: string;
+            };
+
+            const rawFirstName = data.first_name || data.nombres || '';
+            const rawLastName = (
+              `${data.first_last_name || data.apellido_paterno || ''} ${data.second_last_name || data.apellido_materno || ''}`
+            ).trim();
+
+            if (rawFirstName || rawLastName) {
+              return {
+                patient: {
+                  firstName: this.toTitleCase(rawFirstName),
+                  lastName: this.toTitleCase(rawLastName),
+                },
+              };
+            }
+          }
+        } catch (err) {
+          console.warn('[DniLookup] External API call error:', (err as Error).message);
+        }
+      }
+    }
+
+    throw new NotFoundException('Documento no encontrado.');
+  }
+
   async findAll(
     clinicId: string,
     search?: string,

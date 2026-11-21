@@ -14,7 +14,7 @@ import {
 import { PatientsService } from './patients.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { CurrentTenant, Roles } from '../../common/decorators';
+import { CurrentTenant, Public, Roles } from '../../common/decorators';
 import { JwtAuthGuard, TenantGuard, RolesGuard } from '../../common/guards';
 import { Patient, PatientHistory, UserRole } from '@citassistema/shared-types';
 
@@ -46,6 +46,20 @@ export class PatientsController {
       search,
       limit ? parseInt(limit, 10) : 50,
       offset ? parseInt(offset, 10) : 0,
+    );
+  }
+
+  @Public()
+  @Get('by-document')
+  async findByDocument(
+    @CurrentTenant() clinicId: string,
+    @Query('documentType') documentType?: string,
+    @Query('documentNumber') documentNumber?: string,
+  ) {
+    return this.patientsService.lookupDocument(
+      clinicId,
+      documentType || 'DNI',
+      documentNumber || '',
     );
   }
 

@@ -67,31 +67,38 @@ export const AppointmentPatientStep: React.FC<AppointmentPatientStepProps> = ({
     return errors;
   }, [validation.errors, touched]);
 
-  const runLookup = useCallback(async () => {
-    if (!isDocumentNumberValid(values.documentType, values.documentNumber)) return;
+  const runLookup = useCallback(
+    async (docNumberOverride?: string | unknown) => {
+      const docNumber =
+        typeof docNumberOverride === 'string'
+          ? docNumberOverride
+          : (values.documentNumber || '');
+      if (!isDocumentNumberValid(values.documentType, docNumber)) return;
 
-    setLookupState('loading');
-    const result = await fetchPatientByDocument({
-      documentType: values.documentType,
-      documentNumber: values.documentNumber,
-    });
+      setLookupState('loading');
+      const result = await fetchPatientByDocument({
+        documentType: values.documentType,
+        documentNumber: docNumber,
+      });
 
-    if (result.status === 'unsupported') {
-      // The backend has no public lookup endpoint yet: hide the affordance
-      // instead of showing a button that cannot work.
-      setIsLookupAvailable(false);
-      setLookupState('idle');
-      return;
-    }
+      if (result.status === 'unsupported') {
+        // The backend has no public lookup endpoint yet: hide the affordance
+        // instead of showing a button that cannot work.
+        setIsLookupAvailable(false);
+        setLookupState('idle');
+        return;
+      }
 
-    if (result.status === 'not-found') {
-      setLookupState('not-found');
-      return;
-    }
+      if (result.status === 'not-found') {
+        setLookupState('not-found');
+        return;
+      }
 
-    onApplyPatient(result.patient);
-    setLookupState('found');
-  }, [values.documentType, values.documentNumber, onApplyPatient]);
+      onApplyPatient(result.patient);
+      setLookupState('found');
+    },
+    [values.documentType, values.documentNumber, onApplyPatient],
+  );
 
   const handleFieldBlur = useCallback(
     (field: PatientFieldId) => {
@@ -118,8 +125,18 @@ export const AppointmentPatientStep: React.FC<AppointmentPatientStepProps> = ({
       ) {
         setLookupState('idle');
       }
+
+      // Auto-lookup as soon as 8 digits are typed for DNI
+      if (
+        field === 'documentNumber' &&
+        values.documentType === 'DNI' &&
+        value.trim().length === 8 &&
+        isLookupAvailable
+      ) {
+        void runLookup(value.trim());
+      }
     },
-    [onChange, lookupState],
+    [onChange, lookupState, values.documentType, isLookupAvailable, runLookup],
   );
 
   const timeRangeLabel =
@@ -149,7 +166,7 @@ export const AppointmentPatientStep: React.FC<AppointmentPatientStepProps> = ({
             onFieldBlur={handleFieldBlur}
             lookupState={lookupState}
             isLookupAvailable={isLookupAvailable}
-            onLookup={runLookup}
+            onLookup={() => void runLookup()}
             isPrefilled={lookupState === 'found'}
           />
         </div>
