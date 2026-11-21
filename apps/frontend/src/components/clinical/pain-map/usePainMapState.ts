@@ -2,10 +2,18 @@ import { useReducer, useCallback } from 'react';
 import {
   AnatomyView,
   getNode,
+  Laterality,
   PainPoint,
 } from '@citassistema/shared-types';
 
 export type PainMapLevel = 'body' | 'region' | 'point_form';
+
+export interface SelectStructureOptions {
+  laterality?: Laterality;
+  view?: AnatomyView;
+  regionCode?: string;
+  atlasMeta?: Record<string, unknown> | null;
+}
 
 export interface PainMapState {
   level: PainMapLevel;
@@ -15,6 +23,8 @@ export interface PainMapState {
   selectedStructureCode: string | null;
   activeEditingPoint: PainPoint | null;
   pendingCoords: { x: number; y: number } | null;
+  pendingLaterality?: Laterality | null;
+  pendingAtlasMeta?: Record<string, unknown> | null;
   points: PainPoint[];
   searchOpen: boolean;
   hoveredRegionCode: string | null;
@@ -25,7 +35,12 @@ export type PainMapAction =
   | { type: 'SET_HOVERED_REGION'; payload: string | null }
   | { type: 'SELECT_REGION'; payload: string }
   | { type: 'SELECT_SUBREGION'; payload: string }
-  | { type: 'SELECT_STRUCTURE'; payload: string; coords?: { x: number; y: number } }
+  | {
+      type: 'SELECT_STRUCTURE';
+      payload: string;
+      coords?: { x: number; y: number };
+      options?: SelectStructureOptions;
+    }
   | { type: 'EDIT_POINT'; payload: PainPoint }
   | { type: 'CLOSE_FORM' }
   | { type: 'STEP_BACK' }
@@ -81,14 +96,14 @@ function painMapReducer(state: PainMapState, action: PainMapAction): PainMapStat
       if (!structureNode) return state;
 
       // Obtener el código de región padre
-      let regCode = state.selectedRegionCode;
+      let regCode = action.options?.regionCode || state.selectedRegionCode;
       if (!regCode && structureNode.parent) {
         const sub = getNode(structureNode.parent);
-        regCode = sub?.parent || null;
+        regCode = sub?.parent || (sub?.level === 'region' ? sub.code : null);
       }
 
       // Vista preferida
-      let nextView = state.activeView;
+      let nextView = action.options?.view || state.activeView;
       if (!structureNode.views.includes(nextView) && structureNode.views.length > 0) {
         nextView = structureNode.views[0];
       }
@@ -106,6 +121,8 @@ function painMapReducer(state: PainMapState, action: PainMapAction): PainMapStat
         selectedStructureCode: action.payload,
         activeEditingPoint: null,
         pendingCoords: coords,
+        pendingLaterality: action.options?.laterality ?? null,
+        pendingAtlasMeta: action.options?.atlasMeta ?? null,
         searchOpen: false,
       };
     }
@@ -120,6 +137,8 @@ function painMapReducer(state: PainMapState, action: PainMapAction): PainMapStat
         selectedStructureCode: point.structureCode,
         activeEditingPoint: point,
         pendingCoords: { x: point.coordX, y: point.coordY },
+        pendingLaterality: point.laterality,
+        pendingAtlasMeta: point.referredArea ?? null,
       };
     }
 
@@ -129,6 +148,8 @@ function painMapReducer(state: PainMapState, action: PainMapAction): PainMapStat
         level: state.selectedRegionCode ? 'region' : 'body',
         activeEditingPoint: null,
         pendingCoords: null,
+        pendingLaterality: null,
+        pendingAtlasMeta: null,
       };
 
     case 'STEP_BACK':
@@ -138,6 +159,8 @@ function painMapReducer(state: PainMapState, action: PainMapAction): PainMapStat
           level: 'region',
           activeEditingPoint: null,
           pendingCoords: null,
+          pendingLaterality: null,
+          pendingAtlasMeta: null,
         };
       }
       if (state.level === 'region') {
@@ -160,6 +183,8 @@ function painMapReducer(state: PainMapState, action: PainMapAction): PainMapStat
         selectedStructureCode: null,
         activeEditingPoint: null,
         pendingCoords: null,
+        pendingLaterality: null,
+        pendingAtlasMeta: null,
       };
 
     case 'SAVE_POINT': {
@@ -172,6 +197,8 @@ function painMapReducer(state: PainMapState, action: PainMapAction): PainMapStat
         level: 'region',
         activeEditingPoint: null,
         pendingCoords: null,
+        pendingLaterality: null,
+        pendingAtlasMeta: null,
       };
     }
 
@@ -228,9 +255,12 @@ export function usePainMapState(initialPoints: PainPoint[] = []) {
     dispatch({ type: 'SELECT_SUBREGION', payload: code });
   }, []);
 
-  const selectStructure = useCallback((code: string, coords?: { x: number; y: number }) => {
-    dispatch({ type: 'SELECT_STRUCTURE', payload: code, coords });
-  }, []);
+  const selectStructure = useCallback(
+    (code: string, coords?: { x: number; y: number }, options?: SelectStructureOptions) => {
+      dispatch({ type: 'SELECT_STRUCTURE', payload: code, coords, options });
+    },
+    [],
+  );
 
   const editPoint = useCallback((point: PainPoint) => {
     dispatch({ type: 'EDIT_POINT', payload: point });

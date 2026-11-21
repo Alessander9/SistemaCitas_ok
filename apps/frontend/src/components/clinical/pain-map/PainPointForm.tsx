@@ -16,6 +16,8 @@ interface PainPointFormProps {
   initialPoint?: PainPoint | null;
   coords: { x: number; y: number };
   view: AnatomyView;
+  defaultLaterality?: Laterality | null;
+  atlasMeta?: Record<string, unknown> | null;
   onSave: (point: PainPoint) => void;
   onDelete?: (pointId: string) => void;
   onCancel: () => void;
@@ -48,6 +50,8 @@ export const PainPointForm: React.FC<PainPointFormProps> = ({
   initialPoint,
   coords,
   view,
+  defaultLaterality,
+  atlasMeta,
   onSave,
   onDelete,
   onCancel,
@@ -58,7 +62,7 @@ export const PainPointForm: React.FC<PainPointFormProps> = ({
 
   const [eva, setEva] = useState<number>(initialPoint?.eva ?? 5);
   const [laterality, setLaterality] = useState<Laterality>(
-    initialPoint?.laterality ?? (isLateral ? 'D' : 'central'),
+    initialPoint?.laterality ?? defaultLaterality ?? (isLateral ? 'D' : 'central'),
   );
   const [triggerPoint, setTriggerPoint] = useState<TriggerPointStatus | undefined>(
     initialPoint?.triggerPoint,
@@ -128,12 +132,15 @@ export const PainPointForm: React.FC<PainPointFormProps> = ({
       triggerPoint,
       depth,
       aggravatingFactors: selectedAggravating,
+      referredArea: atlasMeta || initialPoint?.referredArea || null,
       notes: notes.trim() || undefined,
       recordedAt: initialPoint?.recordedAt || new Date().toISOString(),
     };
 
     onSave(pointToSave);
   };
+
+  const activeAtlasMeta = atlasMeta || initialPoint?.referredArea || null;
 
   return (
     <div className="pain-point-form-card">
@@ -146,6 +153,18 @@ export const PainPointForm: React.FC<PainPointFormProps> = ({
             <MaterialIcon name="pin_drop" size={20} color="#0284c7" />
             <span>{node?.label || structureCode}</span>
           </h4>
+          {activeAtlasMeta && typeof activeAtlasMeta.atlasPartName === 'string' && (
+            <div className="pain-form-atlas-tag">
+              <MaterialIcon name="view_in_ar" size={14} color="#0f766e" />
+              <span>
+                Atlas 3D:{' '}
+                <strong>
+                  {String(activeAtlasMeta.atlasPartNameEs || activeAtlasMeta.atlasPartName)}
+                </strong>
+                {activeAtlasMeta.fmaId ? ` (${String(activeAtlasMeta.fmaId)})` : ''}
+              </span>
+            </div>
+          )}
         </div>
 
         {node?.icd10Hints && node.icd10Hints.length > 0 && (

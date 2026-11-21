@@ -105,4 +105,51 @@ describe('PainMapPicker Component (Opción C: Zoom Anatómico Jerárquico)', () 
     // Enters directly into point form
     expect(screen.getAllByText(/Columna Lumbar Baja \(L4-L5\)/i).length).toBeGreaterThan(0);
   });
+
+  it('maps BodyParts3D / FMA 3D structures accurately to clinical taxonomy and laterality', async () => {
+    const { mapAtlasPartToClinical, translateAtlasNameEs } = await import('./humanAtlasEngine');
+
+    const rightCalcaneal = mapAtlasPartToClinical({
+      id: 'FJ1405',
+      name: 'Right calcaneal tendon',
+      conceptId: 'FMA258847',
+      system: 'connective',
+      chunk: 1,
+      positions: 0,
+      normals: 0,
+      indices: 0,
+      vertexCount: 100,
+      indexCount: 300,
+      bounds: [
+        [-0.097, 0.022, -0.075],
+        [-0.041, 0.236, -0.045],
+      ],
+    });
+
+    expect(rightCalcaneal.laterality).toBe('D');
+    expect(rightCalcaneal.regionCode).toBe('TOBILLO_PIE');
+    expect(rightCalcaneal.fmaId).toBe('FMA258847');
+    expect(translateAtlasNameEs('Right calcaneal tendon')).toContain('Tendón de Aquiles');
+
+    const leftSupraspinatus = mapAtlasPartToClinical({
+      id: 'FJ2001',
+      name: 'Left supraspinatus',
+      conceptId: 'FMA37348',
+      system: 'muscular',
+      chunk: 3,
+      positions: 0,
+      normals: 0,
+      indices: 0,
+      vertexCount: 120,
+      indexCount: 360,
+      bounds: [
+        [0.08, 1.34, -0.09],
+        [0.19, 1.41, -0.02],
+      ],
+    });
+
+    expect(leftSupraspinatus.laterality).toBe('I');
+    expect(leftSupraspinatus.regionCode).toBe('HOMBRO');
+    expect(leftSupraspinatus.structureCode).toBe('HOMBRO.MR.SUPRAESPINOSO');
+  });
 });

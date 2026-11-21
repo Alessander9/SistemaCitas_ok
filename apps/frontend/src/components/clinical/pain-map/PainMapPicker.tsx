@@ -178,20 +178,23 @@ export const PainMapPicker: React.FC<PainMapPickerProps> = ({
 
       {/* 3. Layout de Columnas: Visualizador Anatómico + Panel de Puntos/Ficha */}
       <div className="pain-main-columns-layout">
-        {/* Columna Izquierda: Visualizador 3D Interactivo, Silueta General 2D o Detalle Zoom */}
+        {/* Columna Izquierda: Visualizador 3D Human Atlas (BodyParts3D), Silueta General 2D o Detalle Zoom */}
         <div className="pain-visualizer-column">
-          {state.level === 'body' && displayMode === '3d' && (
+          {displayMode === '3d' && (
             <PainMap3DViewer
-              modelUrl="/models/female_anatomy_eva.glb"
+              atlasUrl="/models/atlas.json"
               points={state.points}
+              selectedRegionCode={state.selectedRegionCode}
+              selectedStructureCode={state.selectedStructureCode}
               hoveredRegionCode={state.hoveredRegionCode}
               onHoverRegion={setHoveredRegion}
               onSelectRegion={selectRegion}
+              onSelectStructure={selectStructure}
               onSelectPoint={editPoint}
             />
           )}
 
-          {state.level === 'body' && displayMode === '2d' && (
+          {displayMode === '2d' && state.level === 'body' && (
             <BodyOverview
               view={state.activeView}
               points={state.points}
@@ -202,28 +205,33 @@ export const PainMapPicker: React.FC<PainMapPickerProps> = ({
             />
           )}
 
-          {(state.level === 'region' || state.level === 'point_form') && state.selectedRegionCode && (
-            <RegionDetailView
-              regionCode={state.selectedRegionCode}
-              view={state.activeView}
-              points={state.points}
-              selectedStructureCode={state.selectedStructureCode}
-              onSelectStructure={selectStructure}
-              onSelectPoint={editPoint}
-              onStepBack={resetToBody}
-            />
-          )}
+          {displayMode === '2d' &&
+            (state.level === 'region' || state.level === 'point_form') &&
+            state.selectedRegionCode && (
+              <RegionDetailView
+                regionCode={state.selectedRegionCode}
+                view={state.activeView}
+                points={state.points}
+                selectedStructureCode={state.selectedStructureCode}
+                onSelectStructure={selectStructure}
+                onSelectPoint={editPoint}
+                onStepBack={resetToBody}
+              />
+            )}
         </div>
 
         {/* Columna Derecha: Formulario del Punto o Lista de Puntos Registrados */}
         <div className="pain-controls-column">
           {state.level === 'point_form' && state.selectedStructureCode && state.selectedRegionCode ? (
             <PainPointForm
+              key={`${state.selectedStructureCode}-${state.activeEditingPoint?.id || 'new'}-${state.pendingLaterality || ''}`}
               structureCode={state.selectedStructureCode}
               regionCode={state.selectedRegionCode}
               initialPoint={state.activeEditingPoint}
               coords={state.pendingCoords || { x: 50, y: 50 }}
               view={state.activeView}
+              defaultLaterality={state.pendingLaterality}
+              atlasMeta={state.pendingAtlasMeta}
               onSave={handleSavePoint}
               onDelete={handleDeletePoint}
               onCancel={closeForm}

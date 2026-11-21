@@ -8,4 +8,6 @@ export * from './PainMapBreadcrumb';
 export * from './AnatomySearch';
 export * from './usePainMapState';
 export * from './PainMap3DViewer';
+export * from './humanAtlasEngine';
+
 
