@@ -34,7 +34,7 @@ export interface PlacedLabel {
 export interface LayoutOptions {
   width: number;
   height: number;
-  minSpacing?: number; // Minimum vertical distance between labels (default 36)
+  minSpacing?: number; // Minimum vertical distance between labels (default 40)
   leftMargin?: number;
   rightMargin?: number;
   labelWidth?: number;
@@ -53,9 +53,9 @@ export function layoutAnatomyLabels(
     width,
     height,
     minSpacing = 40,
-    leftMargin = 16,
-    rightMargin = 16,
-    labelWidth = 190,
+    leftMargin = 20,
+    rightMargin = 20,
+    labelWidth = 175,
     maxLabelsPerSide = 8,
   } = options;
 
@@ -65,19 +65,20 @@ export function layoutAnatomyLabels(
 
   const centerX = width / 2;
 
-  // 1. Partition anchors into left and right sides based on anchor X relative to center
+  // 1. Partition anchors into left and right sides
   const leftAnchors: ScreenAnchor[] = [];
   const rightAnchors: ScreenAnchor[] = [];
 
   anchors.forEach((a) => {
-    if (a.x < centerX) {
+    // If anchor is on the left half and has enough room after leftMargin for the card
+    const hasRoomOnLeft = a.x > leftMargin + 20;
+    if (a.x < centerX && hasRoomOnLeft) {
       leftAnchors.push(a);
     } else {
       rightAnchors.push(a);
     }
   });
 
-  // If one side has too many and other is empty, balance slightly if anchors are near center
   // 2. Sort by Y coordinate ascending (top to bottom)
   leftAnchors.sort((a, b) => a.y - b.y);
   rightAnchors.sort((a, b) => a.y - b.y);
@@ -87,18 +88,21 @@ export function layoutAnatomyLabels(
   const activeRight = rightAnchors.slice(0, maxLabelsPerSide);
 
   // 3. Relax Y positions to prevent overlaps
+  const topBound = 65;
+  const bottomBound = height - 160;
+
   const relaxedLeftY = relaxPositions(
     activeLeft.map((a) => a.y),
     minSpacing,
-    48,
-    height - 48,
+    topBound,
+    bottomBound,
   );
 
   const relaxedRightY = relaxPositions(
     activeRight.map((a) => a.y),
     minSpacing,
-    48,
-    height - 48,
+    topBound,
+    bottomBound,
   );
 
   const result: PlacedLabel[] = [];
@@ -106,9 +110,12 @@ export function layoutAnatomyLabels(
   // Build Left Labels
   activeLeft.forEach((a, i) => {
     const placedY = relaxedLeftY[i];
-    const targetLabelX = leftMargin + labelWidth;
-    // Elbow X sits halfway between anchor and label column
-    const elbowX = Math.max(leftMargin + 10, Math.min(a.x - 20, (a.x + targetLabelX) / 2));
+    const targetLabelX = leftMargin;
+    const cardRightEdge = targetLabelX + labelWidth;
+    // If anchor is further right than cardRightEdge, elbow is in between; otherwise just to the left of anchor
+    const elbowX = a.x > cardRightEdge
+      ? (cardRightEdge + a.x) / 2
+      : Math.max(targetLabelX + 10, a.x - 20);
 
     result.push({
       id: a.id,
@@ -119,7 +126,7 @@ export function layoutAnatomyLabels(
       anchorY: Math.round(a.y),
       elbowX: Math.round(elbowX),
       elbowY: Math.round(placedY),
-      labelX: Math.round(leftMargin),
+      labelX: Math.round(targetLabelX),
       labelY: Math.round(placedY),
       isFacingCamera: a.isFacingCamera,
       isVirtual: a.isVirtual,
@@ -131,8 +138,10 @@ export function layoutAnatomyLabels(
   // Build Right Labels
   activeRight.forEach((a, i) => {
     const placedY = relaxedRightY[i];
-    const targetLabelX = width - rightMargin - labelWidth;
-    const elbowX = Math.min(width - rightMargin - 10, Math.max(a.x + 20, (a.x + targetLabelX) / 2));
+    const targetLabelX = Math.max(centerX + 40, width - rightMargin - labelWidth);
+    const elbowX = a.x < targetLabelX
+      ? (a.x + targetLabelX) / 2
+      : Math.min(width - rightMargin, a.x + 20);
 
     result.push({
       id: a.id,

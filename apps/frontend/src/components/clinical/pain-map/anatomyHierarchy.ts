@@ -147,13 +147,58 @@ export function resolveDissectionView(
 // Builders
 // -----------------------------------------------------------------------------
 
+function formatTitleWithoutDuplicateSide(baseName: string, side: 'izq' | 'der' | 'medial'): string {
+  const hasSideInName = /izquierd|derech|medial/i.test(baseName);
+  if (hasSideInName) return baseName;
+  const suffix = side === 'izq' ? ' (Izquierda)' : side === 'der' ? ' (Derecha)' : '';
+  return `${baseName}${suffix}`;
+}
+
+function simplifyPortionLabel(englishName: string, fallbackEs: string): string {
+  const m = englishName.match(
+    /^(lateral|medial|long|short|oblique|transverse|superficial|deep|humeral|ulnar|abdominal|clavicular|sternocostal|acromial|spinal|ascending|descending|superior|inferior)\s+(head|part|belly)\b/i,
+  );
+  if (m) {
+    const adj = m[1].toLowerCase();
+    const type = m[2].toLowerCase();
+    const typeEs = type === 'head' ? 'Cabeza' : type === 'belly' ? 'Vientre' : 'Porción';
+    const ADJ_ES: Record<string, string> = {
+      lateral: 'lateral',
+      medial: 'medial',
+      long: 'larga',
+      short: 'corta',
+      oblique: 'oblicua',
+      transverse: 'transversa',
+      superficial: 'superficial',
+      deep: 'profunda',
+      humeral: 'humeral',
+      ulnar: 'cubital',
+      abdominal: 'abdominal',
+      clavicular: 'clavicular',
+      sternocostal: 'esternocostal',
+      acromial: 'acromial',
+      spinal: 'espinal',
+      ascending: 'ascendente',
+      descending: 'descendente',
+      superior: 'superior',
+      inferior: 'inferior',
+    };
+    const adjEs = ADJ_ES[adj] || adj;
+    return `${typeEs} ${adjEs}`;
+  }
+  // Limpiar redundancia "de músculo..." en español si está presente
+  const cleaned = fallbackEs.replace(/\s+de\s+(músculo|musculo).*/i, '');
+  return cleaned;
+}
+
 function buildFromCuratedRegion(
   def: RegionalDissectionDef,
   focusPart: AtlasPart,
   side: 'izq' | 'der' | 'medial',
   partMap: Map<string, AtlasPart>,
 ): DissectionView {
-  const sideSuffix = side === 'izq' ? ' (Izquierda)' : side === 'der' ? ' (Derecha)' : '';
+  const hasSide = /izquierd|derech|medial/i.test(def.nameEs);
+  const sideSuffix = hasSide ? '' : (side === 'izq' ? ' (Izquierda)' : side === 'der' ? ' (Derecha)' : '');
   const sideRegex = side === 'izq' ? /(^left | left| left$)/i : side === 'der' ? /(^right | right| right$)/i : /.*/;
 
   const allPartIds: string[] = [];
@@ -260,11 +305,12 @@ function buildFromComponents(
   partMap: Map<string, AtlasPart>,
 ): DissectionView {
   const baseNameEs = translateAtlasNameEs(indexedPart.baseMuscle);
-  const sideSuffix = side === 'izq' ? ' (Izquierda)' : side === 'der' ? ' (Derecha)' : '';
+  const title = formatTitleWithoutDuplicateSide(baseNameEs, side);
 
   const items: DissectionItem[] = indexedPart.components.map((cid) => {
     const p = partMap.get(cid);
-    const label = p ? translateAtlasNameEs(p.name) : cid;
+    const rawLabel = p ? translateAtlasNameEs(p.name) : cid;
+    const label = p ? simplifyPortionLabel(p.name, rawLabel) : rawLabel;
     return {
       id: cid,
       label,
@@ -277,7 +323,7 @@ function buildFromComponents(
 
   return {
     id: `comp_${indexedPart.id}`,
-    title: `${baseNameEs}${sideSuffix}`,
+    title,
     subtitle: `Porciones y cabezas musculares (${items.length} componentes)`,
     focusPartId: focusPart.id,
     side,
@@ -305,10 +351,12 @@ function buildFromFmaGroup(
 ): DissectionView {
   const fma = indexedPart.primaryFmaGroup!;
   const groupNameEs = translateAtlasNameEs(fma.name);
+  const title = formatTitleWithoutDuplicateSide(groupNameEs, side);
 
   const items: DissectionItem[] = fma.elements.map((eid) => {
     const p = partMap.get(eid);
-    const label = p ? translateAtlasNameEs(p.name) : eid;
+    const rawLabel = p ? translateAtlasNameEs(p.name) : eid;
+    const label = p ? simplifyPortionLabel(p.name, rawLabel) : rawLabel;
     return {
       id: eid,
       label,
@@ -321,7 +369,7 @@ function buildFromFmaGroup(
 
   return {
     id: `fma_${fma.id}`,
-    title: groupNameEs,
+    title,
     subtitle: `Grupo muscular FMA (${items.length} estructuras)`,
     focusPartId: focusPart.id,
     side,

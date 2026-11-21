@@ -1120,10 +1120,10 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
             const laidOut = layoutAnatomyLabels(screenAnchors, {
               width: cw,
               height: ch,
-              minSpacing: 42,
-              labelWidth: 190,
-              leftMargin: 20,
-              rightMargin: 20,
+              minSpacing: 40,
+              labelWidth: cw > 768 ? 175 : 140,
+              leftMargin: cw > 768 ? 225 : 16,
+              rightMargin: 70,
             });
 
             setPlacedLabelsRef.current?.(laidOut);

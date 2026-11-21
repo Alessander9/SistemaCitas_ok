@@ -13,6 +13,9 @@ interface AnatomyLabelsOverlayProps {
   onSelect: (id: string) => void;
 }
 
+const CARD_WIDTH = 175;
+const CARD_HEIGHT = 46;
+
 export const AnatomyLabelsOverlay: React.FC<AnatomyLabelsOverlayProps> = ({
   labels,
   width,
@@ -55,9 +58,13 @@ export const AnatomyLabelsOverlay: React.FC<AnatomyLabelsOverlayProps> = ({
         const isSelected = selectedId === label.id || label.isActive;
         const isVirtual = !!label.isVirtual;
         const isFacing = label.isFacingCamera;
+        const isLeft = label.side === 'left';
 
-        // Path for elbow line: anchor -> elbow -> label
-        const pathData = `M ${label.anchorX} ${label.anchorY} L ${label.elbowX} ${label.elbowY} L ${label.labelX} ${label.labelY}`;
+        // Connect to the inner edge facing the model:
+        // For left labels: card sits at [labelX, labelX + CARD_WIDTH], so right edge is labelX + CARD_WIDTH
+        // For right labels: card sits at [labelX, labelX + CARD_WIDTH], so left edge is labelX
+        const connectX = isLeft ? label.labelX + CARD_WIDTH : label.labelX;
+        const pathData = `M ${label.anchorX} ${label.anchorY} L ${label.elbowX} ${label.elbowY} L ${connectX} ${label.labelY}`;
 
         // Styling classes & colors
         const lineColor = isSelected
@@ -76,9 +83,6 @@ export const AnatomyLabelsOverlay: React.FC<AnatomyLabelsOverlayProps> = ({
             : undefined;
 
         const opacity = !isFacing && !isHovered && !isSelected ? 0.42 : 1;
-
-        // Text anchor alignment
-        const isLeft = label.side === 'left';
 
         return (
           <g
@@ -122,10 +126,10 @@ export const AnatomyLabelsOverlay: React.FC<AnatomyLabelsOverlayProps> = ({
 
             {/* 3. Interactive Callout Card (HTML via foreignObject) */}
             <foreignObject
-              x={isLeft ? label.labelX - 190 : label.labelX}
-              y={label.labelY - 18}
-              width={190}
-              height={54}
+              x={label.labelX}
+              y={label.labelY - 20}
+              width={CARD_WIDTH}
+              height={CARD_HEIGHT + 10}
               style={{ pointerEvents: 'auto', overflow: 'visible' }}
             >
               <div
