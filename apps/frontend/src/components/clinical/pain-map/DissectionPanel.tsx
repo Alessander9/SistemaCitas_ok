@@ -132,12 +132,12 @@ export const DissectionPanel: React.FC<DissectionPanelProps> = ({
           })}
         </div>
 
-        {/* 3. Tarjeta de Capas (vista simplificada) */}
+        {/* 3. Tarjeta de Capas (vista simplificada) - Comentada a solicitud del usuario */}
+        {/*
         <div className="legend-isometric-layers-box">
           <h4 className="isometric-box-title">Capas (vista simplificada)</h4>
           <div className="isometric-layers-container">
             <svg viewBox="0 0 240 100" className="isometric-layers-svg" aria-hidden="true">
-              {/* Capa 1: Superficial */}
               <g transform="translate(10, 8)">
                 <polygon
                   points="20,10 130,0 140,20 30,28"
@@ -152,7 +152,6 @@ export const DissectionPanel: React.FC<DissectionPanelProps> = ({
                 </text>
               </g>
 
-              {/* Capa 2: Intermedio */}
               <g transform="translate(10, 36)">
                 <polygon
                   points="20,10 130,0 140,20 30,28"
@@ -167,7 +166,6 @@ export const DissectionPanel: React.FC<DissectionPanelProps> = ({
                 </text>
               </g>
 
-              {/* Capa 3: Profundo */}
               <g transform="translate(10, 64)">
                 <polygon
                   points="20,10 130,0 140,20 30,28"
@@ -184,6 +182,7 @@ export const DissectionPanel: React.FC<DissectionPanelProps> = ({
             </svg>
           </div>
         </div>
+        */}
       </aside>
 
       {/* 4. Tarjeta Inferior: Información Anatómica y Acciones Clínicas */}

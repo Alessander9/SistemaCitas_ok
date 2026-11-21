@@ -130,7 +130,8 @@
   flex-direction: column;
   gap: 6px;
   padding-right: 4px;
-  max-height: calc(100vh - 350px);
+  flex: 1;
+  max-height: calc(100vh - 210px);
 }
 
 .legend-items-scroll-list::-webkit-scrollbar {
