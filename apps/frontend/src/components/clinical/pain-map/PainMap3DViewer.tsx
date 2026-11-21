@@ -1237,7 +1237,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
             onClick={() => setShowAboutModal((v) => !v)}
             title="Fuente científica y licencia CC BY 4.0 (BodyParts3D)"
           >
-            <MaterialIcon name="info_outline" size={16} />
+            <MaterialIcon name="info" size={16} />
           </button>
         </div>
       </div>
@@ -1293,7 +1293,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
         {/* Fallback de error o entorno sin WebGL */}
         {error && (
           <div className="human-atlas-error-overlay" role="alert">
-            <MaterialIcon name="error_outline" size={32} color="#f43f5e" />
+            <MaterialIcon name="error" size={32} color="#f43f5e" />
             <p>{error}</p>
           </div>
         )}
@@ -1483,7 +1483,7 @@ export const PainMap3DViewer: React.FC<PainMap3DViewerProps> = ({
                         {struct.icd10Hints?.[0] ? ` · CIE-10: ${struct.icd10Hints[0]}` : ''}
                       </div>
                     </div>
-                    <MaterialIcon name="add_circle_outline" size={16} color="#14b8a6" />
+                    <MaterialIcon name="add_circle" size={16} color="#14b8a6" />
                   </button>
                 );
               })}

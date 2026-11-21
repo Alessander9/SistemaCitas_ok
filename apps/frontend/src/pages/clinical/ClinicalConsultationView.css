@@ -12,27 +12,24 @@
 
 .clinical-layout {
   width: 100%;
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
   box-sizing: border-box;
 }
 
-@media (max-width: 1024px) {
-  .clinical-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Patient Sidebar Card */
+/* Patient Top Summary Banner Card (Full Width) */
 .patient-sidebar-card {
+  width: 100%;
+  box-sizing: border-box;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   border: 1.5px solid #e2e8f0;
   border-radius: 18px;
-  padding: 1.45rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
+  padding: 1.15rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-items: center;
+  gap: 1.25rem;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
   height: fit-content;
   transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);

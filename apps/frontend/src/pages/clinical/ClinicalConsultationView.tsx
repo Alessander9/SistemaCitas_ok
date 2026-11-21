@@ -284,38 +284,40 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
 
       {/* Main Layout */}
       <div className="clinical-layout">
-        {/* Left Sidebar: Patient Card */}
+        {/* Top Patient Summary Banner Card (Full Width) */}
         <aside className="patient-sidebar-card">
-          <div className="patient-header-badge">
-            <div className="patient-avatar-large">JP</div>
-            <div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                Juan Pérez Gómez
-              </h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.2rem 0 0', fontWeight: 700, fontFamily: 'monospace' }}>
-                DNI: 73829104 • 34 años
-              </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <div className="patient-header-badge">
+              <div className="patient-avatar-large">JP</div>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  Juan Pérez Gómez
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.2rem 0 0', fontWeight: 700, fontFamily: 'monospace' }}>
+                  DNI: 73829104 • 34 años
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+              <span className="clinical-tag" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <MaterialIcon name="security" size={14} /> Alergias: Ninguna
+              </span>
+              <span className="clinical-tag" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <MaterialIcon name="water_drop" size={14} /> Grupo: O+
+              </span>
+              <span className="clinical-tag" style={{ background: '#f5f3ff', borderColor: '#ddd6fe', color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <MaterialIcon name="star" size={14} /> Particular
+              </span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-            <span className="clinical-tag" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <MaterialIcon name="security" size={14} /> Alergias: Ninguna
-            </span>
-            <span className="clinical-tag" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <MaterialIcon name="water_drop" size={14} /> Grupo: O+
-            </span>
-            <span className="clinical-tag" style={{ background: '#f5f3ff', borderColor: '#ddd6fe', color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <MaterialIcon name="star" size={14} /> Particular
-            </span>
-          </div>
-
-          <div style={{ borderTop: '1.5px solid #f1f5f9', paddingTop: '0.95rem' }}>
+          <div style={{ borderLeft: '1.5px solid #f1f5f9', paddingLeft: '1.1rem' }}>
             <div className="profile-field-label">Tratamiento Activo</div>
             <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>
               Rehabilitación Lumbar (Sesión 7 de 10)
             </div>
-            <div className="session-progress-bar-track" style={{ margin: '0.6rem 0', height: '8px' }}>
+            <div className="session-progress-bar-track" style={{ margin: '0.5rem 0', height: '8px' }}>
               <div className="session-progress-bar-fill" style={{ width: '70%', background: 'linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)' }} />
             </div>
             <span style={{ fontSize: '0.74rem', color: '#0284c7', fontWeight: 800 }}>
@@ -323,7 +325,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
             </span>
           </div>
 
-          <div style={{ borderTop: '1.5px solid #f1f5f9', paddingTop: '0.95rem' }}>
+          <div style={{ borderLeft: '1.5px solid #f1f5f9', paddingLeft: '1.1rem' }}>
             <div className="profile-field-label">Signos Vitales de Ingreso</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '0.35rem' }}>
               <div className="vital-box-item">
@@ -341,7 +343,7 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
             </div>
           </div>
 
-          <div style={{ borderTop: '1.5px solid #f1f5f9', paddingTop: '0.95rem' }}>
+          <div style={{ borderLeft: '1.5px solid #f1f5f9', paddingLeft: '1.1rem' }}>
             <div className="profile-field-label">Contacto de Emergencia</div>
             <p style={{ fontSize: '0.84rem', color: '#334155', margin: '0.2rem 0 0', fontWeight: 600 }}>
               María Gómez (Madre) — <strong style={{ color: '#0284c7' }}>991 223 344</strong>

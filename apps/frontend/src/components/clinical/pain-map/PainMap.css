@@ -256,7 +256,7 @@
 }
 
 .pain-main-columns-layout.mode-3d {
-  grid-template-columns: minmax(0, 1.95fr) minmax(330px, 0.85fr);
+  grid-template-columns: minmax(0, 2.45fr) minmax(290px, 0.72fr);
   gap: 1.25rem;
 }
 
@@ -1363,12 +1363,12 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 780px;
+  min-height: 820px;
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
 }
 
 .human-atlas-clinical-studio.is-expanded {
-  min-height: 880px;
+  min-height: 920px;
 }
 
 .human-atlas-topbar {
@@ -1457,11 +1457,11 @@
 .human-atlas-presets-bar {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1rem;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
   background: #0f172a;
   border-bottom: 1px solid #1e293b;
-  overflow-x: auto;
+  flex-wrap: wrap;
 }
 
 .human-atlas-preset-chip {
@@ -1502,20 +1502,20 @@
 .human-atlas-viewport-area {
   position: relative;
   flex: 1;
-  min-height: 650px;
+  min-height: 700px;
   background: radial-gradient(circle at 50% 35%, #1e293b 0%, #0f172a 75%);
 }
 
 .human-atlas-canvas-host {
   width: 100%;
-  height: 650px;
+  height: 700px;
   position: relative;
 }
 
 .human-atlas-clinical-studio.is-expanded .human-atlas-viewport-area,
 .human-atlas-clinical-studio.is-expanded .human-atlas-canvas-host {
-  min-height: 760px;
-  height: 760px;
+  min-height: 800px;
+  height: 800px;
 }
 
 .human-atlas-hover-tooltip {
