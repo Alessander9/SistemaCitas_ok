@@ -12,11 +12,15 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const SECRET_PATTERNS = [
-  { name: 'Resend API Key', regex: /re_[a-zA-Z0-9_]{30,}/g },
+  { name: 'Resend API Key', regex: /re_[a-zA-Z0-9_]{20,}/g },
+  { name: 'Decolecta / RENIEC API Key', regex: /sk_[0-9a-zA-Z_.]{20,}/g },
   { name: 'Cloudflare Turnstile Secret Key', regex: /0x4[a-zA-Z0-9_]{30,}/g },
   { name: 'Generic Private Key', regex: /-----BEGIN (RSA |EC )?PRIVATE KEY-----/g },
-  { name: 'Stripe Secret Key', regex: /sk_live_[0-9a-zA-Z]{24,}/g },
+  { name: 'Stripe / Payment Gateway Secret Key', regex: /(sk_live|izipay_secret|mp_access_token)_[0-9a-zA-Z_]{16,}/g },
+  { name: 'Supabase Service Role Key', regex: /eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[a-zA-Z0-9_-]{50,}/g },
   { name: 'AWS Access Key ID', regex: /AKIA[0-9A-Z]{16}/g },
+  { name: 'GitHub Personal Access Token', regex: /gh[pousr]_[a-zA-Z0-9]{36,}/g },
+  { name: 'Slack API Token', regex: /xox[baprs]-[0-9a-zA-Z]{10,}/g },
 ];
 
 const IGNORED_PATHS = [
@@ -26,11 +30,6 @@ const IGNORED_PATHS = [
   'build',
   'coverage',
   '.codegraph',
-  '.env',
-  '.env.local',
-  '.env.production',
-  'apps/backend/.env',
-  'apps/frontend/.env',
 ];
 
 function getTrackedFiles() {
@@ -47,6 +46,11 @@ function scanFile(filePath) {
     if (filePath.includes(ignored)) return [];
   }
 
+  // Prevent any real .env file from ever being tracked in Git
+  if (filePath.includes('.env') && !filePath.includes('.env.example')) {
+    return [{ name: 'Tracked Environment File (.env leak)', matches: [filePath], file: filePath }];
+  }
+
   if (!fs.existsSync(filePath)) return [];
 
   const stat = fs.statSync(filePath);
@@ -61,9 +65,11 @@ function scanFile(filePath) {
       // Exclude documentation or test templates with placeholders
       const filtered = matches.filter(
         (m) =>
-          !m.includes('your_api_key') &&
+          !m.includes('your_') &&
+          !m.includes('your-') &&
           !m.includes('1x0000000000000000000000000000000AA') &&
-          !m.includes('0x4AAAAAAxxxxxxxx')
+          !m.includes('0x4AAAAAAxxxxxxxx') &&
+          !m.includes('sk_test_')
       );
       if (filtered.length > 0) {
         leaks.push({ name, matches: filtered, file: filePath });
