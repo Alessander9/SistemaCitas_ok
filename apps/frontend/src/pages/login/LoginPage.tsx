@@ -73,7 +73,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successUser, setSuccessUser] = useState<any | null>(null);
+  const [successUser, setSuccessUser] = useState<{
+    email: string;
+    firstName: string;
+    roles: string[];
+    clinicSlug: string;
+  } | null>(null);
 
   // Forgot Password State (Cloudflare Turnstile + Resend)
   const [forgotEmail, setForgotEmail] = useState('');
@@ -136,16 +141,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
         }),
       }).catch(() => null);
 
-      const resolvedRole = selectedDemoRole || (email.toLowerCase().includes('superadmin') ? 'SUPER_ADMIN' : 'ADMIN_CLINIC');
-      const resolvedName = resolvedRole === 'SUPER_ADMIN'
-        ? 'Alessander (Super Admin Global)'
-        : resolvedRole === 'PACIENTE'
-          ? 'Juan Pérez'
-          : resolvedRole === 'PROFESIONAL'
-            ? 'Dra. María González'
-            : resolvedRole === 'RECEPCION'
-              ? 'Recepción y Admisión'
-              : 'Alessander (Director Médico)';
+      const resolvedRole =
+        selectedDemoRole ||
+        (email.toLowerCase().includes('superadmin') ? 'SUPER_ADMIN' : 'ADMIN_CLINIC');
+      const resolvedName =
+        resolvedRole === 'SUPER_ADMIN'
+          ? 'Alessander (Super Admin Global)'
+          : resolvedRole === 'PACIENTE'
+            ? 'Juan Pérez'
+            : resolvedRole === 'PROFESIONAL'
+              ? 'Dra. María González'
+              : resolvedRole === 'RECEPCION'
+                ? 'Recepción y Admisión'
+                : 'Alessander (Director Médico)';
 
       const userObj = {
         email: email.trim(),
@@ -167,16 +175,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
         }, 300);
       }
     } catch {
-      const resolvedRole = selectedDemoRole || (email.toLowerCase().includes('superadmin') ? 'SUPER_ADMIN' : 'ADMIN_CLINIC');
-      const resolvedName = resolvedRole === 'SUPER_ADMIN'
-        ? 'Alessander (Super Admin Global)'
-        : resolvedRole === 'PACIENTE'
-          ? 'Juan Pérez'
-          : resolvedRole === 'PROFESIONAL'
-            ? 'Dra. María González'
-            : resolvedRole === 'RECEPCION'
-              ? 'Recepción y Admisión'
-              : 'Alessander (Director Médico)';
+      const resolvedRole =
+        selectedDemoRole ||
+        (email.toLowerCase().includes('superadmin') ? 'SUPER_ADMIN' : 'ADMIN_CLINIC');
+      const resolvedName =
+        resolvedRole === 'SUPER_ADMIN'
+          ? 'Alessander (Super Admin Global)'
+          : resolvedRole === 'PACIENTE'
+            ? 'Juan Pérez'
+            : resolvedRole === 'PROFESIONAL'
+              ? 'Dra. María González'
+              : resolvedRole === 'RECEPCION'
+                ? 'Recepción y Admisión'
+                : 'Alessander (Director Médico)';
 
       const userObj = {
         email: email.trim(),
@@ -255,28 +266,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
   return (
     <div className="login-container">
-      {/* Background Ambient Glows */}
-      <div className="ambient-orb orb-teal" />
-      <div className="ambient-orb orb-cyan" />
-
       <main className="login-wrapper">
-        {/* Left Side: Brand & Value Showcase */}
+        {/* Left Panel: Deep Clinical Pine Showcase */}
         <aside className="brand-sidebar">
-          <div>
-            <div className="brand-badge">
-              <span className="brand-badge-dot" />
-              <span>Portal del Personal Clínico</span>
-            </div>
-
+          <div className="brand-sidebar-top">
             <div className="brand-header-logo">
               <div className="logo-icon-wrap" aria-hidden="true">
                 <svg
-                  width="26"
-                  height="26"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2.3"
+                  strokeWidth="2.2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
@@ -287,96 +289,76 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
               </div>
               <div>
                 <h1 className="brand-title">
-                  Vital<span>Salud</span>
+                  Vital <span>Salud</span>
                 </h1>
                 <span className="brand-subtitle-tag">Clínica de Rehabilitación Física</span>
               </div>
             </div>
 
-            <p className="brand-desc">
-              Acceso exclusivo para nuestro equipo de especialistas, personal de recepción y administración de sede.
+            <div className="brand-statement">
+              <p className="brand-headline">
+                Gestión clínica precisa para cada sesión y paciente.
+              </p>
+              <p className="brand-desc">
+                Plataforma interna para especialistas, admisión y dirección médica en sede San Isidro.
+              </p>
+            </div>
+
+            {/* Structured Capabilities List */}
+            <ul className="feature-cards" aria-label="Capacidades de la plataforma">
+              <li className="feature-card">
+                <div className="feature-card-icon" aria-hidden="true">
+                  <MaterialIcon name="calendar_today" size={19} />
+                </div>
+                <div className="feature-card-content">
+                  <h4>Agenda en tiempo real</h4>
+                  <p>Control multi-especialista con bloqueo anti-colisiones y recordatorios automáticos.</p>
+                </div>
+              </li>
+
+              <li className="feature-card">
+                <div className="feature-card-icon" aria-hidden="true">
+                  <MaterialIcon name="mark_email_read" size={19} />
+                </div>
+                <div className="feature-card-content">
+                  <h4>Confirmaciones inmediatas</h4>
+                  <p>Comprobantes y avisos enviados al paciente y a recepción al instante vía Resend.</p>
+                </div>
+              </li>
+
+              <li className="feature-card">
+                <div className="feature-card-icon" aria-hidden="true">
+                  <MaterialIcon name="payments" size={19} />
+                </div>
+                <div className="feature-card-content">
+                  <h4>Caja y cobros en Soles (S/.)</h4>
+                  <p>Liquidación diaria en moneda nacional para atención presencial y pagos digitales.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Quiet Status & Legal Footer */}
+          <footer className="brand-footer">
+            <div className="brand-status-row">
+              <span className="live-status-dot" aria-hidden="true" />
+              <span>Sistema operativo</span>
+              <span className="footer-sep" aria-hidden="true">/</span>
+              <span>Ley N.° 29733</span>
+            </div>
+            <p className="brand-legal">
+              © {new Date().getFullYear()} Clínica VitalSalud S.A.C. — San Isidro, Lima
             </p>
-
-            {/* Live Trust Metrics Strip */}
-            <div className="trust-metrics-strip">
-              <div className="trust-metric-pill">
-                <span className="trust-dot live" />
-                <span>99.9% Uptime</span>
-              </div>
-              <div className="trust-metric-pill">
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <MaterialIcon name="verified_user" size={14} color="#10b981" />
-                  <span>Datos Protegidos (Ley 29733)</span>
-                </span>
-              </div>
-              <div className="trust-metric-pill">
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <MaterialIcon name="shield" size={14} color="#0d9488" />
-                  <span>Cloudflare Turnstile Active</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Platform Highlights */}
-            <div className="feature-cards">
-              <div className="feature-card">
-                <div className="feature-card-icon" style={{ background: 'rgba(13, 148, 136, 0.15)', color: '#0d9488' }}>
-                  <MaterialIcon name="calendar_today" size={20} />
-                </div>
-                <div className="feature-card-content">
-                  <h4>Agenda en Tiempo Real</h4>
-                  <p>Gestión multi-especialista con prevención anti-colisiones y recordatorios automáticos.</p>
-                </div>
-              </div>
-
-              <div className="feature-card">
-                <div className="feature-card-icon" style={{ background: 'rgba(2, 132, 199, 0.15)', color: '#0284c7' }}>
-                  <MaterialIcon name="mark_email_read" size={20} />
-                </div>
-                <div className="feature-card-content">
-                  <h4>Notificaciones Duales Resend</h4>
-                  <p>Envío instantáneo de confirmaciones de citas al paciente y al centro de salud.</p>
-                </div>
-              </div>
-
-              <div className="feature-card">
-                <div className="feature-card-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
-                  <MaterialIcon name="payments" size={20} />
-                </div>
-                <div className="feature-card-content">
-                  <h4>Cobros y Liquidaciones en Soles</h4>
-                  <p>Soporte completo para moneda nacional S/. en pagos presenciales y pasarelas digitales.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Legal / Tenant Footer */}
-          <div className="brand-footer">
-            <span>© {new Date().getFullYear()} Clínica VitalSalud S.A.C. Todos los derechos reservados.</span>
-            <span>RUC: 20601234567 • San Isidro, Lima, Perú</span>
-          </div>
+          </footer>
         </aside>
 
-        {/* Right Side: Authentication Form */}
+        {/* Right Panel: Crisp Authentication Workspace */}
         <section className="form-section">
           {onBackToHome && (
             <button
               type="button"
               className="back-home-btn"
               onClick={onBackToHome}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#64748b',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                marginBottom: '1rem',
-              }}
             >
               <MaterialIcon name="arrow_back" size={16} />
               <span>Volver a Inicio</span>
@@ -401,36 +383,35 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                 <span>Volver al inicio de sesión</span>
               </button>
 
-              <div className="form-header" style={{ marginBottom: '1.25rem' }}>
-                <h2 style={{ fontSize: '1.45rem', color: '#0f172a', fontWeight: 800 }}>Recuperar Contraseña</h2>
-                <p style={{ color: '#64748b', fontSize: '0.88rem', marginTop: '4px' }}>
-                  Ingresa tu correo para recibir un enlace seguro de recuperación protegido contra bots con Cloudflare Turnstile.
+              <div className="form-header">
+                <h2>Recuperar Contraseña</h2>
+                <p>
+                  Ingresa tu correo para recibir un enlace de recuperación protegido con Cloudflare Turnstile.
                 </p>
               </div>
 
               {forgotError && (
-                <div className="alert-box alert-danger" role="alert" style={{ marginBottom: '1rem' }}>
+                <div className="alert-box alert-danger" role="alert">
                   <MaterialIcon name="error_outline" size={18} />
                   <span>{forgotError}</span>
                 </div>
               )}
 
               {forgotSuccess ? (
-                <div className="alert-box alert-success" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem', padding: '1.25rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <MaterialIcon name="mark_email_read" size={24} color="#059669" />
-                    <strong style={{ fontSize: '1rem', color: '#065f46' }}>¡Instrucciones enviadas!</strong>
+                <div className="alert-box alert-success alert-box--stacked">
+                  <div className="alert-box__head">
+                    <MaterialIcon name="mark_email_read" size={22} />
+                    <strong>Instrucciones enviadas</strong>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#047857', lineHeight: 1.5 }}>
+                  <p className="alert-box__body">
                     {forgotMessage || 'Si la dirección está registrada en el sistema, recibirás un enlace de recuperación vía Resend.'}
                   </p>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#065f46' }}>
-                    Revisa tu bandeja de entrada y la carpeta de correo no deseado (spam). El enlace expira en 60 minutos.
+                  <p className="alert-box__meta">
+                    Revisa tu bandeja de entrada y la carpeta de spam. El enlace expira en 60 minutos.
                   </p>
                   <button
                     type="button"
                     className="submit-btn"
-                    style={{ width: '100%', marginTop: '0.75rem' }}
                     onClick={() => {
                       setAuthMode('login');
                       setForgotSuccess(false);
@@ -464,30 +445,27 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                     </div>
                   </div>
 
-                  {/* Cloudflare Turnstile Integration */}
-                  <TurnstileWidget
-                    onVerify={(token) => {
-                      setTurnstileToken(token);
-                      setForgotError(null);
-                    }}
-                    onError={() => {
-                      setForgotError('Error en la verificación de seguridad Cloudflare Turnstile.');
-                    }}
-                  />
+                  <div className="turnstile-slot">
+                    <TurnstileWidget
+                      onVerify={(token) => {
+                        setTurnstileToken(token);
+                        setForgotError(null);
+                      }}
+                      onError={() => {
+                        setForgotError('Error en la verificación de seguridad Cloudflare Turnstile.');
+                      }}
+                    />
+                  </div>
 
                   <button
                     type="submit"
                     className="submit-btn"
                     disabled={isForgotLoading || !turnstileToken || !forgotEmail.trim()}
-                    style={{
-                      opacity: isForgotLoading || !turnstileToken || !forgotEmail.trim() ? 0.65 : 1,
-                      cursor: isForgotLoading || !turnstileToken || !forgotEmail.trim() ? 'not-allowed' : 'pointer',
-                    }}
                   >
                     {isForgotLoading ? (
                       <>
                         <span className="spinner" />
-                        <span>Enviando enlace vía Resend...</span>
+                        <span>Enviando enlace...</span>
                       </>
                     ) : (
                       <>
@@ -506,33 +484,32 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
           {/* ----------------------------------------------------------------- */}
           {authMode === 'reset' && (
             <div className="auth-reset-card">
-              <div className="form-header" style={{ marginBottom: '1.25rem' }}>
-                <h2 style={{ fontSize: '1.45rem', color: '#0f172a', fontWeight: 800 }}>Establecer Nueva Contraseña</h2>
-                <p style={{ color: '#64748b', fontSize: '0.88rem', marginTop: '4px' }}>
-                  Ingresa tu nueva clave de acceso de al menos 8 caracteres para tu cuenta clínica.
+              <div className="form-header">
+                <h2>Establecer Nueva Contraseña</h2>
+                <p>
+                  Define una nueva clave de acceso de al menos 8 caracteres para tu cuenta clínica.
                 </p>
               </div>
 
               {resetError && (
-                <div className="alert-box alert-danger" role="alert" style={{ marginBottom: '1rem' }}>
+                <div className="alert-box alert-danger" role="alert">
                   <MaterialIcon name="error_outline" size={18} />
                   <span>{resetError}</span>
                 </div>
               )}
 
               {resetSuccess ? (
-                <div className="alert-box alert-success" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem', padding: '1.25rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <MaterialIcon name="check_circle" size={24} color="#059669" />
-                    <strong style={{ fontSize: '1rem', color: '#065f46' }}>¡Contraseña actualizada!</strong>
+                <div className="alert-box alert-success alert-box--stacked">
+                  <div className="alert-box__head">
+                    <MaterialIcon name="check_circle" size={22} />
+                    <strong>Contraseña actualizada</strong>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#047857' }}>
+                  <p className="alert-box__body">
                     {resetMessage || 'Tu contraseña ha sido actualizada con éxito. Ya puedes iniciar sesión.'}
                   </p>
                   <button
                     type="button"
                     className="submit-btn"
-                    style={{ width: '100%', marginTop: '0.75rem' }}
                     onClick={() => {
                       setAuthMode('login');
                       setResetSuccess(false);
@@ -558,7 +535,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                         type={showNewPassword ? 'text' : 'password'}
                         required
                         minLength={8}
-                        className="auth-input"
+                        className="auth-input auth-input--password"
                         placeholder="••••••••••••"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
@@ -621,17 +598,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
           {/* VISTA 3: INICIO DE SESIÓN REGULAR                                 */}
           {/* ----------------------------------------------------------------- */}
           {authMode === 'login' && (
-            <>
+            <div className="auth-login-card">
               <div className="form-header">
                 <h2>Acceso al Personal VitalSalud</h2>
-                <p>Ingresa tus credenciales para gestionar citas, sesiones y atención de pacientes.</p>
+                <p>Ingresa tus credenciales para gestionar citas, sesiones y pacientes.</p>
               </div>
 
               {/* Quick-Fill Demo Roles */}
               <div className="demo-role-section">
                 <div className="demo-role-title">
-                  <MaterialIcon name="bolt" size={16} />
-                  <span>Prueba Rápida de Roles (Demo):</span>
+                  <MaterialIcon name="bolt" size={15} />
+                  <span>Acceso rápido de prueba</span>
                 </div>
                 <div className="demo-chips">
                   {DEMO_USERS.map((demo) => (
@@ -640,7 +617,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                       key={demo.role}
                       className={`demo-chip ${selectedDemoRole === demo.role ? 'active' : ''}`}
                       onClick={() => handleSelectDemo(demo)}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     >
                       <MaterialIcon name={demo.badge} size={15} />
                       <span>{demo.label}</span>
@@ -658,18 +634,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
               )}
 
               {successUser ? (
-                <div className="alert-box alert-success" role="status" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <MaterialIcon name="check_circle" size={20} color="#059669" />
-                    <strong>¡Sesión iniciada correctamente!</strong>
+                <div className="alert-box alert-success alert-box--stacked" role="status">
+                  <div className="alert-box__head">
+                    <MaterialIcon name="check_circle" size={20} />
+                    <strong>Sesión iniciada correctamente</strong>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.85rem' }}>
+                  <p className="alert-box__body">
                     Bienvenido(a), <strong>{successUser.firstName || successUser.email}</strong>. Redirigiendo a tu panel...
                   </p>
                   <button
                     type="button"
                     className="submit-btn"
-                    style={{ width: '100%', marginTop: '0.5rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                     onClick={() => onLoginSuccess?.(successUser)}
                   >
                     <span>Ir al Dashboard Principal</span>
@@ -722,9 +697,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
                   {/* Password Field */}
                   <div className="input-group">
-                    <div className="input-label">
-                      <label htmlFor="password">Contraseña</label>
-                    </div>
+                    <label htmlFor="password" className="input-label">
+                      Contraseña
+                    </label>
                     <div className="input-wrapper">
                       <span className="input-icon" aria-hidden="true">
                         <MaterialIcon name="lock" size={18} />
@@ -734,7 +709,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                         type={showPassword ? 'text' : 'password'}
                         required
                         autoComplete="current-password"
-                        className="auth-input"
+                        className="auth-input auth-input--password"
                         placeholder="••••••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -792,24 +767,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                   </button>
                 </form>
               )}
-            </>
+            </div>
           )}
 
           {/* Footer Security Badges */}
           <div className="security-badge-footer">
             <div className="security-badge-item">
               <MaterialIcon name="lock" size={14} />
-              <span>TLS 256-bit</span>
+              <span>Cifrado TLS 256-bit</span>
             </div>
-            <span>•</span>
             <div className="security-badge-item">
               <MaterialIcon name="verified_user" size={14} />
-              <span>Ley 29733 (Perú)</span>
+              <span>Ley 29733</span>
             </div>
-            <span>•</span>
             <div className="security-badge-item">
               <MaterialIcon name="shield" size={14} />
-              <span>Cloudflare & Resend</span>
+              <span>Cloudflare Turnstile</span>
             </div>
           </div>
         </section>
