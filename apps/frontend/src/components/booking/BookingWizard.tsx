@@ -315,8 +315,14 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
         if (appointmentRes?.bookingCode) {
           setBookingCode(appointmentRes.bookingCode);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.warn('Booking creation error:', err);
+        setFormError(
+          err.message ||
+            'El horario seleccionado ya no está disponible con este profesional. Por favor seleccione otro horario.',
+        );
+        setIsSubmitting(false);
+        return;
       } finally {
         setIsSubmitting(false);
       }

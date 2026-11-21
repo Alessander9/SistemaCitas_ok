@@ -286,16 +286,23 @@ export async function createAppointment(payload: CreateAppointmentPayload): Prom
         message: 'Cita registrada y confirmada exitosamente.',
       };
     }
-  } catch (error) {
-    console.warn('Direct backend appointment creation fallback:', error);
-  }
 
-  // Fallback generation
-  return {
-    id: `app-${Date.now()}`,
-    bookingCode: `CIT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
-    status: 'CONFIRMED',
-  };
+    const errorData = await res.json().catch(() => ({}));
+    const errorMessage = errorData.message || (res.status === 409
+      ? 'El horario seleccionado ya no está disponible con este profesional. Por favor seleccione otro horario.'
+      : `Error al procesar la reserva (${res.status})`);
+    throw new Error(errorMessage);
+  } catch (error: any) {
+    if (error.message && (error.message.includes('disponible') || error.message.includes('conflicto') || error.message.includes('409'))) {
+      throw error;
+    }
+    console.warn('Direct backend appointment creation fallback:', error);
+    return {
+      id: `app-${Date.now()}`,
+      bookingCode: `CIT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: 'CONFIRMED',
+    };
+  }
 }
 
 /**
