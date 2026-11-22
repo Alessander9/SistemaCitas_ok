@@ -798,7 +798,29 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
       </div>
 
       {/* Asistente Flotante de Dictado por Voz Clínico (Mobile & Desktop) */}
-      <VoiceConsultationAssistant onApplyVoiceData={handleApplyVoiceData} activeContext="consultation" />
+      <VoiceConsultationAssistant
+        onApplyVoiceData={handleApplyVoiceData}
+        activeContext="consultation"
+        patientId={patientId}
+        appointmentId={sessionId}
+        currentData={{
+          chiefComplaint,
+          anamnesis,
+          physicalExam,
+          diagnosis,
+          treatmentPlan,
+          painScale,
+          techniques: selectedTechniques,
+          medications,
+          notes: sessionNotes,
+          painBefore,
+          painAfter,
+        }}
+        onConsultationSaved={() => {
+          setSavedSuccess(true);
+          setTimeout(() => setSavedSuccess(false), 5000);
+        }}
+      />
     </div>
   );
 };

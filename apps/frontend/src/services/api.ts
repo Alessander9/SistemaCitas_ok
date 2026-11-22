@@ -458,3 +458,83 @@ export async function fetchPainEvolution(
     return [];
   }
 }
+
+// -----------------------------------------------------------------------------
+// Asistente Clínico de Voz Bidireccional (IA Multi-Proveedor & Altavoz)
+// -----------------------------------------------------------------------------
+
+export interface ParsedMedicationItem {
+  medicationName: string;
+  dose: string;
+  route: string;
+  frequency: string;
+  duration: string;
+}
+
+export interface ParsedClinicalVoiceData {
+  chiefComplaint?: string;
+  anamnesis?: string;
+  physicalExam?: string;
+  painScale?: number;
+  painBefore?: number;
+  painAfter?: number;
+  diagnosis?: string;
+  treatmentPlan?: string;
+  techniques?: string[];
+  medications?: ParsedMedicationItem[];
+  homeRecommendations?: string;
+  notes?: string;
+}
+
+export interface MissingFieldInfo {
+  field: string;
+  label: string;
+  spokenPrompt: string;
+}
+
+export interface VoiceAssistantProcessResult {
+  parsedData: ParsedClinicalVoiceData;
+  missingFields: MissingFieldInfo[];
+  isComplete: boolean;
+  spokenAlert: string;
+  providerUsed: string;
+  rawTranscript: string;
+}
+
+export interface SaveVoiceConsultationDto {
+  patientId: string;
+  professionalId?: string;
+  appointmentId?: string;
+  clinicalData: ParsedClinicalVoiceData;
+}
+
+export async function processVoiceDictation(
+  transcript: string,
+  currentData?: Partial<ParsedClinicalVoiceData>,
+): Promise<VoiceAssistantProcessResult> {
+  const res = await fetch(`${API_BASE}/clinical/voice-assistant/process`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ transcript, currentData }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function saveVoiceConsultation(
+  dto: SaveVoiceConsultationDto,
+): Promise<{ recordId: string; prescriptionId?: string; spokenConfirmation: string }> {
+  const res = await fetch(`${API_BASE}/clinical/voice-assistant/save`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(dto),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
+  return await res.json();
+}

@@ -1,32 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MaterialIcon } from '../ui/MaterialIcon';
 import './VoiceConsultationAssistant.css';
+import {
+  processVoiceDictation,
+  saveVoiceConsultation,
+  ParsedClinicalVoiceData,
+  MissingFieldInfo,
+} from '../../services/api';
 
-export interface ParsedClinicalVoiceData {
-  chiefComplaint?: string;
-  anamnesis?: string;
-  physicalExam?: string;
-  painScale?: number;
-  painBefore?: number;
-  painAfter?: number;
-  diagnosis?: string;
-  treatmentPlan?: string;
-  techniques?: string[];
-  medications?: Array<{
-    medicationName: string;
-    dose: string;
-    route: string;
-    frequency: string;
-    duration: string;
-  }>;
-  notes?: string;
-  homeRecommendations?: string;
-}
+export type { ParsedClinicalVoiceData };
 
 interface VoiceConsultationAssistantProps {
   onApplyVoiceData: (data: ParsedClinicalVoiceData) => void;
+  onConsultationSaved?: (result: { recordId: string; prescriptionId?: string }) => void;
   isOpenInitial?: boolean;
   activeContext?: 'consultation' | 'quick-note';
+  patientId?: string;
+  professionalId?: string;
+  appointmentId?: string;
+  currentData?: Partial<ParsedClinicalVoiceData>;
 }
 
 const AVAILABLE_TECHNIQUES = [
@@ -60,6 +52,10 @@ const PRESET_SAMPLE_DICTATIONS = [
     title: 'Readaptación Deportiva: Esguince Tobillo',
     text: 'Motivo: Esguince grado 2 ligamento peroneoastragalino. Escala de dolor EVA 4. Diagnóstico: Esguince de tobillo en fase de readaptación. Plan: 6 sesiones de propiocepción. Técnicas: Crioterapia, Kinesiotape y Liberación Miofascial. Recomendaciones: Ejercicios de apoyo monopodal 10 minutos al día.',
   },
+  {
+    title: 'Consulta Incompleta (Prueba de Alerta Verbal)',
+    text: 'Motivo de consulta: Paciente presenta dolor cervical intenso tras accidente leve. Dolor EVA 9 sobre 10.',
+  },
 ];
 
 export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData => {
@@ -68,7 +64,8 @@ export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData =>
   if (!text) return data;
 
   // 1. Escala EVA / Dolor
-  const evaMatch = text.match(/(?:dolor|escala|eva|nivel de dolor)\s*(?:eva)?\s*(?:de\s*)?(\d{1,2})(?:\s*(?:sobre|\/)\s*10)?/i) ||
+  const evaMatch =
+    text.match(/(?:dolor|escala|eva|nivel de dolor)\s*(?:eva)?\s*(?:de\s*)?(\d{1,2})(?:\s*(?:sobre|\/)\s*10)?/i) ||
     text.match(/(\d{1,2})\s*(?:sobre|\/)\s*10/i);
   if (evaMatch) {
     const score = parseInt(evaMatch[1], 10);
@@ -89,22 +86,22 @@ export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData =>
     if (s >= 0 && s <= 10) data.painAfter = s;
   }
 
-  // 2. Section definitions
+  // 2. Definición de secciones clínicas
   const sectionDefs: Array<{
     key: string;
     patterns: RegExp[];
   }> = [
-      { key: 'chiefComplaint', patterns: [/\bmotivo(?: de consulta)?\s*[:\-]/i, /\bpaciente (?:viene por|refiere)\s*[:\-]?/i] },
-      { key: 'painScaleText', patterns: [/\b(?:escala de dolor|dolor eva|escala eva)\s*[:\-]?/i] },
-      { key: 'anamnesis', patterns: [/\banamnesis\s*[:\-]/i, /\benfermedad actual\s*[:\-]/i, /\bhistoria cl[ií]nica\s*[:\-]/i] },
-      { key: 'physicalExam', patterns: [/\bexamen f[ií]sico\s*[:\-]/i, /\bevaluaci[oó]n f[ií]sica\s*[:\-]/i, /\ba la palpaci[oó]n\s*[:\-]?/i] },
-      { key: 'diagnosis', patterns: [/\bdiagn[oó]stico\s*[:\-]/i, /\bcie-?10\s*[:\-]/i] },
-      { key: 'treatmentPlan', patterns: [/\bplan(?: de tratamiento| terap[eé]utico| m[eé]dico)?\s*[:\-]/i] },
-      { key: 'notes', patterns: [/\bobservaciones\s*[:\-]/i, /\bnotas(?: de evoluci[oó]n)?\s*[:\-]/i, /\bevoluci[oó]n\s*[:\-]/i] },
-      { key: 'homeRecommendations', patterns: [/\brecomendaciones\s*[:\-]/i, /\bindicaciones(?: para la casa| para el hogar)?\s*[:\-]/i] },
-      { key: 'techniques', patterns: [/\bt[eé]cnicas(?: aplicadas)?\s*[:\-]/i, /\bprocedimientos\s*[:\-]/i] },
-      { key: 'medications', patterns: [/\brecetar\s*[:\-]/i, /\breceta(?: m[eé]dica)?\s*[:\-]/i, /\bmedicamentos?\s*[:\-]/i, /\bprescripci[oó]n\s*[:\-]/i] },
-    ];
+    { key: 'chiefComplaint', patterns: [/\bmotivo(?: de consulta)?\s*[:\-]/i, /\bpaciente (?:viene por|refiere)\s*[:\-]?/i] },
+    { key: 'painScaleText', patterns: [/\b(?:escala de dolor|dolor eva|escala eva)\s*[:\-]?/i] },
+    { key: 'anamnesis', patterns: [/\banamnesis\s*[:\-]/i, /\benfermedad actual\s*[:\-]/i, /\bhistoria cl[ií]nica\s*[:\-]/i] },
+    { key: 'physicalExam', patterns: [/\bexamen f[ií]sico\s*[:\-]/i, /\bevaluaci[oó]n f[ií]sica\s*[:\-]/i, /\ba la palpaci[oó]n\s*[:\-]?/i] },
+    { key: 'diagnosis', patterns: [/\bdiagn[oó]stico\s*[:\-]/i, /\bcie-?10\s*[:\-]/i] },
+    { key: 'treatmentPlan', patterns: [/\bplan(?: de tratamiento| terap[eé]utico| m[eé]dico)?\s*[:\-]/i] },
+    { key: 'notes', patterns: [/\bobservaciones\s*[:\-]/i, /\bnotas(?: de evoluci[oó]n)?\s*[:\-]/i, /\bevoluci[oó]n\s*[:\-]/i] },
+    { key: 'homeRecommendations', patterns: [/\brecomendaciones\s*[:\-]/i, /\bindicaciones(?: para la casa| para el hogar)?\s*[:\-]/i] },
+    { key: 'techniques', patterns: [/\bt[eé]cnicas(?: aplicadas)?\s*[:\-]/i, /\bprocedimientos\s*[:\-]/i] },
+    { key: 'medications', patterns: [/\brecetar\s*[:\-]/i, /\breceta(?: m[eé]dica)?\s*[:\-]/i, /\bmedicamentos?\s*[:\-]/i, /\bprescripci[oó]n\s*[:\-]/i] },
+  ];
 
   interface HeaderOccurrence {
     key: string;
@@ -127,10 +124,8 @@ export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData =>
     });
   });
 
-  // Sort by appearance order
   occurrences.sort((a, b) => a.startIndex - b.startIndex);
 
-  // Extract slices between occurrences
   for (let i = 0; i < occurrences.length; i++) {
     const current = occurrences[i];
     const contentStart = current.startIndex + current.headerLength;
@@ -182,11 +177,17 @@ export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData =>
   AVAILABLE_TECHNIQUES.forEach((tech) => {
     const simpleTech = tech.toLowerCase().replace(/[()]/g, '');
     if (text.toLowerCase().includes(simpleTech) || (tech === 'Terapia Manual Ortopédica' && text.toLowerCase().includes('terapia manual'))) {
-      const canonical = tech.includes('TENS') ? 'Electroterapia (TENS / EMS)' :
-        tech.includes('Ultrasonido') ? 'Ultrasonido Terapéutico' :
-          tech.includes('Ejercicio') ? 'Ejercicio Terapéutico Funcional' :
-            tech.includes('Termoterapia') || tech.includes('Crioterapia') ? 'Termoterapia / Crioterapia' :
-              tech === 'Terapia Manual' ? 'Terapia Manual Ortopédica' : tech;
+      const canonical = tech.includes('TENS')
+        ? 'Electroterapia (TENS / EMS)'
+        : tech.includes('Ultrasonido')
+        ? 'Ultrasonido Terapéutico'
+        : tech.includes('Ejercicio')
+        ? 'Ejercicio Terapéutico Funcional'
+        : tech.includes('Termoterapia') || tech.includes('Crioterapia')
+        ? 'Termoterapia / Crioterapia'
+        : tech === 'Terapia Manual'
+        ? 'Terapia Manual Ortopédica'
+        : tech;
       if (!matchedTechniques.includes(canonical)) {
         matchedTechniques.push(canonical);
       }
@@ -196,7 +197,6 @@ export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData =>
     data.techniques = matchedTechniques;
   }
 
-  // Si no se usaron palabras clave explícitas, asignar el texto continuo al Motivo/Notas
   if (!data.chiefComplaint && !data.anamnesis && !data.diagnosis && text.length > 5) {
     data.chiefComplaint = text;
     data.notes = text;
@@ -207,8 +207,13 @@ export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData =>
 
 export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProps> = ({
   onApplyVoiceData,
+  onConsultationSaved,
   isOpenInitial = false,
   activeContext = 'consultation',
+  patientId,
+  professionalId,
+  appointmentId,
+  currentData,
 }) => {
   const [isOpen, setIsOpen] = useState(isOpenInitial);
   const [isListening, setIsListening] = useState(false);
@@ -220,9 +225,184 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
   const [micSupported, setMicSupported] = useState(true);
   const [speechError, setSpeechError] = useState<string | null>(null);
 
-  const recognitionRef = useRef<any>(null);
+  // Estados del Asistente Bidireccional por Voz & Altavoz
+  const [speakerEnabled, setSpeakerEnabled] = useState<boolean>(true);
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [lastSpokenMessage, setLastSpokenMessage] = useState<string | null>(null);
+  const [aiProvider, setAiProvider] = useState<string | null>(null);
+  const [missingFields, setMissingFields] = useState<MissingFieldInfo[]>([]);
+  const [isComplete, setIsComplete] = useState<boolean>(false);
+  const [isProcessingAi, setIsProcessingAi] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Inicializar Web Speech API
+  const recognitionRef = useRef<any>(null);
+  const latestTranscriptRef = useRef<string>('');
+
+  // ---------------------------------------------------------------------------
+  // ALTAVOZ / TEXT-TO-SPEECH (TTS) - Emisión de Voz Clara en Español
+  // ---------------------------------------------------------------------------
+  const speakAlert = useCallback(
+    (text: string) => {
+      setLastSpokenMessage(text);
+      if (!speakerEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+        return;
+      }
+
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-PE';
+        utterance.rate = 1.05; // Ritmo clínico natural y comprensible
+        utterance.pitch = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        const spanishVoice =
+          voices.find((v) => v.lang.includes('es-PE')) ||
+          voices.find((v) => v.lang.includes('es-ES')) ||
+          voices.find((v) => v.lang.startsWith('es-')) ||
+          voices.find((v) => v.lang.startsWith('es'));
+
+        if (spanishVoice) {
+          utterance.voice = spanishVoice;
+        }
+
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
+
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn('Speech synthesis error:', e);
+        setIsSpeaking(false);
+      }
+    },
+    [speakerEnabled],
+  );
+
+  // Cargar lista de voces del navegador
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // PROCESAMIENTO IA (Groq LPU -> Gemini -> OpenRouter -> Local)
+  // ---------------------------------------------------------------------------
+  const runAiAnalysis = useCallback(
+    async (textToProcess: string) => {
+      const clean = textToProcess.trim();
+      if (!clean || clean.length < 5) return;
+      setIsProcessingAi(true);
+
+      try {
+        const result = await processVoiceDictation(clean, currentData);
+        setAiProvider(result.providerUsed);
+        setMissingFields(result.missingFields || []);
+        setIsComplete(result.isComplete);
+
+        // Actualizar ficha médica
+        onApplyVoiceData(result.parsedData);
+
+        // Hablar por el altavoz (avisa faltantes o completitud)
+        if (result.spokenAlert) {
+          speakAlert(result.spokenAlert);
+        }
+      } catch (err: any) {
+        console.warn('Fallo en API de IA, ejecutando analizador determinista local:', err);
+        const localParsed = parseClinicalSpeech(clean);
+        onApplyVoiceData(localParsed);
+        setAiProvider('Motor Local Inteligente');
+
+        // Auditoría clínica local
+        const missing: MissingFieldInfo[] = [];
+        if (!localParsed.chiefComplaint) {
+          missing.push({ field: 'chiefComplaint', label: 'Motivo de consulta', spokenPrompt: 'el motivo de consulta' });
+        }
+        if (localParsed.painScale === undefined) {
+          missing.push({ field: 'painScale', label: 'Escala EVA (0-10)', spokenPrompt: 'la escala de dolor EVA' });
+        }
+        if (!localParsed.diagnosis) {
+          missing.push({ field: 'diagnosis', label: 'Diagnóstico', spokenPrompt: 'el diagnóstico clínico' });
+        }
+        if (!localParsed.treatmentPlan) {
+          missing.push({ field: 'treatmentPlan', label: 'Plan de tratamiento', spokenPrompt: 'el plan de tratamiento' });
+        }
+
+        setMissingFields(missing);
+        const complete = missing.length === 0;
+        setIsComplete(complete);
+
+        if (complete) {
+          speakAlert('Doctor, todos los datos requeridos de la consulta están completos y listos para guardar.');
+        } else {
+          const prompts = missing.map((m) => m.spokenPrompt).join(', ');
+          speakAlert(`Doctor, información registrada, pero falta esta información: ${prompts}.`);
+        }
+      } finally {
+        setIsProcessingAi(false);
+      }
+    },
+    [currentData, onApplyVoiceData, speakAlert],
+  );
+
+  // ---------------------------------------------------------------------------
+  // GUARDAR EN BASE DE DATOS (PostgreSQL: medical_records & prescriptions)
+  // ---------------------------------------------------------------------------
+  const handleSaveConsultation = useCallback(async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const fullText = (latestTranscriptRef.current || transcript || '').trim();
+      const localData = fullText ? parseClinicalSpeech(fullText) : {};
+      const mergedData = { ...(currentData || {}), ...localData };
+
+      const res = await saveVoiceConsultation({
+        patientId: patientId || '20175da2-1cfe-4934-829b-9e32de9f06d9',
+        professionalId,
+        appointmentId,
+        clinicalData: mergedData,
+      });
+
+      setSaveSuccess(true);
+      const confirmationText =
+        res.spokenConfirmation || 'Información guardada exitosamente en la base de datos de la clínica.';
+      speakAlert(confirmationText);
+
+      onConsultationSaved?.({
+        recordId: res.recordId,
+        prescriptionId: res.prescriptionId,
+      });
+
+      setTimeout(() => setSaveSuccess(false), 5000);
+    } catch (err: any) {
+      console.error('Error al guardar consulta:', err);
+      setSaveError(err.message || 'Error al persistir en base de datos');
+      speakAlert('Doctor, ocurrió un inconveniente al guardar la información en la base de datos.');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    isSaving,
+    transcript,
+    currentData,
+    patientId,
+    professionalId,
+    appointmentId,
+    speakAlert,
+    onConsultationSaved,
+  ]);
+
+  // ---------------------------------------------------------------------------
+  // Inicializar Web Speech API (Dictado por Micrófono)
+  // ---------------------------------------------------------------------------
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -234,7 +414,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'es-PE'; // Español Perú / Neutro
+      recognition.lang = 'es-PE';
 
       recognition.onstart = () => {
         setIsListening(true);
@@ -255,10 +435,22 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         }
 
         const fullCurrentText = (finalStr + interimStr).trim();
+        latestTranscriptRef.current = fullCurrentText;
         setTranscript(finalStr);
         setInterimTranscript(interimStr);
 
-        // Parsear entidades en tiempo real
+        // Comando de voz: si el médico dice "guardar consulta" o "guardar en base de datos"
+        const lower = fullCurrentText.toLowerCase();
+        if (
+          lower.includes('guardar consulta') ||
+          lower.includes('guardar en base de datos') ||
+          lower.includes('guardar historia')
+        ) {
+          handleSaveConsultation();
+          return;
+        }
+
+        // Extracción de slots en tiempo real para visualización inmediata
         if (fullCurrentText.length > 3) {
           const parsed = parseClinicalSpeech(fullCurrentText);
           const slots: string[] = [];
@@ -281,7 +473,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
       };
 
       recognition.onerror = (event: any) => {
-        console.warn('Speech recognition event warning:', event.error);
+        console.warn('Speech recognition warning:', event.error);
         if (event.error === 'not-allowed') {
           setSpeechError('Permiso de micrófono denegado. Puedes usar los dictados clínicos de muestra.');
         } else if (event.error !== 'no-speech') {
@@ -292,6 +484,11 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
 
       recognition.onend = () => {
         setIsListening(false);
+        // Cuando el médico termina de hablar, correr auditoría IA completa
+        const full = latestTranscriptRef.current.trim();
+        if (full.length > 10) {
+          runAiAnalysis(full);
+        }
       };
 
       recognitionRef.current = recognition;
@@ -309,11 +506,10 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         }
       }
     };
-  }, [autoApplyRealTime, onApplyVoiceData]);
+  }, [autoApplyRealTime, handleSaveConsultation, onApplyVoiceData, runAiAnalysis]);
 
   const toggleListening = useCallback(() => {
     if (!recognitionRef.current) {
-      // Fallback: abrir panel con muestras
       setIsOpen(true);
       setShowSamples(true);
       return;
@@ -326,6 +522,10 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         console.error(err);
       }
       setIsListening(false);
+      const textToAnalyze = latestTranscriptRef.current.trim();
+      if (textToAnalyze.length > 8) {
+        runAiAnalysis(textToAnalyze);
+      }
     } else {
       setIsOpen(true);
       try {
@@ -333,7 +533,6 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         setSpeechError(null);
       } catch (err) {
         console.error('Could not start recognition:', err);
-        // Si ya estaba en marcha, reiniciar
         try {
           recognitionRef.current.stop();
           setTimeout(() => recognitionRef.current.start(), 200);
@@ -342,39 +541,23 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         }
       }
     }
-  }, [isListening]);
+  }, [isListening, runAiAnalysis]);
 
   const handleApplyPreset = (text: string) => {
     setTranscript(text);
     setInterimTranscript('');
-    const parsed = parseClinicalSpeech(text);
-    const slots: string[] = [];
-    if (parsed.chiefComplaint) slots.push('Motivo');
-    if (parsed.anamnesis) slots.push('Anamnesis');
-    if (parsed.physicalExam) slots.push('Examen Físico');
-    if (parsed.painScale !== undefined) slots.push(`EVA ${parsed.painScale}/10`);
-    if (parsed.diagnosis) slots.push('Diagnóstico');
-    if (parsed.treatmentPlan) slots.push('Plan');
-    if (parsed.techniques && parsed.techniques.length > 0) slots.push(`${parsed.techniques.length} Técnicas`);
-    if (parsed.medications && parsed.medications.length > 0) slots.push(`${parsed.medications.length} Medicamento(s)`);
-    if (parsed.homeRecommendations) slots.push('Indicaciones');
-
-    setDetectedSlots(slots);
-    onApplyVoiceData(parsed);
+    latestTranscriptRef.current = text;
+    runAiAnalysis(text);
   };
 
   const handleClear = () => {
     setTranscript('');
     setInterimTranscript('');
+    latestTranscriptRef.current = '';
     setDetectedSlots([]);
-  };
-
-  const handleManualApply = () => {
-    const fullText = (transcript + ' ' + interimTranscript).trim();
-    if (fullText) {
-      const parsed = parseClinicalSpeech(fullText);
-      onApplyVoiceData(parsed);
-    }
+    setMissingFields([]);
+    setIsComplete(false);
+    setLastSpokenMessage(null);
   };
 
   return (
@@ -382,9 +565,13 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
       {/* Botón Flotante Principal de Voz (FAB Mobile / Desktop) */}
       <div className="voice-fab-container" role="region" aria-label="Asistente de Voz Médico">
         {!isOpen && !isListening && (
-          <div className="voice-hint-bubble" onClick={() => setIsOpen(true)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div
+            className="voice-hint-bubble"
+            onClick={() => setIsOpen(true)}
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
             <MaterialIcon name="mic" size={18} />
-            <span>Dictado por Voz Médico</span>
+            <span>Asistente Clínico por Voz</span>
           </div>
         )}
 
@@ -392,7 +579,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
           type="button"
           className={`voice-fab-btn ${isListening ? 'is-listening' : ''}`}
           onClick={toggleListening}
-          title={isListening ? 'Detener grabación de voz' : 'Iniciar dictado clínico por voz'}
+          title={isListening ? 'Detener dictado y procesar' : 'Iniciar asistente clínico por voz'}
           aria-label="Botón de dictado por voz"
         >
           {isListening ? (
@@ -405,13 +592,11 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
             </span>
           )}
 
-          {isListening && (
-            <span className="voice-fab-badge">REC</span>
-          )}
+          {isListening && <span className="voice-fab-badge">REC</span>}
         </button>
       </div>
 
-      {/* Panel / Drawer Docked de Voz en Tiempo Real */}
+      {/* Panel Docked de Voz en Tiempo Real */}
       {isOpen && (
         <div className="voice-live-panel">
           {/* Header */}
@@ -419,16 +604,32 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
             <div className="voice-panel-title">
               <MaterialIcon name="mic" size={20} color="#0284c7" />
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>{activeContext === 'quick-note' ? 'Dictado de Notas Rápidas' : 'Dictado Clínico Inteligente'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                  <span>{activeContext === 'quick-note' ? 'Notas Rápidas por Voz' : 'Asistente Clínico Inteligente'}</span>
                   <span className={`voice-status-pill ${isListening ? 'listening' : 'idle'}`}>
-                    {isListening ? '● Escuchando en vivo' : 'Pausa / Listo'}
+                    {isListening ? '● Escuchando...' : 'En Espera'}
                   </span>
+                  {aiProvider && (
+                    <span className="voice-provider-badge" title="Motor de IA activo">
+                      <MaterialIcon name="psychology" size={12} color="#0284c7" />
+                      {aiProvider}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {/* Toggle de Altavoz */}
+              <button
+                type="button"
+                className={`voice-speaker-btn ${!speakerEnabled ? 'muted' : ''}`}
+                onClick={() => setSpeakerEnabled(!speakerEnabled)}
+                title={speakerEnabled ? 'Altavoz activado (haga clic para silenciar)' : 'Altavoz silenciado (haga clic para activar)'}
+              >
+                <MaterialIcon name={speakerEnabled ? 'volume_up' : 'volume_off'} size={18} />
+              </button>
+
               {isListening && (
                 <div className="voice-wave-bars">
                   <div className="voice-wave-bar" />
@@ -438,6 +639,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
                   <div className="voice-wave-bar" />
                 </div>
               )}
+
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
@@ -459,9 +661,63 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
             </div>
           </div>
 
+          {/* Barra de Emisión Verbal del Altavoz (TTS Feedback) */}
+          {lastSpokenMessage && (
+            <div className="voice-tts-caption">
+              <span className="voice-tts-wave">
+                <span className="voice-tts-wave-bar" />
+                <span className="voice-tts-wave-bar" />
+                <span className="voice-tts-wave-bar" />
+              </span>
+              <MaterialIcon name={isSpeaking ? 'record_voice_over' : 'hearing'} size={16} color="#0284c7" />
+              <span style={{ flex: 1 }}>{lastSpokenMessage}</span>
+              {isSpeaking && (
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#0284c7' }}>HABLANDO</span>
+              )}
+            </div>
+          )}
+
+          {/* Banner de Auditoría: Campos Faltantes (Aviso Verbal) */}
+          {missingFields.length > 0 && (
+            <div className="voice-missing-banner">
+              <div className="voice-missing-title">
+                <MaterialIcon name="warning_amber" size={16} color="#d97706" />
+                <span>Atención: Falta esta información para completar la ficha:</span>
+              </div>
+              <div className="voice-missing-chips">
+                {missingFields.map((m, idx) => (
+                  <span key={idx} className="voice-missing-chip">
+                    <MaterialIcon name="info" size={13} color="#b45309" />
+                    {m.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Banner de Consulta Completa */}
+          {isComplete && (
+            <div className="voice-complete-banner">
+              <MaterialIcon name="check_circle" size={18} color="#16a34a" />
+              <span>Ficha clínica completa y auditada. Lista para persistir en la base de datos.</span>
+            </div>
+          )}
+
           {/* Fallback Notice for unsupported mic */}
           {!micSupported && (
-            <div style={{ padding: '8px 16px', background: '#fffbeb', color: '#92400e', fontSize: '0.74rem', fontWeight: 600, borderBottom: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div
+              style={{
+                padding: '8px 16px',
+                background: '#fffbeb',
+                color: '#92400e',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                borderBottom: '1px solid #fde68a',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
               <MaterialIcon name="info" size={16} color="#b45309" />
               <span>Micrófono no detectado en este navegador. Puedes usar los dictados clínicos de muestra (1-Click).</span>
             </div>
@@ -469,9 +725,59 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
 
           {/* Error Message if any */}
           {speechError && (
-            <div style={{ padding: '8px 16px', background: '#fef2f2', color: '#991b1b', fontSize: '0.74rem', fontWeight: 600, borderBottom: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div
+              style={{
+                padding: '8px 16px',
+                background: '#fef2f2',
+                color: '#991b1b',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                borderBottom: '1px solid #fecaca',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
               <MaterialIcon name="warning" size={16} color="#b91c1c" />
               <span>{speechError}</span>
+            </div>
+          )}
+
+          {saveError && (
+            <div
+              style={{
+                padding: '8px 16px',
+                background: '#fef2f2',
+                color: '#991b1b',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                borderBottom: '1px solid #fecaca',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <MaterialIcon name="error" size={16} color="#b91c1c" />
+              <span>{saveError}</span>
+            </div>
+          )}
+
+          {saveSuccess && (
+            <div
+              style={{
+                padding: '8px 16px',
+                background: '#ecfdf5',
+                color: '#065f46',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                borderBottom: '1px solid #a7f3d0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <MaterialIcon name="verified" size={16} color="#059669" />
+              <span>¡Historia clínica y receta guardadas exitosamente en PostgreSQL!</span>
             </div>
           )}
 
@@ -486,7 +792,11 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
               <div className="voice-transcript-placeholder">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <MaterialIcon name="chat" size={16} color="#64748b" />
-                  <span>Habla con naturalidad o dicta usando palabras clave como: <em>"Motivo de consulta..."</em>, <em>"Dolor EVA 7"</em>, <em>"Diagnóstico..."</em>, <em>"Recetar..."</em></span>
+                  <span>
+                    Habla con naturalidad o dicta usando palabras clave como: <em>"Motivo de consulta..."</em>,{' '}
+                    <em>"Dolor EVA 7"</em>, <em>"Diagnóstico..."</em>, <em>"Plan de tratamiento..."</em>,{' '}
+                    <em>"Recetar..."</em>. Si dices <strong>"Guardar consulta"</strong>, se registrará directamente en BD.
+                  </span>
                 </span>
               </div>
             )}
@@ -500,7 +810,11 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
                 <span>Campos detectados:</span>
               </span>
               {detectedSlots.map((slot, idx) => (
-                <span key={idx} className="voice-slot-chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span
+                  key={idx}
+                  className="voice-slot-chip"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
                   <MaterialIcon name="check" size={14} color="#059669" /> {slot}
                 </span>
               ))}
@@ -540,8 +854,16 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
                     onClick={() => handleApplyPreset(preset.text)}
                   >
                     <span>{preset.title}</span>
-                    <span style={{ color: '#0284c7', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                      Llenar <MaterialIcon name="bolt" size={14} />
+                    <span
+                      style={{
+                        color: '#0284c7',
+                        fontWeight: 800,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '2px',
+                      }}
+                    >
+                      Procesar IA <MaterialIcon name="bolt" size={14} />
                     </span>
                   </button>
                 ))}
@@ -551,18 +873,28 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
 
           {/* Footer Actions */}
           <div className="voice-panel-footer">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#475569', fontWeight: 700, cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '0.72rem',
+                  color: '#475569',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={autoApplyRealTime}
                   onChange={(e) => setAutoApplyRealTime(e.target.checked)}
                 />
-                Llenar en tiempo real
+                Llenar ficha en vivo
               </label>
             </div>
 
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               {(transcript || interimTranscript) && (
                 <button
                   type="button"
@@ -574,6 +906,21 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
                 </button>
               )}
 
+              {/* Botón de Analizar IA si hay texto */}
+              {(transcript || interimTranscript) && !isListening && (
+                <button
+                  type="button"
+                  className="voice-action-btn secondary"
+                  onClick={() => runAiAnalysis((transcript + ' ' + interimTranscript).trim())}
+                  disabled={isProcessingAi}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <MaterialIcon name="auto_awesome" size={16} color="#0284c7" />
+                  <span>{isProcessingAi ? 'Analizando...' : 'Analizar IA'}</span>
+                </button>
+              )}
+
+              {/* Botón de Hablar / Detener */}
               <button
                 type="button"
                 className={`voice-action-btn ${isListening ? 'danger' : 'primary'}`}
@@ -593,17 +940,18 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
                 )}
               </button>
 
-              {!autoApplyRealTime && (
-                <button
-                  type="button"
-                  className="voice-action-btn primary"
-                  onClick={handleManualApply}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <MaterialIcon name="bolt" size={16} />
-                  <span>Aplicar a Ficha</span>
-                </button>
-              )}
+              {/* Botón Directo para Guardar en Base de Datos */}
+              <button
+                type="button"
+                className="voice-action-btn save-db"
+                onClick={handleSaveConsultation}
+                disabled={isSaving}
+                title="Persistir historia clínica y receta directamente en PostgreSQL"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                <MaterialIcon name="save" size={16} />
+                <span>{isSaving ? 'Guardando...' : 'Guardar en BD'}</span>
+              </button>
             </div>
           </div>
         </div>

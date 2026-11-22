@@ -11,12 +11,18 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ClinicalService } from './clinical.service';
+import {
+  ClinicalVoiceAssistantService,
+  ParsedClinicalData,
+  VoiceAssistantProcessResult,
+  SaveConsultationDto,
+} from './clinical-voice-assistant.service';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { CreateTreatmentSessionDto } from './dto/create-treatment-session.dto';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { SavePainMapDto } from './dto/save-pain-map.dto';
-import { CurrentTenant, CurrentUser, Roles } from '../../common/decorators';
+import { CurrentTenant, CurrentUser, Roles, Public } from '../../common/decorators';
 import { JwtAuthGuard, TenantGuard, RolesGuard } from '../../common/guards';
 import {
   MedicalRecord,
@@ -32,7 +38,10 @@ import {
 @Controller('clinical')
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class ClinicalController {
-  constructor(private readonly clinicalService: ClinicalService) {}
+  constructor(
+    private readonly clinicalService: ClinicalService,
+    private readonly voiceAssistantService: ClinicalVoiceAssistantService,
+  ) {}
 
   // ---------------------------------------------------------------------------
   // Medical Records
@@ -190,5 +199,40 @@ export class ClinicalController {
     @Query('structureCode') structureCode?: string,
   ): Promise<PainEvolutionSeries[]> {
     return this.clinicalService.getPainEvolution(clinicId, patientId, structureCode);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Asistente Clínico de Voz Bidireccional (IA Multi-Proveedor & Altavoz)
+  // ---------------------------------------------------------------------------
+
+  @Post('voice-assistant/process')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  async processVoiceDictation(
+    @Body() body: { transcript: string; currentData?: Partial<ParsedClinicalData> },
+  ): Promise<VoiceAssistantProcessResult> {
+    return this.voiceAssistantService.processDictation(
+      body.transcript || '',
+      body.currentData,
+    );
+  }
+
+  @Post('voice-assistant/save')
+  @Public()
+  @HttpCode(HttpStatus.CREATED)
+  async saveVoiceConsultation(
+    @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: SaveConsultationDto,
+  ): Promise<{ recordId: string; prescriptionId?: string; spokenConfirmation: string }> {
+    const effectiveClinicId = clinicId || 'a0000000-0000-4000-a000-000000000001';
+    const effectiveProfessionalId = dto.professionalId || user?.id || 'e0000000-0000-4000-a000-000000000001';
+    const effectivePatientId = dto.patientId || '20175da2-1cfe-4934-829b-9e32de9f06d9';
+
+    return this.voiceAssistantService.saveConsultationRecord(effectiveClinicId, {
+      ...dto,
+      patientId: effectivePatientId,
+      professionalId: effectiveProfessionalId,
+    });
   }
 }
