@@ -21,6 +21,9 @@ const SECRET_PATTERNS = [
   { name: 'AWS Access Key ID', regex: /AKIA[0-9A-Z]{16}/g },
   { name: 'GitHub Personal Access Token', regex: /gh[pousr]_[a-zA-Z0-9]{36,}/g },
   { name: 'Slack API Token', regex: /xox[baprs]-[0-9a-zA-Z]{10,}/g },
+  { name: 'Groq API Key', regex: /gsk_[a-zA-Z0-9]{40,}/g },
+  { name: 'OpenRouter API Key', regex: /sk-or-v1-[a-f0-9]{64}/g },
+  { name: 'OpenAI API Key', regex: /sk-(proj-)?[a-zA-Z0-9_\-]{32,}/g },
 ];
 
 const IGNORED_PATHS = [
