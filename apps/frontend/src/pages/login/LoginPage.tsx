@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import { TurnstileWidget } from '../../components/ui/TurnstileWidget';
 import { requestPasswordReset, confirmPasswordReset } from '../../services/api';
+import { useClinicBranding } from '../../context/ClinicBrandingContext';
 import './LoginPage.css';
 
 interface DemoUser {
@@ -62,14 +63,21 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHome }) => {
+  const { tenantSlug, branding, theme } = useClinicBranding();
   const [authMode, setAuthMode] = useState<'login' | 'forgot' | 'reset'>('login');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [clinicSlug, setClinicSlug] = useState('clinica-demo');
+  const [clinicSlug, setClinicSlug] = useState(branding?.slug || 'clinica-demo');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [selectedDemoRole, setSelectedDemoRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (branding?.slug) {
+      setClinicSlug(branding.slug);
+    }
+  }, [branding?.slug]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -303,27 +311,46 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
         <aside className="brand-sidebar">
           <div className="brand-sidebar-top">
             <div className="brand-header-logo">
-              <div className="logo-icon-wrap" aria-hidden="true">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
-              </div>
+              {branding?.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.name}
+                  style={{ height: '36px', maxWidth: '140px', objectFit: 'contain' }}
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="logo-icon-wrap" aria-hidden="true" style={{ background: theme.primary }}>
+                  {branding ? (
+                    <span style={{ fontSize: '1.2rem', fontWeight: 800, color: theme.contrastText }}>
+                      {branding.name.charAt(0).toUpperCase()}
+                    </span>
+                  ) : (
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                      <path d="M12 5v14" />
+                      <path d="M5 12h14" />
+                    </svg>
+                  )}
+                </div>
+              )}
               <div>
                 <h1 className="brand-title">
-                  Vital <span>Salud</span>
+                  {branding ? branding.name : <>Vital <span>Salud</span></>}
                 </h1>
-                <span className="brand-subtitle-tag">Clínica de Rehabilitación Física</span>
+                <span className="brand-subtitle-tag">
+                  {branding?.loginTagline || (branding ? branding.city : 'Clínica de Rehabilitación Física')}
+                </span>
               </div>
             </div>
 
@@ -632,30 +659,35 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
           {authMode === 'login' && (
             <div className="auth-login-card">
               <div className="form-header">
-                <h2>Acceso al Personal VitalSalud</h2>
-                <p>Ingresa tus credenciales para gestionar citas, sesiones y pacientes.</p>
+                <h2>Acceso al Personal {branding ? branding.name : 'VitalSalud'}</h2>
+                <p>
+                  {branding?.loginTagline ||
+                    'Ingresa tus credenciales para gestionar citas, sesiones y pacientes.'}
+                </p>
               </div>
 
-              {/* Quick-Fill Demo Roles */}
-              <div className="demo-role-section">
-                <div className="demo-role-title">
-                  <MaterialIcon name="bolt" size={15} />
-                  <span>Acceso rápido de prueba</span>
+              {/* Quick-Fill Demo Roles (Solo en entorno global o clinica-demo) */}
+              {(!tenantSlug || tenantSlug === 'clinica-demo') && (
+                <div className="demo-role-section">
+                  <div className="demo-role-title">
+                    <MaterialIcon name="bolt" size={15} />
+                    <span>Acceso rápido de prueba</span>
+                  </div>
+                  <div className="demo-chips">
+                    {DEMO_USERS.map((demo) => (
+                      <button
+                        type="button"
+                        key={demo.role}
+                        className={`demo-chip ${selectedDemoRole === demo.role ? 'active' : ''}`}
+                        onClick={() => handleSelectDemo(demo)}
+                      >
+                        <MaterialIcon name={demo.badge} size={15} />
+                        <span>{demo.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="demo-chips">
-                  {DEMO_USERS.map((demo) => (
-                    <button
-                      type="button"
-                      key={demo.role}
-                      className={`demo-chip ${selectedDemoRole === demo.role ? 'active' : ''}`}
-                      onClick={() => handleSelectDemo(demo)}
-                    >
-                      <MaterialIcon name={demo.badge} size={15} />
-                      <span>{demo.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              )}
 
               {/* Alert Feedback */}
               {suspendedNotice && (
@@ -828,7 +860,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
                   </div>
 
                   {/* Submit Button */}
-                  <button type="submit" className="submit-btn" disabled={isLoading}>
+                  <button
+                    type="submit"
+                    className="submit-btn"
+                    disabled={isLoading}
+                    style={{
+                      background: theme.primary,
+                      borderColor: theme.primaryDark,
+                      color: theme.contrastText,
+                    }}
+                  >
                     {isLoading ? (
                       <>
                         <span className="spinner" />

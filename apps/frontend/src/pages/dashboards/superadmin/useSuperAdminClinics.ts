@@ -118,6 +118,18 @@ export function useSuperAdminClinics(onSwitchClinic?: (clinicId: string) => void
         renipressCode: newClinic.renipressCode,
         ipressCategory: newClinic.ipressCategory,
         consultingRooms: newClinic.consultingRooms,
+        logoUrl: newClinic.logoUrl,
+        specialtyPreset: newClinic.specialtyPreset,
+        landingStyle: newClinic.landingStyle,
+        brandColor: newClinic.brandColor,
+        heroTitle: newClinic.heroTitle,
+        heroSubtitle: newClinic.heroSubtitle,
+        heroImageUrl: newClinic.heroImageUrl,
+        loginTagline: newClinic.loginTagline,
+        whatsappNumber: newClinic.whatsappNumber,
+        aiAssistantName: newClinic.aiAssistantName,
+        enableSelfBooking: newClinic.enableSelfBooking,
+        initialAdmin: newClinic.initialAdmin,
       });
       setClinics((prev) => [...prev, created as ClinicRecord]);
       setSelectedClinic(created.id);
@@ -125,8 +137,10 @@ export function useSuperAdminClinics(onSwitchClinic?: (clinicId: string) => void
       setIsNewClinicModalOpen(false);
       showToast(`Sede "${created.name}" aprovisionada correctamente.`);
       void refreshData();
+      return created;
     } catch (err) {
       showToast((err as Error).message || 'No se pudo aprovisionar la sede.');
+      throw err;
     }
   };
 
@@ -143,6 +157,17 @@ export function useSuperAdminClinics(onSwitchClinic?: (clinicId: string) => void
         renipressCode: updated.renipressCode,
         ipressCategory: updated.ipressCategory,
         consultingRooms: updated.consultingRooms,
+        logoUrl: updated.logoUrl,
+        specialtyPreset: updated.specialtyPreset,
+        landingStyle: updated.landingStyle,
+        brandColor: updated.brandColor,
+        heroTitle: updated.heroTitle,
+        heroSubtitle: updated.heroSubtitle,
+        heroImageUrl: updated.heroImageUrl,
+        loginTagline: updated.loginTagline,
+        whatsappNumber: updated.whatsappNumber,
+        aiAssistantName: updated.aiAssistantName,
+        enableSelfBooking: updated.enableSelfBooking,
       });
       setClinics((prev) => prev.map((c) => (c.id === saved.id ? (saved as ClinicRecord) : c)));
       setManagingClinic(null);

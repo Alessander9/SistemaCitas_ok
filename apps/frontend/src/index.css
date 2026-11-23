@@ -44,6 +44,14 @@
   --status-confirmed-text: #0369a1;
   --status-confirmed-border: #bae6fd;
 
+  /* Marca Blanca / Dynamic White-Label Brand Tokens */
+  --brand-primary: #0284c7;
+  --brand-primary-dark: #0369a1;
+  --brand-primary-light: #38bdf8;
+  --brand-soft-bg: rgba(2, 132, 199, 0.08);
+  --brand-border: rgba(2, 132, 199, 0.22);
+  --brand-contrast-text: #ffffff;
+
   --status-attended-bg: #f0fdf4;
   --status-attended-text: #15803d;
   --status-attended-border: #bbf7d0;

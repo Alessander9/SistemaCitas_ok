@@ -24,7 +24,7 @@ function normalizeTenantId(rawId?: string): string | undefined {
 export class TenantGuard implements CanActivate {
   constructor(@Optional() private readonly db?: DatabaseService) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
@@ -58,17 +58,7 @@ export class TenantGuard implements CanActivate {
 
       // Block active sessions immediately if the clinic has been suspended by SuperAdmin
       if (this.db && userClinicId && UUID_REGEX.test(userClinicId)) {
-        const { rows } = await this.db.query<{ is_active: boolean }>(
-          'SELECT is_active FROM clinics WHERE id = $1 AND deleted_at IS NULL LIMIT 1',
-          [userClinicId],
-        );
-        if (rows.length > 0 && !rows[0].is_active) {
-          throw new ForbiddenException({
-            code: 'CLINIC_SUSPENDED',
-            message:
-              'El servicio ha sido suspendido por falta de pago. Envía un mensaje para regularizar tu pago y reactivar el acceso.',
-          });
-        }
+        return this.verifyActiveClinic(userClinicId, request);
       }
 
       // Always bind the authentic user's clinicId
@@ -79,6 +69,26 @@ export class TenantGuard implements CanActivate {
     // Unauthenticated public request (e.g. public booking)
     request.clinicId = targetClinicId || DEFAULT_DEMO_CLINIC_UUID;
 
+    return true;
+  }
+
+  private async verifyActiveClinic(
+    userClinicId: string,
+    request: Record<string, unknown>,
+  ): Promise<boolean> {
+    const { rows } = await this.db!.query<{ is_active: boolean }>(
+      'SELECT is_active FROM clinics WHERE id = $1 AND deleted_at IS NULL LIMIT 1',
+      [userClinicId],
+    );
+    if (rows.length > 0 && !rows[0].is_active) {
+      throw new ForbiddenException({
+        code: 'CLINIC_SUSPENDED',
+        message:
+          'El servicio ha sido suspendido por falta de pago. Envía un mensaje para regularizar tu pago y reactivar el acceso.',
+      });
+    }
+
+    request.clinicId = userClinicId;
     return true;
   }
 }

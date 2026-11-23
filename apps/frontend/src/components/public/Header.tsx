@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Header.css';
 import { MaterialIcon } from '../ui/MaterialIcon';
+import { useClinicBranding } from '../../context/ClinicBrandingContext';
 
 interface HeaderProps {
   onNavigate: (view: 'landing' | 'booking' | 'login') => void;
@@ -9,6 +10,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onNavigate, activeView }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { branding, theme } = useClinicBranding();
 
   const handleNavClick = (view: 'landing' | 'booking' | 'login', anchorId?: string) => {
     setMobileMenuOpen(false);
@@ -31,27 +33,54 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, activeView }) => {
           role="button"
           tabIndex={0}
         >
-          <div className="brand-logo-badge" aria-hidden="true">
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {branding?.logoUrl ? (
+            <img
+              src={branding.logoUrl}
+              alt={branding.name}
+              style={{ height: '34px', maxWidth: '160px', objectFit: 'contain', marginRight: '0.5rem' }}
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <div
+              className="brand-logo-badge"
+              aria-hidden="true"
+              style={{ background: theme.primary }}
             >
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-          </div>
+              {branding ? (
+                <span style={{ fontSize: '1.05rem', fontWeight: 800, color: theme.contrastText }}>
+                  {branding.name.charAt(0).toUpperCase()}
+                </span>
+              ) : (
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+              )}
+            </div>
+          )}
           <div className="brand-text-col">
             <span className="brand-name">
-              Vital<span>Salud</span>
+              {branding ? (
+                branding.name
+              ) : (
+                <>Vital<span>Salud</span></>
+              )}
             </span>
-            <span className="brand-tagline">Clínica de Rehabilitación Física</span>
+            <span className="brand-tagline">
+              {branding?.loginTagline || (branding ? branding.city : 'Clínica de Rehabilitación Física')}
+            </span>
           </div>
         </div>
 
@@ -135,6 +164,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, activeView }) => {
           <button
             type="button"
             className="btn-login"
+            style={{ color: theme.primary }}
             onClick={() => handleNavClick('login')}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -148,6 +178,11 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, activeView }) => {
           <button
             type="button"
             className="btn-book-cta"
+            style={{
+              background: theme.primary,
+              borderColor: theme.primaryDark,
+              color: theme.contrastText,
+            }}
             onClick={() => handleNavClick('booking')}
           >
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3">

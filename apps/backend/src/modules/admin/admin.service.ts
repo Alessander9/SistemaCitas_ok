@@ -19,6 +19,17 @@ export interface AdminClinicResponse {
   address?: string;
   phone?: string;
   email?: string;
+  logoUrl?: string;
+  specialtyPreset?: string;
+  landingStyle?: string;
+  brandColor?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroImageUrl?: string;
+  loginTagline?: string;
+  whatsappNumber?: string;
+  aiAssistantName?: string;
+  enableSelfBooking?: boolean;
   renipressCode?: string;
   ipressCategory?: string;
   openingHours?: string;
@@ -32,6 +43,28 @@ export interface AdminClinicResponse {
   isActive: boolean;
   monthlyRevenue: string;
   revenueAmount: number;
+}
+
+export interface PublicClinicBrandingResponse {
+  id: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city: string;
+  logoUrl?: string;
+  specialtyPreset: string;
+  landingStyle: string;
+  brandColor: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroImageUrl?: string;
+  loginTagline?: string;
+  whatsappNumber?: string;
+  aiAssistantName: string;
+  enableSelfBooking: boolean;
 }
 
 export interface AdminOverviewResponse {
@@ -197,6 +230,7 @@ export class AdminService {
         c.phone,
         c.email,
         c.address,
+        c.logo_url,
         c.is_active,
         c.settings,
         COALESCE((SELECT COUNT(*)::int FROM professionals p WHERE p.clinic_id = c.id AND p.deleted_at IS NULL), 0) AS doctors_count,
@@ -226,6 +260,7 @@ export class AdminService {
       phone: string | null;
       email: string | null;
       address: string | null;
+      logo_url: string | null;
       is_active: boolean;
       settings: Record<string, unknown> | null;
       doctors_count: number;
@@ -249,6 +284,17 @@ export class AdminService {
         address: r.address || undefined,
         phone: r.phone || undefined,
         email: r.email || undefined,
+        logoUrl: r.logo_url || undefined,
+        specialtyPreset: (s.specialtyPreset as string) || 'general',
+        landingStyle: (s.landingStyle as string) || 'modern',
+        brandColor: (s.brandColor as string) || '#0284c7',
+        heroTitle: (s.heroTitle as string) || undefined,
+        heroSubtitle: (s.heroSubtitle as string) || undefined,
+        heroImageUrl: (s.heroImageUrl as string) || undefined,
+        loginTagline: (s.loginTagline as string) || undefined,
+        whatsappNumber: (s.whatsappNumber as string) || r.phone || undefined,
+        aiAssistantName: (s.aiAssistantName as string) || 'Asistente IA',
+        enableSelfBooking: s.enableSelfBooking !== false,
         renipressCode: (s.renipressCode as string) || undefined,
         ipressCategory: (s.ipressCategory as string) || undefined,
         openingHours: (s.openingHours as string) || 'Lunes a Sábado · 07:00 a 20:00',
@@ -278,34 +324,92 @@ export class AdminService {
       throw new ConflictException(`Ya existe una clínica con el slug "${formattedSlug}"`);
     }
 
-    const settings = {
-      city: dto.city.trim(),
-      legalName: dto.legalName?.trim(),
-      ruc: dto.ruc?.trim(),
-      renipressCode: dto.renipressCode?.trim(),
-      ipressCategory: dto.ipressCategory?.trim(),
-      consultingRooms: dto.consultingRooms || 4,
-    };
+    if (dto.initialAdmin) {
+      const normalizedEmail = dto.initialAdmin.email.trim().toLowerCase();
+      const emailCheck = await this.db.query<{ id: string }>(
+        'SELECT id FROM users WHERE LOWER(email) = $1 AND deleted_at IS NULL',
+        [normalizedEmail],
+      );
+      if (emailCheck.rows.length > 0) {
+        throw new ConflictException(
+          `Ya existe un usuario registrado con el correo ${normalizedEmail}`,
+        );
+      }
+    }
 
-    const insertQuery = `
-      INSERT INTO clinics (name, slug, phone, email, address, settings, is_active)
-      VALUES ($1, $2, $3, $4, $5, $6, true)
-      RETURNING id
-    `;
+    const createdId = await this.db.transaction(async (client) => {
+      const settings = {
+        city: dto.city.trim(),
+        legalName: dto.legalName?.trim(),
+        ruc: dto.ruc?.trim(),
+        renipressCode: dto.renipressCode?.trim(),
+        ipressCategory: dto.ipressCategory?.trim(),
+        consultingRooms: dto.consultingRooms || 4,
+        specialtyPreset: dto.specialtyPreset || 'general',
+        landingStyle: dto.landingStyle || 'modern',
+        brandColor: dto.brandColor || '#0284c7',
+        heroTitle: dto.heroTitle?.trim(),
+        heroSubtitle: dto.heroSubtitle?.trim(),
+        heroImageUrl: dto.heroImageUrl?.trim(),
+        loginTagline: dto.loginTagline?.trim(),
+        whatsappNumber: dto.whatsappNumber?.trim() || dto.phone?.trim(),
+        aiAssistantName: dto.aiAssistantName?.trim() || 'Asistente IA',
+        enableSelfBooking: dto.enableSelfBooking ?? true,
+      };
 
-    const { rows } = await this.db.query<{ id: string }>(insertQuery, [
-      dto.name.trim(),
-      formattedSlug,
-      dto.phone || null,
-      dto.email || null,
-      dto.address || null,
-      JSON.stringify(settings),
-    ]);
+      const insertQuery = `
+        INSERT INTO clinics (name, slug, phone, email, address, logo_url, settings, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+        RETURNING id
+      `;
 
-    const createdId = rows[0].id;
+      const { rows } = await client.query<{ id: string }>(insertQuery, [
+        dto.name.trim(),
+        formattedSlug,
+        dto.phone || null,
+        dto.email || null,
+        dto.address || null,
+        dto.logoUrl?.trim() || null,
+        JSON.stringify(settings),
+      ]);
+
+      const newClinicId = rows[0].id;
+
+      if (dto.initialAdmin) {
+        const passwordHash = await bcrypt.hash(dto.initialAdmin.password, 10);
+        const userRes = await client.query<{ id: string }>(
+          `INSERT INTO users (clinic_id, email, password_hash, first_name, last_name, phone, is_active)
+           VALUES ($1, $2, $3, $4, $5, $6, true)
+           RETURNING id`,
+          [
+            newClinicId,
+            dto.initialAdmin.email.trim().toLowerCase(),
+            passwordHash,
+            dto.initialAdmin.firstName.trim(),
+            dto.initialAdmin.lastName.trim(),
+            dto.initialAdmin.phone?.trim() || null,
+          ],
+        );
+        const newUserId = userRes.rows[0].id;
+
+        const roleRes = await client.query<{ id: string }>(
+          "SELECT id FROM roles WHERE name = 'ADMIN_CLINIC' LIMIT 1",
+        );
+        if (roleRes.rows.length > 0) {
+          await client.query(
+            'INSERT INTO user_roles (user_id, role_id, assigned_by) VALUES ($1, $2, $3)',
+            [newUserId, roleRes.rows[0].id, actorId ?? null],
+          );
+        }
+      }
+
+      return newClinicId;
+    });
+
     await this.recordAudit(createdId, actorId, 'CLINIC_CREATED', 'clinic', createdId, {
       name: dto.name.trim(),
       slug: formattedSlug,
+      hasInitialAdmin: !!dto.initialAdmin,
     });
 
     const list = await this.listClinics();
@@ -324,10 +428,11 @@ export class AdminService {
       phone: string | null;
       email: string | null;
       address: string | null;
+      logo_url: string | null;
       is_active: boolean;
       settings: Record<string, unknown> | null;
     }>(
-      'SELECT id, name, slug, phone, email, address, is_active, settings FROM clinics WHERE id = $1 AND deleted_at IS NULL',
+      'SELECT id, name, slug, phone, email, address, logo_url, is_active, settings FROM clinics WHERE id = $1 AND deleted_at IS NULL',
       [id],
     );
 
@@ -345,22 +450,80 @@ export class AdminService {
       ...(dto.renipressCode !== undefined ? { renipressCode: dto.renipressCode.trim() } : {}),
       ...(dto.ipressCategory !== undefined ? { ipressCategory: dto.ipressCategory.trim() } : {}),
       ...(dto.consultingRooms !== undefined ? { consultingRooms: dto.consultingRooms } : {}),
+      ...(dto.specialtyPreset !== undefined ? { specialtyPreset: dto.specialtyPreset } : {}),
+      ...(dto.landingStyle !== undefined ? { landingStyle: dto.landingStyle } : {}),
+      ...(dto.brandColor !== undefined ? { brandColor: dto.brandColor } : {}),
+      ...(dto.heroTitle !== undefined ? { heroTitle: dto.heroTitle.trim() } : {}),
+      ...(dto.heroSubtitle !== undefined ? { heroSubtitle: dto.heroSubtitle.trim() } : {}),
+      ...(dto.heroImageUrl !== undefined ? { heroImageUrl: dto.heroImageUrl.trim() } : {}),
+      ...(dto.loginTagline !== undefined ? { loginTagline: dto.loginTagline.trim() } : {}),
+      ...(dto.whatsappNumber !== undefined ? { whatsappNumber: dto.whatsappNumber.trim() } : {}),
+      ...(dto.aiAssistantName !== undefined ? { aiAssistantName: dto.aiAssistantName.trim() } : {}),
+      ...(dto.enableSelfBooking !== undefined ? { enableSelfBooking: dto.enableSelfBooking } : {}),
     };
 
     const nextName = dto.name ? dto.name.trim() : current.name;
     const nextPhone = dto.phone !== undefined ? dto.phone : current.phone;
     const nextEmail = dto.email !== undefined ? dto.email : current.email;
     const nextAddress = dto.address !== undefined ? dto.address : current.address;
+    const nextLogoUrl = dto.logoUrl !== undefined ? (dto.logoUrl.trim() || null) : current.logo_url;
 
     await this.db.query(
-      'UPDATE clinics SET name = $1, phone = $2, email = $3, address = $4, settings = $5, updated_at = NOW() WHERE id = $6',
-      [nextName, nextPhone, nextEmail, nextAddress, JSON.stringify(mergedSettings), id],
+      'UPDATE clinics SET name = $1, phone = $2, email = $3, address = $4, logo_url = $5, settings = $6, updated_at = NOW() WHERE id = $7',
+      [nextName, nextPhone, nextEmail, nextAddress, nextLogoUrl, JSON.stringify(mergedSettings), id],
     );
 
     await this.recordAudit(id, actorId, 'CLINIC_UPDATED', 'clinic', id, { name: nextName });
 
     const list = await this.listClinics();
     return list.find((c) => c.id === id)!;
+  }
+
+  async getPublicClinicBranding(slug: string): Promise<PublicClinicBrandingResponse> {
+    const formattedSlug = slug.trim().toLowerCase();
+    const { rows } = await this.db.query<{
+      id: string;
+      name: string;
+      slug: string;
+      is_active: boolean;
+      phone: string | null;
+      email: string | null;
+      address: string | null;
+      logo_url: string | null;
+      settings: Record<string, unknown> | null;
+    }>(
+      'SELECT id, name, slug, is_active, phone, email, address, logo_url, settings FROM clinics WHERE slug = $1 AND deleted_at IS NULL',
+      [formattedSlug],
+    );
+
+    if (rows.length === 0) {
+      throw new NotFoundException(`No se encontró la clínica con identificador "${formattedSlug}"`);
+    }
+
+    const c = rows[0];
+    const s = c.settings || {};
+
+    return {
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      isActive: c.is_active,
+      phone: c.phone ?? undefined,
+      email: c.email ?? undefined,
+      address: c.address ?? undefined,
+      city: (s.city as string) || 'Lima, Perú',
+      logoUrl: c.logo_url ?? undefined,
+      specialtyPreset: (s.specialtyPreset as string) || 'general',
+      landingStyle: (s.landingStyle as string) || 'modern',
+      brandColor: (s.brandColor as string) || '#0284c7',
+      heroTitle: (s.heroTitle as string) || undefined,
+      heroSubtitle: (s.heroSubtitle as string) || undefined,
+      heroImageUrl: (s.heroImageUrl as string) || undefined,
+      loginTagline: (s.loginTagline as string) || undefined,
+      whatsappNumber: (s.whatsappNumber as string) || c.phone || undefined,
+      aiAssistantName: (s.aiAssistantName as string) || 'Asistente IA',
+      enableSelfBooking: s.enableSelfBooking !== false,
+    };
   }
 
   async toggleClinicStatus(

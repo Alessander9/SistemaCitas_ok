@@ -4,11 +4,14 @@ import App from './App';
 import './index.css';
 import './styles/dark-theme.css';
 import { ThemeProvider } from './context/ThemeContext';
+import { ClinicBrandingProvider } from './context/ClinicBrandingContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
+      <ClinicBrandingProvider>
+        <App />
+      </ClinicBrandingProvider>
     </ThemeProvider>
   </StrictMode>,
 );

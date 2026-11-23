@@ -17,6 +17,17 @@ export interface ClinicRecord {
   address?: string;
   phone?: string;
   email?: string;
+  logoUrl?: string;
+  specialtyPreset?: string;
+  landingStyle?: string;
+  brandColor?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroImageUrl?: string;
+  loginTagline?: string;
+  whatsappNumber?: string;
+  aiAssistantName?: string;
+  enableSelfBooking?: boolean;
   renipressCode?: string;
   ipressCategory?: string;
   openingHours?: string;
@@ -30,4 +41,11 @@ export interface ClinicRecord {
   isActive?: boolean;
   monthlyRevenue: string;
   revenueAmount: number;
+  initialAdmin?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phone?: string;
+  };
 }

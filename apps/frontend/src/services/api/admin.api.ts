@@ -10,6 +10,17 @@ export interface AdminClinic {
   address?: string;
   phone?: string;
   email?: string;
+  logoUrl?: string;
+  specialtyPreset?: string;
+  landingStyle?: string;
+  brandColor?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroImageUrl?: string;
+  loginTagline?: string;
+  whatsappNumber?: string;
+  aiAssistantName?: string;
+  enableSelfBooking?: boolean;
   renipressCode?: string;
   ipressCategory?: string;
   openingHours?: string;
@@ -108,14 +119,32 @@ export interface CreateAdminClinicDto {
   renipressCode?: string;
   ipressCategory?: string;
   consultingRooms?: number;
+  logoUrl?: string;
+  specialtyPreset?: string;
+  landingStyle?: string;
+  brandColor?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroImageUrl?: string;
+  loginTagline?: string;
+  whatsappNumber?: string;
+  aiAssistantName?: string;
+  enableSelfBooking?: boolean;
+  initialAdmin?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phone?: string;
+  };
 }
 
 function getAuthHeaders(): HeadersInit {
   const token =
     typeof window !== 'undefined'
       ? localStorage.getItem('vitalsalud_access_token') ||
-        localStorage.getItem('auth_token') ||
-        localStorage.getItem('token')
+      localStorage.getItem('auth_token') ||
+      localStorage.getItem('token')
       : null;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

@@ -266,6 +266,26 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <a
+                          href={`/?clinic=${c.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="table-action-btn"
+                          style={{
+                            textDecoration: 'none',
+                            background: '#f8fafc',
+                            color: '#0284c7',
+                            borderColor: '#bae6fd',
+                            fontWeight: 600,
+                          }}
+                          title="Abrir la landing y portal público de esta sede"
+                        >
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <MaterialIcon name="language" size={14} />
+                            <span>Landing ↗</span>
+                          </span>
+                        </a>
+
                         {onOpenClinicConsole && (
                           <button
                             type="button"

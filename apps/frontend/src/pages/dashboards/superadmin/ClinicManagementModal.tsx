@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ClinicRecord } from './types';
 import { IconBuilding } from '../../../components/ui/Icons';
 import { MaterialIcon } from '../../../components/ui/MaterialIcon';
+import { CURATED_PALETTES } from '../../../config/clinicPresets';
 
 interface ClinicManagementModalProps {
   clinic: ClinicRecord | null;
@@ -17,7 +18,7 @@ export const ClinicManagementModal: React.FC<ClinicManagementModalProps> = ({
   onOpenClinicConsole,
 }) => {
   const [form, setForm] = useState<ClinicRecord | null>(clinic);
-  const [tab, setTab] = useState<'general' | 'legal'>('general');
+  const [tab, setTab] = useState<'general' | 'legal' | 'branding'>('general');
 
   useEffect(() => {
     setForm(clinic);
@@ -100,6 +101,14 @@ export const ClinicManagementModal: React.FC<ClinicManagementModalProps> = ({
           </button>
           <button
             type="button"
+            className={`modal-tab-btn ${tab === 'branding' ? 'active' : ''}`}
+            onClick={() => setTab('branding')}
+          >
+            <MaterialIcon name="palette" size={16} />
+            <span>Marca Blanca & IA</span>
+          </button>
+          <button
+            type="button"
             className={`modal-tab-btn ${tab === 'legal' ? 'active' : ''}`}
             onClick={() => setTab('legal')}
           >
@@ -109,7 +118,7 @@ export const ClinicManagementModal: React.FC<ClinicManagementModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ padding: '1.25rem 1.5rem', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ padding: '1.25rem 1.5rem', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '65vh', overflowY: 'auto' }}>
             {tab === 'general' && (
               <div className="form-section-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div className="input-field-wrap" style={{ gridColumn: '1 / -1' }}>
@@ -176,6 +185,108 @@ export const ClinicManagementModal: React.FC<ClinicManagementModalProps> = ({
                     placeholder="contacto@clinica.pe"
                     value={form.email || ''}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+
+            {tab === 'branding' && (
+              <div className="form-section-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+                <div className="input-field-wrap" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-field-label">Logo de la Clínica (URL de imagen)</label>
+                  <input
+                    type="url"
+                    className="modern-form-input"
+                    placeholder="https://.../logo.png"
+                    value={form.logoUrl || ''}
+                    onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
+                  />
+                </div>
+
+                <div className="input-field-wrap" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-field-label">Color Principal de Marca</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {CURATED_PALETTES.map((pal) => (
+                      <button
+                        key={pal.id}
+                        type="button"
+                        onClick={() => setForm({ ...form, brandColor: pal.hex })}
+                        title={pal.name}
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          background: pal.hex,
+                          border: form.brandColor === pal.hex ? '3px solid #0f172a' : '2px solid #ffffff',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                          cursor: 'pointer',
+                        }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={form.brandColor || '#0284c7'}
+                      onChange={(e) => setForm({ ...form, brandColor: e.target.value })}
+                      style={{ width: '32px', height: '32px', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: '#64748b' }}>
+                      {form.brandColor || '#0284c7'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="input-field-wrap">
+                  <label className="input-field-label">Nombre del Asistente IA</label>
+                  <input
+                    type="text"
+                    className="modern-form-input"
+                    placeholder="Sofía · Asistente IA"
+                    value={form.aiAssistantName || ''}
+                    onChange={(e) => setForm({ ...form, aiAssistantName: e.target.value })}
+                  />
+                </div>
+
+                <div className="input-field-wrap">
+                  <label className="input-field-label">WhatsApp Flotante</label>
+                  <input
+                    type="text"
+                    className="modern-form-input"
+                    placeholder="+51 987 654 321"
+                    value={form.whatsappNumber || ''}
+                    onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })}
+                  />
+                </div>
+
+                <div className="input-field-wrap" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-field-label">Estilo Visual de Landing</label>
+                  <select
+                    className="modern-form-input"
+                    value={form.landingStyle || 'modern'}
+                    onChange={(e) => setForm({ ...form, landingStyle: e.target.value as 'modern' | 'editorial' | 'express' })}
+                  >
+                    <option value="modern">Clínico Moderno (Limpio y tecnológico)</option>
+                    <option value="editorial">Editorial Boutique (Elegante y refinado)</option>
+                    <option value="express">Reserva Express (Mobile-First directo a cita)</option>
+                  </select>
+                </div>
+
+                <div className="input-field-wrap" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-field-label">Título de Portada (Hero Title)</label>
+                  <input
+                    type="text"
+                    className="modern-form-input"
+                    value={form.heroTitle || ''}
+                    onChange={(e) => setForm({ ...form, heroTitle: e.target.value })}
+                  />
+                </div>
+
+                <div className="input-field-wrap" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-field-label">Subtítulo Explicativo</label>
+                  <textarea
+                    rows={2}
+                    className="modern-form-input"
+                    value={form.heroSubtitle || ''}
+                    onChange={(e) => setForm({ ...form, heroSubtitle: e.target.value })}
                   />
                 </div>
               </div>
@@ -268,3 +379,4 @@ export const ClinicManagementModal: React.FC<ClinicManagementModalProps> = ({
     </div>
   );
 };
+

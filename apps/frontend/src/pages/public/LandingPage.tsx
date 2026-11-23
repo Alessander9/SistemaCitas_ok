@@ -6,6 +6,7 @@ import { Header } from '../../components/public/Header';
 import { Footer } from '../../components/public/Footer';
 import { AiChatWidget } from '../../components/ai/AiChatWidget';
 import { MaterialIcon } from '../../components/ui/MaterialIcon';
+import { useClinicBranding } from '../../context/ClinicBrandingContext';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -17,6 +18,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onStartBooking,
   onNavigateLogin,
 }) => {
+  const { branding, theme, isSuspended } = useClinicBranding();
   const [specialtiesList, setSpecialtiesList] = useState<Specialty[]>(MOCK_SPECIALTIES);
   const [servicesList, setServicesList] = useState<MedicalService[]>(MOCK_SERVICES);
   const [professionalsList, setProfessionalsList] = useState<Professional[]>(MOCK_PROFESSIONALS);
@@ -74,8 +76,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     );
   };
 
+  const cleanWhatsAppNumber = (branding?.whatsappNumber || branding?.phone || '+51 987 654 321').replace(/[^\d+]/g, '').replace('+', '');
+  const whatsappUrl = `https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(
+    `Hola ${branding?.name || 'VitalSalud'}, deseo solicitar información y agendar una cita médica.`,
+  )}`;
+
   return (
     <div className="landing-container">
+      {/* Suspension Alert if Clinic is disabled */}
+      {isSuspended && (
+        <div
+          style={{
+            background: '#fef2f2',
+            borderBottom: '2px solid #ef4444',
+            padding: '0.85rem 1.5rem',
+            textAlign: 'center',
+            color: '#991b1b',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            zIndex: 1000,
+            position: 'relative',
+          }}
+        >
+          <MaterialIcon name="warning" size={20} color="#dc2626" />
+          <span>
+            El servicio de reservas online de esta sede se encuentra temporalmente en pausa por mantenimiento administrativo.
+          </span>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              padding: '0.35rem 0.85rem',
+              background: '#dc2626',
+              color: '#ffffff',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+            }}
+          >
+            Contactar por WhatsApp
+          </a>
+        </div>
+      )}
+
       {/* Global Navigation Header */}
       <Header
         activeView="landing"
@@ -95,18 +144,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Live Status Pill */}
           <div className="hero-pill-badge">
             <span className="live-pulse-dot" />
-            <span>Especialistas Disponibles Hoy en Nuestras Sedes</span>
+            <span>{branding ? `${branding.name} · Sede ${branding.city}` : 'Especialistas Disponibles Hoy en Nuestras Sedes'}</span>
             <span className="pill-divider">•</span>
             <span className="pill-highlight">Reserva 100% Online</span>
           </div>
 
           <h1 className="hero-title">
-            Clínica de Rehabilitación Física y Fisioterapia <span>en Lima</span>
+            {branding?.heroTitle ? (
+              branding.heroTitle
+            ) : (
+              <>Clínica de Rehabilitación Física y Fisioterapia <span>en Lima</span></>
+            )}
           </h1>
 
           <p className="hero-subtitle">
-            En VitalSalud recuperamos tu movilidad y tratamos el dolor en su raíz con planes de fisioterapia
-            personalizados. Reserva tu evaluación inicial en menos de 2 minutos con terapeutas colegiados.
+            {branding?.heroSubtitle ||
+              'En VitalSalud recuperamos tu movilidad y tratamos el dolor en su raíz con planes de fisioterapia personalizados. Reserva tu evaluación inicial en menos de 2 minutos con terapeutas colegiados.'}
           </p>
 
           {/* Quick Hero Interactive Booking Card */}
@@ -163,6 +216,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <button
                 type="submit"
                 className="btn-hero-primary"
+                style={{
+                  background: theme.primary,
+                  borderColor: theme.primaryDark,
+                  color: theme.contrastText,
+                }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -700,7 +758,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               type="button"
               className="btn-cta-giant"
               onClick={() => onStartBooking()}
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                background: theme.primary,
+                color: theme.contrastText,
+                borderColor: theme.primaryDark,
+              }}
             >
               <MaterialIcon name="calendar_month" size={20} />
               <span>Agendar Consulta Médica Ahora</span>
@@ -712,6 +778,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
       </section>
+
+      {/* Floating WhatsApp Action Button */}
+      {whatsappUrl && (
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noreferrer"
+          title={`Escribir por WhatsApp a ${branding?.name || 'la clínica'}`}
+          style={{
+            position: 'fixed',
+            bottom: '96px',
+            right: '24px',
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            background: '#25D366',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 16px rgba(37, 211, 102, 0.45)',
+            zIndex: 998,
+            textDecoration: 'none',
+          }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+        </a>
+      )}
 
       {/* Floating AI Assistant Widget */}
       <AiChatWidget onStartBooking={onStartBooking} />

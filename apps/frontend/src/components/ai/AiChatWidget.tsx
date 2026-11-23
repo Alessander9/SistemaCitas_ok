@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MaterialIcon } from '../ui/MaterialIcon';
 import './AiChatWidget.css';
+import { useClinicBranding } from '../../context/ClinicBrandingContext';
 
 export interface AiSuggestedAction {
   label: string;
@@ -26,6 +27,11 @@ interface AiChatWidgetProps {
 }
 
 export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) => {
+  const { branding, theme } = useClinicBranding();
+  const assistantName = branding?.aiAssistantName || 'Asistente Médico IA';
+  const clinicName = branding?.name || 'VitalSalud';
+  const whatsappPhone = branding?.whatsappNumber || branding?.phone || '+51 987 654 321';
+
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -33,7 +39,9 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
     {
       id: 'msg-welcome',
       sender: 'bot',
-      text: '¡Hola! Soy el asistente virtual de la Clínica VitalSalud.\n\nPuedo orientarte sobre nuestras terapias, precios, especialistas y ayudarte a agendar tu evaluación inicial en solo 2 minutos.',
+      text: branding
+        ? `¡Hola! Soy el asistente virtual de ${clinicName}.\n\nPuedo orientarte sobre nuestras consultas, tarifas, especialistas y ayudarte a agendar tu cita médica en línea.`
+        : '¡Hola! Soy el asistente virtual de la Clínica VitalSalud.\n\nPuedo orientarte sobre nuestras terapias, precios, especialistas y ayudarte a agendar tu evaluación inicial en solo 2 minutos.',
       time: 'Justo ahora',
       suggestedActions: [
         { label: 'Ver Precios y Servicios', actionType: 'view_faq' },
@@ -42,7 +50,6 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
           actionType: 'book_service',
           payload: { specialtyId: 'spec-fisioterapia' },
         },
-        { label: 'WhatsApp de la Clínica', actionType: 'escalate_whatsapp' },
       ],
     },
   ]);
@@ -101,7 +108,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
             {
               label: 'Consultar con Recepción (WhatsApp)',
               actionType: 'escalate_whatsapp',
-              payload: { phone: '+51987654321' },
+              payload: { phone: whatsappPhone },
             },
           ],
         };
@@ -180,13 +187,14 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
         <button
           id="btn-open-ai-chat"
           className="ai-fab-button"
+          style={{ background: theme.primary }}
           onClick={() => setIsOpen(true)}
           aria-label="Abrir Asistente Virtual"
         >
           <span className="fab-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <MaterialIcon name="smart_toy" size={24} />
           </span>
-          <span className="fab-badge">Asistente IA</span>
+          <span className="fab-badge">{branding?.aiAssistantName || 'Asistente IA'}</span>
         </button>
       )}
 
@@ -194,14 +202,17 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onStartBooking }) =>
       {isOpen && (
         <div className="ai-chat-window" id="ai-chat-window">
           {/* Header */}
-          <div className="ai-chat-header">
+          <div
+            className="ai-chat-header"
+            style={{ background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryDark} 100%)` }}
+          >
             <div className="ai-header-info">
               <div className="ai-bot-avatar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <MaterialIcon name="smart_toy" size={20} color="#ffffff" />
               </div>
               <div>
-                <span className="ai-bot-name">Asistente Médico IA</span>
-                <span className="ai-online-status">● En línea · VitalSalud</span>
+                <span className="ai-bot-name">{assistantName}</span>
+                <span className="ai-online-status">● En línea · {clinicName}</span>
               </div>
             </div>
             <button
