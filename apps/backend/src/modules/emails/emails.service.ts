@@ -10,6 +10,7 @@ import { ResendEmailProvider } from './providers/resend-email-provider';
 import { IEmailProvider } from './providers/email-provider.interface';
 import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
 import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
+import { DEFAULT_EMAIL_TEMPLATES } from './templates/default-email-templates';
 import {
   EmailLog,
   EmailTemplate,
@@ -79,140 +80,7 @@ export interface AppointmentEmailDetails {
   notes?: string;
 }
 
-const DEFAULT_TEMPLATES = [
-  {
-    name: 'appointment_confirmation',
-    subject: 'Confirmación de tu cita — {{clinic_name}}',
-    htmlBody: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-        <h2 style="color: #0d9488; margin-top: 0;">¡Hola {{patient_name}}!</h2>
-        <p style="color: #334155; line-height: 1.5;">Tu cita médica ha sido confirmada exitosamente con los siguientes detalles:</p>
-        <div style="background: #f8fafc; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 20px 0;">
-          <p style="margin: 6px 0;"><strong>Código de Reserva:</strong> <span style="font-family: monospace; color: #0d9488; font-weight: bold;">{{booking_code}}</span></p>
-          <p style="margin: 6px 0;"><strong>Servicio:</strong> {{service_name}}</p>
-          <p style="margin: 6px 0;"><strong>Especialidad:</strong> {{specialty_name}}</p>
-          <p style="margin: 6px 0;"><strong>Especialista:</strong> Dr(a). {{professional_name}}</p>
-          <p style="margin: 6px 0;"><strong>Fecha y Hora:</strong> {{appointment_date}} a las {{start_time}}</p>
-          <p style="margin: 6px 0;"><strong>Sede de Atención:</strong> {{clinic_name}} ({{clinic_address}})</p>
-          <p style="margin: 6px 0;"><strong>Monto:</strong> S/. {{amount}}</p>
-          <p style="margin: 6px 0;"><strong>Método de pago:</strong> {{payment_method}}</p>
-        </div>
-        <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Por favor preséntate 10 minutos antes con tu documento de identidad. Si necesitas reprogramar o cancelar, comunícate con nosotros al {{clinic_phone}}.</p>
-      </div>
-    `,
-    variables: [
-      'patient_name',
-      'booking_code',
-      'service_name',
-      'specialty_name',
-      'professional_name',
-      'appointment_date',
-      'start_time',
-      'clinic_name',
-      'clinic_address',
-      'clinic_phone',
-      'amount',
-      'payment_method',
-    ],
-  },
-  {
-    name: 'appointment_clinic_notification',
-    subject: '[Nueva Cita] {{service_name}} - {{patient_name}} ({{appointment_date}} {{start_time}})',
-    htmlBody: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #cbd5e1; border-radius: 12px; background: #ffffff;">
-        <h2 style="color: #0f766e; margin-top: 0;">Nueva Cita Médica Confirmada</h2>
-        <p style="color: #334155; line-height: 1.5;">Se ha registrado una nueva cita médica confirmada en el sistema para {{clinic_name}}.</p>
-        <div style="background: #f1f5f9; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 20px 0;">
-          <p style="margin: 6px 0;"><strong>Código de Reserva:</strong> <span style="font-family: monospace; color: #0f766e; font-weight: bold;">{{booking_code}}</span></p>
-          <p style="margin: 6px 0;"><strong>Paciente:</strong> {{patient_name}} ({{patient_doc}})</p>
-          <p style="margin: 6px 0;"><strong>Contacto del Paciente:</strong> Tel: {{patient_phone}} | Email: {{patient_email}}</p>
-          <p style="margin: 6px 0;"><strong>Servicio Solicitado:</strong> {{service_name}} ({{specialty_name}})</p>
-          <p style="margin: 6px 0;"><strong>Profesional Asignado:</strong> Dr(a). {{professional_name}}</p>
-          <p style="margin: 6px 0;"><strong>Turno:</strong> {{appointment_date}} a las {{start_time}}</p>
-          <p style="margin: 6px 0;"><strong>Monto:</strong> S/. {{amount}} ({{payment_method}})</p>
-          <p style="margin: 6px 0;"><strong>Notas / Motivo:</strong> {{notes}}</p>
-        </div>
-        <p style="color: #64748b; font-size: 13px;">Notificación automática para la administración del centro de salud.</p>
-      </div>
-    `,
-    variables: [
-      'booking_code',
-      'patient_name',
-      'patient_doc',
-      'patient_phone',
-      'patient_email',
-      'service_name',
-      'specialty_name',
-      'professional_name',
-      'appointment_date',
-      'start_time',
-      'clinic_name',
-      'amount',
-      'payment_method',
-      'notes',
-    ],
-  },
-  {
-    name: 'password_reset',
-    subject: 'Recuperación de contraseña — {{clinic_name}}',
-    htmlBody: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-        <h2 style="color: #0d9488; margin-top: 0;">Recuperación de Contraseña</h2>
-        <p style="color: #334155; line-height: 1.5;">Estimado(a) {{user_name}},</p>
-        <p style="color: #334155; line-height: 1.5;">Hemos recibido una solicitud para reestablecer la contraseña de tu cuenta protegida por Cloudflare Turnstile en {{clinic_name}}.</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="{{reset_url}}" style="background-color: #0d9488; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Reestablecer mi contraseña</a>
-        </div>
-        <p style="color: #64748b; font-size: 14px;">Este enlace es válido durante 60 minutos. Si no solicitaste este cambio, puedes ignorar este mensaje con total seguridad.</p>
-        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-        <p style="color: #94a3b8; font-size: 12px; word-break: break-all;">O ingresa directamente a esta dirección:<br />{{reset_url}}</p>
-      </div>
-    `,
-    variables: ['user_name', 'reset_url', 'clinic_name'],
-  },
-  {
-    name: 'appointment_reminder_24h',
-    subject: 'Recordatorio de tu cita mañana — {{clinic_name}}',
-    htmlBody: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-        <h2 style="color: #2563eb;">Recordatorio de tu cita médica</h2>
-        <p>Estimado(a) {{patient_name}}, te recordamos que tienes una cita programada para mañana:</p>
-        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin: 20px 0;">
-          <p><strong>Servicio:</strong> {{service_name}}</p>
-          <p><strong>Especialista:</strong> Dr(a). {{professional_name}}</p>
-          <p><strong>Fecha y Hora:</strong> {{appointment_date}} a las {{start_time}}</p>
-        </div>
-        <p style="color: #64748b; font-size: 14px;">Te esperamos puntualmente en {{clinic_name}}.</p>
-      </div>
-    `,
-    variables: ['patient_name', 'service_name', 'professional_name', 'appointment_date', 'start_time', 'clinic_name'],
-  },
-  {
-    name: 'appointment_cancelled',
-    subject: 'Cita cancelada — {{clinic_name}}',
-    htmlBody: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-        <h2 style="color: #ef4444;">Notificación de cancelación</h2>
-        <p>Hola {{patient_name}}, tu cita para el <strong>{{appointment_date}}</strong> ha sido cancelada.</p>
-        <p>Motivo: {{cancellation_reason}}</p>
-        <p style="color: #64748b; font-size: 14px;">Puedes agendar una nueva fecha en nuestro portal en línea o al {{clinic_phone}}.</p>
-      </div>
-    `,
-    variables: ['patient_name', 'appointment_date', 'cancellation_reason', 'clinic_name', 'clinic_phone'],
-  },
-  {
-    name: 'post_care_followup',
-    subject: '¿Cómo fue tu atención en {{clinic_name}}?',
-    htmlBody: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-        <h2 style="color: #0d9488;">Gracias por confiar en nosotros</h2>
-        <p>Hola {{patient_name}}, esperamos que tu consulta de <strong>{{service_name}}</strong> haya sido excelente.</p>
-        <p>Recuerda seguir las indicaciones brindadas en tu receta médica.</p>
-      </div>
-    `,
-    variables: ['patient_name', 'service_name', 'clinic_name'],
-  },
-];
+const DEFAULT_TEMPLATES = DEFAULT_EMAIL_TEMPLATES;
 
 @Injectable()
 export class EmailsService {
@@ -223,7 +91,7 @@ export class EmailsService {
     private readonly mockEmailProvider: MockEmailProvider,
     @Optional() private readonly resendEmailProvider?: ResendEmailProvider,
   ) {
-    if (process.env.RESEND_API_KEY && this.resendEmailProvider) {
+    if ((process.env.BREVO_API_KEY || process.env.RESEND_API_KEY) && this.resendEmailProvider) {
       this.emailProvider = this.resendEmailProvider;
     } else {
       this.emailProvider = this.mockEmailProvider;
