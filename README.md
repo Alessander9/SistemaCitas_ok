@@ -5,7 +5,7 @@
 <h1 align="center">🏥 CitasSistema — Documentación Global</h1>
 
 <p align="center">
-  <strong>Plataforma SaaS multi-tenant para gestión de citas médicas, historia clínica electrónica (HCE), asistente clínico de voz bilateral ("Chanfainita"), operación de recepción, pagos idempotentes, caja chica, inventario Kardex y automatizaciones omnicanal.</strong>
+  <strong>Plataforma SaaS multi-tenant marca blanca para gestión de clínicas médicas, historia clínica electrónica (HCE), asistente clínico de voz bilateral ("Chanfainita"), arquitectura orientada a eventos, FSM estricta, pagos idempotentes, caja chica y control de inventario Kardex.</strong>
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@
   <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Backend-NestJS%2011%20%2B%20TS%205.7%20%2B%20Zod-e0234e?style=flat-square&logo=nestjs&logoColor=white" alt="NestJS 11" /></a>
   <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite%206%20%2B%20Tailwind%204-61dafb?style=flat-square&logo=react&logoColor=black" alt="React 19" /></a>
   <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Database-PostgreSQL%2016+-4169e1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL 16+" /></a>
-  <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Architecture-Multi--Tenant%20%7C%20Modular%20Monolith-8b5cf6?style=flat-square" alt="Architecture" /></a>
+  <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Architecture-Event--Driven%20%7C%20FSM%20%7C%20White--Label-8b5cf6?style=flat-square" alt="Architecture" /></a>
   <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Node-%3E%3D20.0.0-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node 20+" /></a>
 </p>
 
@@ -25,11 +25,13 @@
 - [2. 🏛️ Arquitectura del Sistema y Monorepo](#2-️-arquitectura-del-sistema-y-monorepo)
 - [3. ✨ Módulos y Funcionalidades Principales](#3--módulos-y-funcionalidades-principales)
   - [3.1 Web Pública y Asistente de Reserva (6 Pasos)](#31-web-pública-y-asistente-de-reserva-6-pasos)
-  - [3.2 Motor de Disponibilidad y Prevención de Doble Reserva](#32-motor-de-disponibilidad-y-prevención-de-doble-reserva)
-  - [3.3 Consulta Médica, HCE, Mapa Corporal 2D/3D y Asistente Bilateral "Chanfainita"](#33-consulta-médica-hce-mapa-corporal-2d3d-y-asistente-bilateral-chanfainita)
-  - [3.4 Pagos Idempotentes, Caja Chica (POS) e Inventario Kardex](#34-pagos-idempotentes-caja-chica-pos-e-inventario-kardex)
-  - [3.5 Comunicaciones Omnicanal y Conocimiento Médico IA](#35-comunicaciones-omnicanal-y-conocimiento-médico-ia)
-  - [3.6 Dashboards por Rol (RBAC) y Experiencia Móvil](#36-dashboards-por-rol-rbac-y-experiencia-móvil)
+  - [3.2 Motor de Disponibilidad, FSM y Prevención de Doble Reserva](#32-motor-de-disponibilidad-fsm-y-prevención-de-doble-reserva)
+  - [3.3 Arquitectura Basada en Eventos (Event-Driven Notifications)](#33-arquitectura-basada-en-eventos-event-driven-notifications)
+  - [3.4 SaaS Marca Blanca (White-Label) y Gobernanza Multi-Tenant](#34-saas-marca-blanca-white-label-y-gobernanza-multi-tenant)
+  - [3.5 Consulta Médica, HCE, Mapa Corporal 2D/3D y Asistente Bilateral "Chanfainita"](#35-consulta-médica-hce-mapa-corporal-2d3d-y-asistente-bilateral-chanfainita)
+  - [3.6 Pagos Idempotentes, Caja Chica (POS) e Inventario Kardex Hidratados](#36-pagos-idempotentes-caja-chica-pos-e-inventario-kardex-hidratados)
+  - [3.7 Comunicaciones Omnicanal y Conocimiento Médico IA](#37-comunicaciones-omnicanal-y-conocimiento-médico-ia)
+  - [3.8 Dashboards por Rol (RBAC), Sesión Segura y Navegación Blindada](#38-dashboards-por-rol-rbac-sesión-segura-y-navegación-blindada)
 - [4. 🔌 Referencia de API REST (`/api`)](#4--referencia-de-api-rest-api)
 - [5. 🛠️ Stack Tecnológico](#5-️-stack-tecnológico)
 - [6. 🗄️ Base de Datos, Migraciones y Datos Demo](#6-️-base-de-datos-migraciones-y-datos-demo)
@@ -50,9 +52,10 @@ Captación Web ➔ Reserva Online ➔ Pago Idempotente ➔ Recepción / Triaje �
 
 ### Pilares Arquitectónicos
 1. **Aislamiento Multi-Tenant Estricto + Anti-IDOR**: Cada registro operativo pertenece a un `clinic_id`. El backend valida la identidad del inquilino (`TenantGuard`) y la titularidad de los datos de pacientes (`assertPatientOwnership`) sin confiar en filtros del cliente.
-2. **Cero Dobles Reservas (Zero Double-Booking)**: Serialización transaccional atómica mediante `pg_advisory_xact_lock` en PostgreSQL por profesional y fecha.
-3. **Contratos Tipados Compartidos & Fail-Fast Boot**: Paquete único `@citassistema/shared-types` (con modelos clínicos estrictos como `ClinicalVitals`, `PainReferredArea` y el analizador determinista compartido `parseClinicalSpeech`) y validación de variables de entorno al arranque con **Zod** (`env.schema.ts`).
-4. **Arquitectura Frontend Modularizada**: Capa de cliente HTTP dividida en 7 submódulos de dominio (`apps/frontend/src/services/api/`) y vistas clínicas/administrativas descompuestas en componentes profundos con carga diferida (`React.lazy` + `Suspense`), incluyendo el visor anatómico 3D (`Three.js`).
+2. **Cero Dobles Reservas (Zero Double-Booking) y FSM Formal**: Serialización transaccional atómica mediante `pg_advisory_xact_lock` en PostgreSQL por profesional y fecha, junto con máquinas de estado finitas formales (`canTransitionAppointment` y `canTransitionCashRegister`) que impiden saltos de estado ilegales o mutaciones sobre estados terminales.
+3. **Arquitectura Basada en Eventos (`@nestjs/event-emitter`)**: Desacoplamiento total de los efectos secundarios (envío de correos Brevo, alertas a Telegram) del hilo transaccional principal de agendamiento y cancelación de citas.
+4. **SaaS Marca Blanca Dinámico (White-Label Onboarding)**: Capacidad para que cada clínica opere con su propio logo, colores de marca, eslogan de bienvenida, nombre personalizado de Asistente IA y control de suspensión de servicio en tiempo real.
+5. **Producción Endurecida & Cero Advertencias**: Rate Limiting (`@nestjs/throttler`), filtro global de excepciones (`HttpExceptionFilter`) para sanitización de errores de base de datos (PostgreSQL 23505/23503), logging corporativo NestJS (`Logger`), optimización de bundle en Vite con `manualChunks` (< 500 kB) y 100% de pruebas automáticas pasando (409 tests).
 
 ---
 
@@ -159,19 +162,37 @@ SistemaCitas_ok/
 
 ---
 
-### 3.2 Motor de Disponibilidad y Prevención de Doble Reserva
+### 3.2 Motor de Disponibilidad, FSM y Prevención de Doble Reserva
 - **Cálculo de Disponibilidad (`GET /api/appointments/availability`)**: Cruza en tiempo real la duración del servicio, los horarios semanales activos del profesional (`professional_schedules`), los bloqueos excepcionales (`schedule_blocks`) y las citas vigentes.
 - **Control de Concurrencia Atómico**: Al crear o reprogramar una cita, `AppointmentsService` abre una transacción PostgreSQL y ejecuta `SELECT pg_advisory_xact_lock(hashtext($1 || '_' || $2))` (llave compuesta por `professionalId` + `appointmentDate`), bloquea filas activas y rechaza colisiones con `409 Conflict`.
-- **Máquina de Estados Auditada (`APPOINTMENT_TRANSITIONS`)**:
-  - `pending` ➔ `confirmed` / `cancelled`
-  - `confirmed` ➔ `checked_in` / `cancelled` / `no_show`
-  - `checked_in` ➔ `in_progress` / `cancelled`
-  - `in_progress` ➔ `completed` / `cancelled`
-  - Cada transición se registra en `appointment_status_history` con autor, motivo y marca temporal.
+- **Máquinas de Estado Finitas Formadas (`@citassistema/shared-types`)**:
+  - **Citas (`canTransitionAppointment`)**: Control formal que valida transiciones válidas (`pending` ➔ `confirmed` ➔ `checked_in` ➔ `in_progress` ➔ `completed` / `cancelled` / `no_show`). Protege contra transiciones inválidas y bloquea cualquier mutación sobre estados terminales (`completed`, `cancelled`, `no_show`).
+  - **Caja Chica (`canTransitionCashRegister`)**: Garantiza la secuencia estricta `closed` ➔ `open` ➔ `closed`.
+  - Cada transición de cita se audita en `appointment_status_history` con autor, motivo y marca temporal.
 
 ---
 
-### 3.3 Consulta Médica, HCE, Mapa Corporal 2D/3D y Asistente Bilateral "Chanfainita"
+### 3.3 Arquitectura Basada en Eventos (Event-Driven Notifications)
+- **Desacoplamiento con `@nestjs/event-emitter`**:
+  - El flujo transaccional principal de agendamiento y cancelación emite eventos de dominio: `AppointmentConfirmedEvent` y `AppointmentCancelledEvent`.
+  - El listener `AppointmentNotificationsListener` captura estos eventos en segundo plano y dispara de forma asíncrona:
+    - Correos electrónicos transaccionales de confirmación y cancelación vía Brevo (`EmailsService`).
+    - Alertas operativas instantáneas al canal de Telegram de la sede (`TelegramService`).
+  - **Beneficio**: Tiempos de respuesta HTTP ultra-rápidos (< 50ms) y alta tolerancia a fallos en proveedores externos sin riesgo de rollback transaccional de la cita.
+
+---
+
+### 3.4 SaaS Marca Blanca (White-Label) y Gobernanza Multi-Tenant
+- **Onboarding Inteligente por Sede**:
+  - Cada clínica opera con su identidad visual única: logo corporativo, paleta de colores CSS variables (`ClinicBrandingContext`), eslogan de bienvenida y datos de contacto propios.
+  - Nombre del Asistente IA personalizado por clínica (ej. *"Sofía · Asistente San Mateo"*).
+- **Gobernanza y Switch de Suspensión (SuperAdmin)**:
+  - El SuperAdmin dispone de un switch maestro para habilitar o suspender cualquier clínica (`PUT /api/admin/clinics/:id`).
+  - Al suspenderse una clínica, el backend rechaza autenticaciones con `403 Forbidden` (`CLINIC_SUSPENDED`), y el frontend despliega un banner de regularización con enlace directo a WhatsApp precargado con el ID de la clínica y el usuario.
+
+---
+
+### 3.5 Consulta Médica, HCE, Mapa Corporal 2D/3D y Asistente Bilateral "Chanfainita"
 - **Historia Clínica Digital Modularizada (`ClinicalConsultationView.tsx` + `tabs/`)**: Dividida en pestañas especializadas (`ClinicalEvolutionTab`, `ClinicalSessionTab`, `ClinicalPrescriptionTab`, `ClinicalKardexAndSummarySection`) con signos vitales estrictamente tipados (`ClinicalVitals`), diagnóstico CIE-10 y plan terapéutico.
 - **Mapeo Anatómico Jerárquico 2D y Visor 3D (`pain-map/PainMapPicker.tsx`)**: Exploración corporal multinivel con catálogo de ~170 estructuras clínicas, buscador instantáneo (`Ctrl+K`), visor 3D cargado bajo demanda (`React.lazy`), lateralidad, puntos gatillo, metadatos del Atlas 3D (`PainReferredArea`) y persistencia en `pain_map_points`.
 - **Asistente Clínico de Voz Bilateral ("Chanfainita")**:
@@ -183,17 +204,21 @@ SistemaCitas_ok/
 
 ---
 
-### 3.4 Pagos Idempotentes, Caja Chica (POS) e Inventario Kardex
+### 3.6 Pagos Idempotentes, Caja Chica (POS) e Inventario Kardex Hidratados
 - **Pagos (`PaymentsModule`)**:
   - Patrón Strategy mediante `IPaymentProvider`: `ManualPaymentProvider` (Efectivo, POS, Transferencia, Yape, Plin) y `GatewayPaymentProvider`.
   - **Idempotencia estricta** por `idempotency_key` en `payments` para evitar cobros duplicados.
   - **Webhooks seguros** (`POST /api/payments/webhook/:provider`) con verificación `HMAC-SHA256` (`crypto.timingSafeEqual`) y deduplicación en `webhook_events`.
-- **Caja Chica (`CashModule` + `CashRegisterPage.tsx`)**: Apertura de turno con monto inicial, registro de ingresos/egresos operativos, consulta de caja del día, historial y cierre con arqueo y diferencias.
-- **Inventario Kardex (`InventoryModule` + `InventoryPage.tsx`)**: Gestión de productos e insumos médicos, movimientos de entrada/salida/ajuste, deducción confirmada desde consulta (`POST /api/clinical/voice/deduct-supplies`) y alertas de stock mínimo.
+- **Caja Chica Hidratada en Vivo (`CashModule` + `CashRegisterPage.tsx`)**:
+  - Conexión directa a `/api/cash/today`, `/api/cash/open`, `/api/cash/:id/movements` y `/api/cash/:id/close`.
+  - Apertura con balance inicial, arqueo en vivo, control de diferencias y cierre formal de turno.
+- **Inventario Kardex Hidratado en Vivo (`InventoryModule` + `InventoryPage.tsx`)**:
+  - Conexión a `/api/inventory` y `/api/inventory/movements`.
+  - Gestión de stock actual, alertas automáticas de reposición bajo el umbral mínimo y registro de movimientos de compra, venta, ajuste, devolución o merma.
 
 ---
 
-### 3.5 Comunicaciones Omnicanal y Conocimiento Médico IA
+### 3.7 Comunicaciones Omnicanal y Conocimiento Médico IA
 - **Panel de Conocimiento Médico IA (`ClinicalKnowledgeAdminPage.tsx`)**: Administración en tiempo real respaldada en PostgreSQL (`016_clinical_knowledge.sql` y `017_clinical_voice_admin.sql`) con 4 pestañas:
   1. **Protocolos Clínicos CIE-10** (criterios diagnósticos, técnicas sugeridas y banderas rojas).
   2. **Vademécum & Reglas de Alergias** (grupos farmacológicos, contraindicaciones y alertas).
@@ -204,14 +229,24 @@ SistemaCitas_ok/
 
 ---
 
-### 3.6 Dashboards por Rol (RBAC) y Experiencia Móvil
+### 3.8 Dashboards por Rol (RBAC), Sesión Segura y Navegación Blindada
+
+- **Gestor Global de Autenticación (`AuthContext.tsx` + `storage.ts`)**:
+  - Single Source of Truth para tokens JWT y datos de sesión de usuario en `localStorage`.
+  - Rehidratación automática de sesión en recarga (`F5`) mediante `GET /api/auth/me`.
+- **Enrutamiento Blindado y Protección por Roles (`App.tsx`)**:
+  - Soporte a navegación del historial del navegador (`popstate` atrás/adelante).
+  - URLs amigables por vista (`?view=...`).
+  - Matriz de autorización `ROLE_ALLOWED_VIEWS` que impide el acceso no autorizado a dashboards privados.
+- **Modularización de Pantalla de Acceso (`LoginPage.tsx`)**:
+  - Descompuesta en 5 subcomponentes especializados: `BrandSidebar`, `DemoRoleChips`, `SuspendedNoticeBanner`, `ForgotPasswordCard` (con Cloudflare Turnstile) y `ResetPasswordCard`.
 
 | Rol (`UserRole`) | Vista Principal | Capacidades Destacadas |
 | :--- | :--- | :--- |
-| **`SUPER_ADMIN`** | `SuperAdminDashboard` (`superadmin/` modular) | Red global multi-clínica conectada a PostgreSQL (`GET/POST/PUT /api/admin/clinics`), KPIs consolidados (`SuperAdminKpiGrid`), directorio filtrable (`ClinicsDirectoryTable`), configuración IPRESS/RENIPRESS (`ClinicManagementModal`) y auditoría Ley 29733 (`AuditLogsDrawer`). |
-| **`ADMIN_CLINIC`** | `ClinicAdminDashboard` | KPIs de sede, monitor de staff y consultorios en tiempo real, agenda en vista tabla/Kanban, Panel de Conocimiento Médico IA y accesos a caja, inventario, correos y Telegram. |
-| **`RECEPCION`** | `ReceptionDashboard` + `ReceptionBookingPage` | Tablero Kanban de sala, tiempos de espera, check-in en 1 clic, cobro en ventanilla en vivo, reserva express por día y recordatorios WhatsApp. |
-| **`PROFESIONAL`** | `DoctorDashboard` + `ClinicalConsultationView` | Cola de pacientes del día con sincronización EVA en vivo, agenda semanal, consulta HCE modularizada, `PainMapPicker` 2D/3D, asistente bilateral `"Chanfainita"`, Kardex por voz y recetas digitales. |
+| **`SUPER_ADMIN`** | `SuperAdminDashboard` (`superadmin/` modular) | Red global multi-clínica conectada a PostgreSQL (`GET/POST/PUT /api/admin/clinics`), KPIs consolidados (`SuperAdminKpiGrid`), directorio filtrable (`ClinicsDirectoryTable`), configuración IPRESS/RENIPRESS, switch de suspensión y auditoría Ley 29733 (`AuditLogsDrawer`). |
+| **`ADMIN_CLINIC`** | `ClinicAdminDashboard` (Hidratado) | KPIs de sede vivos desde API, monitor de profesionales ocupados, alertas de insumos bajo stock y estado de caja del día en tiempo real. |
+| **`RECEPCION`** | `ReceptionDashboard` + `ReceptionBookingPage` (Hidratado) | Tablero Kanban de sala con citas reales del día, check-in en 1 clic conectado a `/api/appointments/:id/check-in`, cobro en ventanilla y agendamiento express. |
+| **`PROFESIONAL`** | `DoctorDashboard` + `ClinicalConsultationView` (Hidratado) | Agenda médica sincronizada con la base de datos, consulta HCE modularizada, `PainMapPicker` 2D/3D, asistente bilateral `"Chanfainita"` y Kardex por voz. |
 | **`PACIENTE`** | `PatientDashboard` + `PatientPortal` | Próximas citas, reprogramación/cancelación, historial clínico protegido con Anti-IDOR, evolución EVA, tratamientos activos, recetas y comprobantes. |
 
 ---
@@ -247,10 +282,11 @@ Todos los endpoints del backend NestJS están expuestos bajo el prefijo global `
 | Capa | Tecnología | Propósito |
 | :--- | :--- | :--- |
 | **Frontend** | `React 19` + `TypeScript 5.7` + `Three.js` | Interfaz SPA reactiva, tipada y con visor anatómico 3D bajo demanda |
-| **Bundler & CSS** | `Vite 6` + `Tailwind CSS 4` (`@tailwindcss/vite`) + CSS Tokens | Desarrollo HMR rápido, code-splitting y diseño modular con tema oscuro |
-| **Backend** | `NestJS 11` + `Express` + `TypeScript 5.7` | Monolito modular con inyección de dependencias y guards |
+| **Bundler & Chunks** | `Vite 6` + `Tailwind CSS 4` + `manualChunks` | Desarrollo HMR rápido, code-splitting (`vendor-react`, `vendor-three`) y bundles optimizados < 500 kB |
+| **Backend & Eventos** | `NestJS 11` + `@nestjs/event-emitter` + `Express` | Monolito modular con arquitectura orientada a eventos para notificaciones asíncronas |
+| **Protección & Throttling** | `@nestjs/throttler` + `HttpExceptionFilter` | Rate limiting de endpoints sensibles y sanitización de excepciones de PostgreSQL |
 | **Validación & Config** | `Zod` + `class-validator` + `class-transformer` | Validación Fail-Fast de variables de entorno al arranque y DTOs HTTP |
-| **Tipos Compartidos** | `@citassistema/shared-types` | Contratos estrictos (`ClinicalVitals`, `PainReferredArea`), parser NLP compartido y máquina de estados |
+| **Tipos Compartidos & FSM** | `@citassistema/shared-types` | Contratos estrictos (`ClinicalVitals`), parser NLP compartido y máquinas de estado formales |
 | **Base de Datos** | `PostgreSQL 16+` (`pg` Pool) | Persistencia relacional ACID, advisory locks y 17 migraciones SQL |
 | **Autenticación** | `Passport JWT` + `@nestjs/jwt` + `bcrypt` | Access/Refresh tokens rotativos y hash seguro de contraseñas |
 | **Pruebas Backend** | `Jest 29` + `Supertest 7` | 23 suites unitarias (172 tests) + 2 suites E2E contra PostgreSQL real (35 tests) |
