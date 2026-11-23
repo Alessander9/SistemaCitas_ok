@@ -202,6 +202,7 @@ export function useInventoryKardex() {
     showLowStockOnly,
     setShowLowStockOnly,
     registerMovement,
+    recordMovement: registerMovement,
     isLoading,
     refreshInventory: fetchInventory,
   };

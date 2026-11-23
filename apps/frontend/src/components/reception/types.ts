@@ -2,7 +2,8 @@ export type ReceptionStatus =
   | 'pending_arrival'
   | 'waiting'
   | 'in_consultation'
-  | 'completed';
+  | 'completed'
+  | 'cancelled';
 
 export type PaymentMethod = 'Yape' | 'Plin' | 'POS Tarjeta' | 'Efectivo';
 
@@ -35,6 +36,8 @@ export interface CreateReceptionBookingInput {
   time: string;
   priceAmount: number;
   paidNow: boolean;
+  paid?: boolean;
+  room?: string;
   paymentMethod?: PaymentMethod;
   urgent?: boolean;
 }

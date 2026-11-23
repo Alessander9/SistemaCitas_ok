@@ -44,9 +44,10 @@ export function InventoryPage({ onNavigateToCash }: InventoryPageProps = {}) {
     setShowMovementForm(true);
   };
 
-  const handleSaveMovement = () => {
+  const handleSaveMovement = async () => {
     const qty = parseInt(movQty, 10);
-    if (recordMovement(movProductId, movType, qty, movNotes)) {
+    const ok = await recordMovement(movProductId, movType, qty, movNotes);
+    if (ok) {
       setSelectedProductId(movProductId);
       setMovProductId('');
       setMovQty('');

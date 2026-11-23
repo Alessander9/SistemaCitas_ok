@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { canTransitionCashRegister } from '@citassistema/shared-types';
 import { DatabaseService } from '../../database/database.service';
 import { OpenCashRegisterDto } from './dto/open-cash-register.dto';
 import { CloseCashRegisterDto } from './dto/close-cash-register.dto';
@@ -153,7 +154,7 @@ export class CashService {
   ): Promise<CashRegister> {
     const register = await this.findRegisterOrThrow(clinicId, registerId);
 
-    if (register.status !== 'open') {
+    if (!canTransitionCashRegister(register.status, 'closed')) {
       throw new BadRequestException('La caja ya está cerrada.');
     }
 

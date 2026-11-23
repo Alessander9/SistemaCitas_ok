@@ -254,9 +254,9 @@ export function useReceptionDashboard() {
         priceAmount: input.priceAmount,
         priceLabel: `S/ ${input.priceAmount.toFixed(2)}`,
         status: 'pending_arrival',
-        paid: input.paid,
+        paid: Boolean(input.paid ?? input.paidNow),
         paymentMethod: input.paymentMethod,
-        room: input.room,
+        room: input.room || 'Box 101',
       };
 
       setAppointments((prev) => [newApt, ...prev]);

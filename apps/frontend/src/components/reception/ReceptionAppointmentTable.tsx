@@ -15,6 +15,7 @@ const STATUS_META: Record<ReceptionStatus, { label: string; className: string }>
   waiting: { label: 'En sala de espera', className: 'amber' },
   in_consultation: { label: 'En consulta', className: 'green' },
   completed: { label: 'Finalizado', className: 'slate' },
+  cancelled: { label: 'Cancelado', className: 'rose' },
 };
 
 function getInitials(name: string): string {

@@ -17,14 +17,23 @@ export enum AppointmentStatus {
 
 // Valid transitions: maps current status → allowed next statuses
 export const APPOINTMENT_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
-  [AppointmentStatus.PENDING]: [AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED],
-  [AppointmentStatus.CONFIRMED]: [AppointmentStatus.CHECKED_IN, AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW],
+  [AppointmentStatus.PENDING]: [AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW],
+  [AppointmentStatus.CONFIRMED]: [AppointmentStatus.CHECKED_IN, AppointmentStatus.IN_PROGRESS, AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW],
   [AppointmentStatus.CHECKED_IN]: [AppointmentStatus.IN_PROGRESS, AppointmentStatus.CANCELLED],
   [AppointmentStatus.IN_PROGRESS]: [AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED],
   [AppointmentStatus.COMPLETED]: [],
   [AppointmentStatus.CANCELLED]: [],
   [AppointmentStatus.NO_SHOW]: [],
 };
+
+export function canTransitionAppointment(
+  current: AppointmentStatus | string,
+  next: AppointmentStatus | string,
+): boolean {
+  const allowed = APPOINTMENT_TRANSITIONS[current as AppointmentStatus];
+  if (!allowed) return false;
+  return allowed.includes(next as AppointmentStatus);
+}
 
 // ---------------------------------------------------------------------------
 // Appointment

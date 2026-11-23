@@ -5,6 +5,7 @@ import {
   NotFoundException,
   BadRequestException,
   Optional,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -53,6 +54,7 @@ interface NameDbRow {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private readonly jwtSecret: string;
   private readonly jwtRefreshSecret: string;
   private readonly accessTokenExpiresIn = '15m';
@@ -496,7 +498,7 @@ export class AuthService {
         ],
       );
     } catch (err) {
-      console.error('Failed to write audit log:', err);
+      this.logger.error(`Failed to write audit log: ${err}`);
     }
   }
 
@@ -532,7 +534,7 @@ export class AuthService {
       });
 
       if (!response.ok) {
-        console.warn(`[Turnstile] Error HTTP ${response.status} de Cloudflare siteverify`);
+        this.logger.warn(`[Turnstile] Error HTTP ${response.status} de Cloudflare siteverify`);
         if (secretKey === '1x0000000000000000000000000000000AA') return true;
         return false;
       }
@@ -540,7 +542,7 @@ export class AuthService {
       const data = (await response.json()) as { success?: boolean; 'error-codes'?: string[] };
       return data.success === true;
     } catch (err) {
-      console.warn('[Turnstile] Error de conexión con Cloudflare:', err);
+      this.logger.warn(`[Turnstile] Error de conexión con Cloudflare: ${err}`);
       // En modo desarrollo con clave de pruebas permitimos pasar
       if (secretKey === '1x0000000000000000000000000000000AA') {
         return true;

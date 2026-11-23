@@ -327,6 +327,9 @@ export function useDoctorDashboard(initialTab: DoctorMainView = 'queue') {
                 diagnosisDesc: 'Lumbago no especificado',
                 appliedTechniques: ['Evaluación clínica'],
                 nextSessionRecommendation: 'Continuar sesiones pautadas',
+                sessionLabel: 'Sesión 1/5',
+                treatmentPhase: 'Fase Inicial',
+                homeRecommendations: 'Crioterapia 15 min al día',
                 notes: a.notes || 'Cita en agenda médica.',
               };
             });

@@ -8,6 +8,20 @@
 export type CashMovementType = 'sale' | 'purchase' | 'adjustment' | 'return' | 'waste';
 export type CashRegisterStatus = 'open' | 'closed';
 
+export const CASH_REGISTER_TRANSITIONS: Record<CashRegisterStatus, CashRegisterStatus[]> = {
+  open: ['closed'],
+  closed: [],
+};
+
+export function canTransitionCashRegister(
+  current: CashRegisterStatus,
+  next: CashRegisterStatus,
+): boolean {
+  const allowed = CASH_REGISTER_TRANSITIONS[current];
+  if (!allowed) return false;
+  return allowed.includes(next);
+}
+
 // ---------------------------------------------------------------------------
 // Cash Register (Sesión de caja diaria)
 // ---------------------------------------------------------------------------

@@ -4,9 +4,12 @@ import {
   ConflictException,
   NotFoundException,
   Optional,
+  Logger,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DatabaseService } from '../../database/database.service';
 import { EmailsService } from '../emails/emails.service';
+import { AppointmentConfirmedEvent, AppointmentCancelledEvent } from './events/appointment.events';
 import {
   Appointment,
   AppointmentStatus,
@@ -118,9 +121,12 @@ function parseTimeString(timeStr: string): string {
 
 @Injectable()
 export class AppointmentsService {
+  private readonly logger = new Logger(AppointmentsService.name);
+
   constructor(
     private readonly db: DatabaseService,
     @Optional() private readonly emailsService?: EmailsService,
+    @Optional() private readonly eventEmitter?: EventEmitter2,
   ) {}
 
   // =========================================================================
@@ -503,10 +509,16 @@ export class AppointmentsService {
       );
     });
 
-    if (newStatus === AppointmentStatus.CONFIRMED && this.emailsService) {
-      this.dispatchAppointmentConfirmationEmails(clinicId, id).catch((err) => {
-        console.warn('[AppointmentsService] Error al enviar correos de confirmación:', err);
-      });
+    if (newStatus === AppointmentStatus.CONFIRMED) {
+      if (this.eventEmitter) {
+        this.eventEmitter.emit('appointment.confirmed', new AppointmentConfirmedEvent(clinicId, id));
+      } else if (this.emailsService) {
+        this.dispatchAppointmentConfirmationEmails(clinicId, id).catch((err) => {
+          this.logger.warn(`[AppointmentsService] Error al enviar correos de confirmación: ${err}`);
+        });
+      }
+    } else if (newStatus === AppointmentStatus.CANCELLED) {
+      this.eventEmitter?.emit('appointment.cancelled', new AppointmentCancelledEvent(clinicId, id, reason));
     }
 
     return this.findOne(clinicId, id);
@@ -689,7 +701,7 @@ export class AppointmentsService {
         this.emailsService.sendAppointmentNotificationToClinic(clinicId, details),
       ]);
     } catch (error) {
-      console.warn('[AppointmentsService] No se pudieron enviar los correos de confirmación:', error);
+      this.logger.warn(`[AppointmentsService] No se pudieron enviar los correos de confirmación: ${error}`);
     }
   }
 
@@ -902,9 +914,11 @@ export class AppointmentsService {
       };
     });
 
-    if (this.emailsService) {
+    if (this.eventEmitter) {
+      this.eventEmitter.emit('appointment.confirmed', new AppointmentConfirmedEvent(clinicId, result.id));
+    } else if (this.emailsService) {
       this.dispatchAppointmentConfirmationEmails(clinicId, result.id).catch((err) => {
-        console.warn('[AppointmentsService] Error al despachar correos de cita:', err);
+        this.logger.warn(`[AppointmentsService] Error al despachar correos de cita: ${err}`);
       });
     }
 

@@ -18,6 +18,7 @@ const config: Config = {
     '^@config/(.*)$': '<rootDir>/src/config/$1',
     '^@citassistema/shared-types$': '<rootDir>/../../packages/shared-types/src/index.ts',
     '^@citassistema/shared-types/(.*)$': '<rootDir>/../../packages/shared-types/src/$1',
+    '^@nestjs/event-emitter$': '<rootDir>/test/mocks/event-emitter.mock.ts',
   },
 };
 

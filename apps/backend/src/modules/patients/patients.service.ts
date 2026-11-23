@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
@@ -37,6 +38,8 @@ interface PatientDbRow {
 
 @Injectable()
 export class PatientsService {
+  private readonly logger = new Logger(PatientsService.name);
+
   constructor(private readonly db: DatabaseService) {}
 
   private mapRow(row: PatientDbRow): Patient {
@@ -219,7 +222,7 @@ export class PatientsService {
             }
           }
         } catch (err) {
-          console.warn('[DniLookup] External API call error:', (err as Error).message);
+          this.logger.warn(`[DniLookup] External API call error: ${(err as Error).message}`);
         }
       }
     }

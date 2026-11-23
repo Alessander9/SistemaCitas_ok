@@ -10,6 +10,17 @@ export default defineConfig({
       '@citassistema/shared-types': path.resolve(__dirname, '../../packages/shared-types/src/index.ts'),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-three': ['three'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {

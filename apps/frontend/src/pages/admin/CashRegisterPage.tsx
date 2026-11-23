@@ -46,18 +46,20 @@ export function CashRegisterPage({
   const [movDesc, setMovDesc] = useState('');
   const [closingAmount, setClosingAmount] = useState('');
 
-  const handleSaveMovement = () => {
+  const handleSaveMovement = async () => {
     const parsed = parseFloat(movAmount);
-    if (addMovement(movType, parsed, movDesc)) {
+    const ok = await addMovement(movType, parsed, movDesc);
+    if (ok) {
       setMovAmount('');
       setMovDesc('');
       setActivePanel('none');
     }
   };
 
-  const handleConfirmClose = () => {
+  const handleConfirmClose = async () => {
     const parsed = parseFloat(closingAmount);
-    if (closeRegister(parsed)) {
+    const ok = await closeRegister(parsed);
+    if (ok) {
       setClosingAmount('');
       setActivePanel('none');
     }
