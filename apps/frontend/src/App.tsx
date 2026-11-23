@@ -14,6 +14,9 @@ type AppView =
   | 'booking'
   | 'login'
   | 'dashboard'
+  | 'superadmin-users'
+  | 'superadmin-finance'
+  | 'superadmin-audit'
   | 'doctor-schedule'
   | 'reception-booking'
   | 'clinical-consultation'
@@ -54,6 +57,9 @@ export const App: React.FC = () => {
         'booking',
         'login',
         'dashboard',
+        'superadmin-users',
+        'superadmin-finance',
+        'superadmin-audit',
         'doctor-schedule',
         'reception-booking',
         'clinical-consultation',
@@ -185,11 +191,21 @@ export const App: React.FC = () => {
         }
         return (
           <SuperAdminDashboard
+            activeSection={
+              currentView === 'superadmin-users'
+                ? 'users'
+                : currentView === 'superadmin-finance'
+                ? 'finance'
+                : currentView === 'superadmin-audit'
+                ? 'audit'
+                : 'overview'
+            }
             onSwitchClinic={() => {
               /* Contexto de sede seleccionado en el directorio SuperAdmin */
             }}
             onOpenClinicConsole={(clinic) => {
               setSupervisedClinic(clinic);
+              setCurrentView('dashboard');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             onNavigate={(v) => setCurrentView(v as AppView)}
@@ -373,7 +389,11 @@ export const App: React.FC = () => {
         onLogout={handleNavigateToLogin}
       >
         <Suspense fallback={<div style={{ padding: '1.5rem' }}><SkeletonLoader count={4} /></div>}>
-          {currentView === 'dashboard' && renderDashboardByRole()}
+          {(currentView === 'dashboard' ||
+            currentView === 'superadmin-users' ||
+            currentView === 'superadmin-finance' ||
+            currentView === 'superadmin-audit') &&
+            renderDashboardByRole()}
 
           {currentView === 'doctor-schedule' && (
             <DoctorDashboard

@@ -15,11 +15,85 @@ export interface AdminClinic {
   openingHours?: string;
   slotDuration?: number;
   doctors: number;
+  adminsCount?: number;
   consultingRooms: number;
   activeAppointments: number;
+  monthAppointments?: number;
   status: 'active' | 'onboarding' | 'suspended' | 'maintenance';
+  isActive?: boolean;
   monthlyRevenue: string;
   revenueAmount: number;
+}
+
+export interface AdminOverview {
+  totalClinics: number;
+  activeClinics: number;
+  suspendedClinics: number;
+  totalDoctors: number;
+  totalUsers: number;
+  todayAppointments: number;
+  monthAppointments: number;
+  monthRevenue: number;
+  health: {
+    database: 'ok' | 'degraded';
+    latencyMs: number;
+    emailProvider: 'brevo' | 'resend' | 'mock';
+    emailsLast24h: {
+      total: number;
+      sent: number;
+      failed: number;
+    };
+  };
+}
+
+export interface AdminUser {
+  id: string;
+  clinicId: string;
+  clinicName: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  role: string;
+  isActive: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
+}
+
+export interface CreateAdminUserDto {
+  clinicId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  password: string;
+  role?: 'ADMIN_CLINIC' | 'RECEPCION' | 'SUPER_ADMIN';
+}
+
+export interface AdminClinicFinance {
+  clinicId: string;
+  clinicName: string;
+  slug: string;
+  city: string;
+  isActive: boolean;
+  monthAppointments: number;
+  totalRevenue: number;
+  cardRevenue: number;
+  digitalWalletRevenue: number;
+  cashRevenue: number;
+  otherRevenue: number;
+}
+
+export interface AdminAuditEvent {
+  id: string;
+  source: 'audit' | 'email';
+  createdAt: string;
+  actor: string;
+  action: string;
+  resource: string;
+  clinicName: string;
+  ipAddress: string;
+  status: 'ok' | 'error';
 }
 
 export interface CreateAdminClinicDto {
@@ -38,9 +112,11 @@ export interface CreateAdminClinicDto {
 
 function getAuthHeaders(): HeadersInit {
   const token =
-    localStorage.getItem('vitalsalud_access_token') ||
-    localStorage.getItem('auth_token') ||
-    localStorage.getItem('token');
+    typeof window !== 'undefined'
+      ? localStorage.getItem('vitalsalud_access_token') ||
+        localStorage.getItem('auth_token') ||
+        localStorage.getItem('token')
+      : null;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -50,9 +126,16 @@ function getAuthHeaders(): HeadersInit {
   return headers;
 }
 
-/**
- * Obtiene la lista de clínicas registradas desde la base de datos
- */
+export async function fetchAdminOverview(): Promise<AdminOverview | null> {
+  try {
+    const res = await fetch(`${API_BASE}/admin/overview`, { headers: getAuthHeaders() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchAdminClinics(): Promise<AdminClinic[]> {
   try {
     const res = await fetch(`${API_BASE}/admin/clinics`, {
@@ -65,9 +148,6 @@ export async function fetchAdminClinics(): Promise<AdminClinic[]> {
   }
 }
 
-/**
- * Registra una nueva clínica en la base de datos
- */
 export async function createAdminClinic(dto: CreateAdminClinicDto): Promise<AdminClinic> {
   const res = await fetch(`${API_BASE}/admin/clinics`, {
     method: 'POST',
@@ -81,9 +161,6 @@ export async function createAdminClinic(dto: CreateAdminClinicDto): Promise<Admi
   return await res.json();
 }
 
-/**
- * Actualiza los datos o configuración IPRESS/RENIPRESS de una clínica existente
- */
 export async function updateAdminClinic(
   id: string,
   dto: Partial<CreateAdminClinicDto>,
@@ -98,4 +175,81 @@ export async function updateAdminClinic(
     throw new Error(err.message || `Error al actualizar clínica (${res.status})`);
   }
   return await res.json();
+}
+
+export async function toggleAdminClinicStatus(
+  id: string,
+  isActive: boolean,
+): Promise<AdminClinic> {
+  const res = await fetch(`${API_BASE}/admin/clinics/${id}/status`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ isActive }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Error al cambiar estado (${res.status})`);
+  }
+  return await res.json();
+}
+
+export async function fetchAdminNetworkFinance(): Promise<AdminClinicFinance[]> {
+  try {
+    const res = await fetch(`${API_BASE}/admin/finance`, { headers: getAuthHeaders() });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchAdminUsers(): Promise<AdminUser[]> {
+  try {
+    const res = await fetch(`${API_BASE}/admin/users`, { headers: getAuthHeaders() });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function createAdminUser(dto: CreateAdminUserDto): Promise<AdminUser> {
+  const res = await fetch(`${API_BASE}/admin/users`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(dto),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Error al crear usuario (${res.status})`);
+  }
+  return await res.json();
+}
+
+export async function toggleAdminUserStatus(
+  id: string,
+  isActive: boolean,
+): Promise<{ id: string; isActive: boolean }> {
+  const res = await fetch(`${API_BASE}/admin/users/${id}/status`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ isActive }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Error al actualizar usuario (${res.status})`);
+  }
+  return await res.json();
+}
+
+export async function fetchAdminAuditFeed(limit = 40): Promise<AdminAuditEvent[]> {
+  try {
+    const res = await fetch(`${API_BASE}/admin/audit?limit=${limit}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
 }

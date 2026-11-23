@@ -44,17 +44,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
     switch (activeRole) {
       case 'SUPER_ADMIN':
         return {
-          sectionTitle: 'Supervisión Red Global',
+          sectionTitle: 'Gobernanza Multi-Tenant',
           items: [
             {
               id: 'dashboard',
-              label: 'Panel Multi-Tenant',
+              label: 'Resumen & Sedes',
               icon: <IconBuilding className="w-4 h-4" />,
             },
             {
-              id: 'cash-register',
-              label: 'Liquidación & Red',
+              id: 'superadmin-users',
+              label: 'Administradores',
+              icon: <MaterialIcon name="manage_accounts" size={16} />,
+            },
+            {
+              id: 'superadmin-finance',
+              label: 'Finanzas de la Red',
               icon: <IconCash className="w-4 h-4" />,
+            },
+            {
+              id: 'superadmin-audit',
+              label: 'Auditoría & Salud',
+              icon: <MaterialIcon name="verified_user" size={16} />,
             },
           ],
         };

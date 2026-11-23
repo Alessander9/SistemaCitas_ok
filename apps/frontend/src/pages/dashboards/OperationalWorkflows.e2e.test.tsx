@@ -104,15 +104,20 @@ describe('Operational E2E Workflows & State Propagation Across All Roles', () =>
     expect(handleNav).toHaveBeenCalledWith('reception-booking');
   });
 
-  it('Super Admin E2E: network check shows in-app toast instead of blocking window.alert', () => {
+  it('Super Admin E2E: switches governance sections (Audit & Health, Finance, Users) cleanly without window.alert', () => {
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     render(<SuperAdminDashboard />);
 
-    const checkNetworkBtn = screen.getByRole('button', { name: /Comprobar Red/i });
-    fireEvent.click(checkNetworkBtn);
+    fireEvent.click(screen.getByRole('tab', { name: /Auditoría & Salud/i }));
+    expect(screen.getByText(/Bitácora de Auditoría y Trazabilidad/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: /Finanzas Red/i }));
+    expect(screen.getByText(/Comparativa Financiera por Sede/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: /Administradores/i }));
+    expect(screen.getByText(/Administradores y Accesos por Sede/i)).toBeInTheDocument();
 
     expect(alertSpy).not.toHaveBeenCalled();
-    expect(screen.getByText(/Diagnóstico de infraestructura/i)).toBeInTheDocument();
     alertSpy.mockRestore();
   });
 

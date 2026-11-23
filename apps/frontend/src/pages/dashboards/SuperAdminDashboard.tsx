@@ -1,40 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './ClinicalDashboard.css';
-import { IconPlus, IconFileText } from '../../components/ui/Icons';
+import { IconPlus } from '../../components/ui/Icons';
 import { MaterialIcon } from '../../components/ui/MaterialIcon';
-import { SuperAdminDashboardProps, AuditEvent } from './superadmin/types';
+import { SuperAdminDashboardProps, SuperAdminSection } from './superadmin/types';
 import { useSuperAdminClinics } from './superadmin/useSuperAdminClinics';
 import { SuperAdminKpiGrid } from './superadmin/SuperAdminKpiGrid';
 import { ClinicsDirectoryTable } from './superadmin/ClinicsDirectoryTable';
 import { CreateClinicModal } from './superadmin/CreateClinicModal';
 import { ClinicManagementModal } from './superadmin/ClinicManagementModal';
-import { ClinicFinanceModal } from './superadmin/ClinicFinanceModal';
-import { AuditLogsDrawer } from './superadmin/AuditLogsDrawer';
+import { SuperAdminUsersView } from './superadmin/SuperAdminUsersView';
+import { SuperAdminFinanceView } from './superadmin/SuperAdminFinanceView';
+import { SuperAdminAuditView } from './superadmin/SuperAdminAuditView';
 
-const AUDIT_EVENTS: AuditEvent[] = [
-  { id: 'aud-1', time: '13:40:12', user: 'admin@clinica.pe', action: 'LOGIN_SUCCESS', tenant: 'clinica-demo', ip: '190.235.14.82', status: 'Verificado' },
-  { id: 'aud-2', time: '13:35:05', user: 'doctor@clinica.pe', action: 'EVA_SCORE_UPDATE', tenant: 'clinica-demo', ip: '190.235.14.82', status: 'Verificado' },
-  { id: 'aud-3', time: '13:20:30', user: 'recepcion@clinica.pe', action: 'APPOINTMENT_CHECKIN', tenant: 'clinica-demo', ip: '190.235.14.82', status: 'Verificado' },
-  { id: 'aud-4', time: '12:55:18', user: 'superadmin@citassistema.pe', action: 'TENANT_METRICS_READ', tenant: 'global', ip: '200.12.90.11', status: 'Verificado' },
-];
+const SECTION_META: Record<SuperAdminSection, { title: string; subtitle: string; viewId: string }> = {
+  overview: {
+    title: 'Panel de Control Global de Clínicas',
+    subtitle: 'Gobernanza multi-tenant, estado operativo de sedes y métricas consolidadas en tiempo real.',
+    viewId: 'dashboard',
+  },
+  users: {
+    title: 'Administradores y Accesos',
+    subtitle: 'Alta de directores de clínica, asignación por sede y control de cuentas administrativas.',
+    viewId: 'superadmin-users',
+  },
+  finance: {
+    title: 'Finanzas Consolidadas de la Red',
+    subtitle: 'Ingresos reales del mes por sede y método de cobro con exportación contable.',
+    viewId: 'superadmin-finance',
+  },
+  audit: {
+    title: 'Auditoría y Salud de Plataforma',
+    subtitle: 'Monitoreo en vivo de PostgreSQL, envíos de correo y bitácora de trazabilidad (Ley N° 29733).',
+    viewId: 'superadmin-audit',
+  },
+};
 
 export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
+  activeSection = 'overview',
   onSwitchClinic,
   onOpenClinicConsole,
   onNavigate,
 }) => {
+  const [section, setSection] = useState<SuperAdminSection>(activeSection);
+
+  useEffect(() => {
+    setSection(activeSection);
+  }, [activeSection]);
+
   const {
     clinics,
     filteredClinics,
+    overview,
     selectedClinic,
     managingClinic,
     setManagingClinic,
-    financeClinic,
-    setFinanceClinic,
     isNewClinicModalOpen,
     setIsNewClinicModalOpen,
-    isAuditModalOpen,
-    setIsAuditModalOpen,
     searchFilter,
     setSearchFilter,
     statusFilter,
@@ -42,16 +63,29 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
     toastMessage,
     setToastMessage,
     showToast,
+    refreshData,
     handleSwitchContext,
     addClinic,
     updateClinic,
+    toggleStatus,
+    activeClinicsCount,
+    totalClinicsCount,
     totalAppointments,
     totalRevenue,
   } = useSuperAdminClinics(onSwitchClinic);
 
+  const handleSelectSection = (next: SuperAdminSection) => {
+    setSection(next);
+    if (onNavigate) {
+      onNavigate(SECTION_META[next].viewId);
+    }
+  };
+
+  const meta = SECTION_META[section];
+
   return (
     <div className="dashboard-canvas">
-      {/* Dynamic Toast Feedback Banner */}
+      {/* Toast Feedback */}
       {toastMessage && (
         <div
           style={{
@@ -61,15 +95,15 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
             zIndex: 9999,
             background: '#0f172a',
             color: '#ffffff',
-            padding: '0.85rem 1.35rem',
-            borderRadius: '14px',
+            padding: '0.85rem 1.25rem',
+            borderRadius: '12px',
             boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
             display: 'flex',
             alignItems: 'center',
             gap: '0.75rem',
             fontSize: '0.84rem',
-            fontWeight: 700,
-            border: '1px solid rgba(255,255,255,0.15)',
+            fontWeight: 600,
+            border: '1px solid rgba(255,255,255,0.12)',
           }}
         >
           <span>{toastMessage}</span>
@@ -83,7 +117,6 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              marginLeft: '0.5rem',
             }}
           >
             <MaterialIcon name="close" size={18} />
@@ -91,106 +124,146 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
         </div>
       )}
 
-      {/* Header & Context */}
-      <header className="dashboard-header">
+      {/* Clean Header — Single Primary CTA */}
+      <header className="dashboard-header" style={{ marginBottom: '1.25rem' }}>
         <div>
           <div className="clinic-badge" style={{ background: '#f5f3ff', borderColor: '#ddd6fe', color: '#7c3aed' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '999px', background: '#7c3aed', display: 'inline-block' }} />
-            Master Multi-Tenant · Red Global de Clínicas
+            Super Admin · Gobernanza Multi-Tenant
           </div>
-          <h1 className="dashboard-title">
-            Panel de Control Global de Clínicas (Super Admin)
-          </h1>
-          <p className="dashboard-subtitle">
-            Supervisión centralizada de infraestructura, sedes médicas y cumplimiento normativo (Ley N° 29733).
-          </p>
+          <h1 className="dashboard-title">{meta.title}</h1>
+          <p className="dashboard-subtitle">{meta.subtitle}</p>
         </div>
 
-        <div className="header-actions">
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => setIsAuditModalOpen(true)}
-          >
-            <IconFileText className="w-4 h-4 text-purple-600" />
-            <span>Auditoría Ley 29733</span>
-          </button>
-          <button
-            type="button"
-            className="btn-primary"
-            style={{
-              background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-              borderColor: '#7c3aed',
-              boxShadow: '0 4px 10px -2px rgba(124, 58, 237, 0.35)',
-            }}
-            onClick={() => setIsNewClinicModalOpen(true)}
-          >
-            <IconPlus className="w-4 h-4" />
-            <span>+ Nueva Clínica (Tenant)</span>
-          </button>
-        </div>
+        {section === 'overview' && (
+          <div className="header-actions">
+            <button
+              type="button"
+              className="btn-primary"
+              style={{
+                background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                borderColor: '#7c3aed',
+                boxShadow: '0 4px 10px -2px rgba(124, 58, 237, 0.35)',
+              }}
+              onClick={() => setIsNewClinicModalOpen(true)}
+            >
+              <IconPlus className="w-4 h-4" />
+              <span>Nueva Sede</span>
+            </button>
+          </div>
+        )}
       </header>
 
-      {/* Nivel 1: Tarjetas KPI de la Red y Banner RLS */}
-      <SuperAdminKpiGrid
-        totalClinics={clinics.length}
-        totalAppointments={totalAppointments}
-        totalRevenue={totalRevenue}
-        onCheckNetwork={() =>
-          showToast(
-            'Diagnóstico de infraestructura: Servidor de base de datos operativo. Conexiones pool: 14/100. Espacio disponible: 88.4%.',
-          )
-        }
-      />
-
-      {/* Nivel 2: Directorio de Sedes y Nivel 3: Módulos de Gestión Master */}
-      <ClinicsDirectoryTable
-        clinics={clinics}
-        filteredClinics={filteredClinics}
-        selectedClinic={selectedClinic}
-        searchFilter={searchFilter}
-        setSearchFilter={setSearchFilter}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        onOpenNewClinicModal={() => setIsNewClinicModalOpen(true)}
-        onOpenAuditModal={() => setIsAuditModalOpen(true)}
-        onOpenClinicConsole={onOpenClinicConsole}
-        onManageClinic={(clinic) => {
-          handleSwitchContext(clinic);
-          setManagingClinic(clinic);
+      {/* Quick Section Switcher (in sync with Sidebar) */}
+      <nav
+        aria-label="Secciones de SuperAdmin"
+        style={{
+          display: 'inline-flex',
+          background: '#f1f5f9',
+          padding: '4px',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          gap: '4px',
+          marginBottom: '1.5rem',
+          flexWrap: 'wrap',
         }}
-        onFinanceClinic={(clinic) => setFinanceClinic(clinic)}
-        onShowToast={showToast}
-      />
+      >
+        {(
+          [
+            { id: 'overview', label: 'Resumen & Sedes', icon: 'domain' },
+            { id: 'users', label: 'Administradores', icon: 'manage_accounts' },
+            { id: 'finance', label: 'Finanzas Red', icon: 'account_balance' },
+            { id: 'audit', label: 'Auditoría & Salud', icon: 'verified_user' },
+          ] as const
+        ).map((item) => {
+          const isActive = section === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => handleSelectSection(item.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.45rem 0.9rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                background: isActive ? '#ffffff' : 'transparent',
+                color: isActive ? '#7c3aed' : '#64748b',
+                boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 120ms ease',
+              }}
+            >
+              <MaterialIcon name={item.icon} size={16} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
-      {/* Modales Especializados */}
+      {/* Active Section Content */}
+      {section === 'overview' && (
+        <>
+          <SuperAdminKpiGrid
+            activeClinics={activeClinicsCount}
+            totalClinics={totalClinicsCount}
+            totalAppointments={totalAppointments}
+            totalRevenue={totalRevenue}
+            overview={overview}
+            onOpenAudit={() => handleSelectSection('audit')}
+          />
+
+          <ClinicsDirectoryTable
+            clinics={clinics}
+            filteredClinics={filteredClinics}
+            selectedClinic={selectedClinic}
+            searchFilter={searchFilter}
+            setSearchFilter={setSearchFilter}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            onOpenClinicConsole={onOpenClinicConsole}
+            onManageClinic={(clinic) => {
+              handleSwitchContext(clinic);
+              setManagingClinic(clinic);
+            }}
+            onToggleStatus={(clinic) => void toggleStatus(clinic)}
+          />
+        </>
+      )}
+
+      {section === 'users' && (
+        <SuperAdminUsersView clinics={clinics} onShowToast={showToast} />
+      )}
+
+      {section === 'finance' && (
+        <SuperAdminFinanceView onShowToast={showToast} />
+      )}
+
+      {section === 'audit' && (
+        <SuperAdminAuditView
+          overview={overview}
+          onRefreshOverview={() => void refreshData()}
+        />
+      )}
+
+      {/* Modales limpios de aprovisionamiento y configuración */}
       <CreateClinicModal
         isOpen={isNewClinicModalOpen}
         onClose={() => setIsNewClinicModalOpen(false)}
-        onSubmit={addClinic}
+        onSubmit={(data) => void addClinic(data)}
       />
 
       <ClinicManagementModal
         clinic={managingClinic}
         onClose={() => setManagingClinic(null)}
-        onSave={updateClinic}
-        onSwitchContext={handleSwitchContext}
+        onSave={(updated) => void updateClinic(updated)}
         onOpenClinicConsole={onOpenClinicConsole}
-        onShowToast={showToast}
-      />
-
-      <ClinicFinanceModal
-        clinic={financeClinic}
-        onClose={() => setFinanceClinic(null)}
-        onSwitchContext={handleSwitchContext}
-        onNavigate={onNavigate}
-        onShowToast={showToast}
-      />
-
-      <AuditLogsDrawer
-        isOpen={isAuditModalOpen}
-        events={AUDIT_EVENTS}
-        onClose={() => setIsAuditModalOpen(false)}
       />
     </div>
   );
