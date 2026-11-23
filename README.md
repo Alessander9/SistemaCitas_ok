@@ -53,9 +53,10 @@ Captación Web ➔ Reserva Online ➔ Pago Idempotente ➔ Recepción / Triaje �
 ### Pilares Arquitectónicos
 1. **Aislamiento Multi-Tenant Estricto + Anti-IDOR**: Cada registro operativo pertenece a un `clinic_id`. El backend valida la identidad del inquilino (`TenantGuard`) y la titularidad de los datos de pacientes (`assertPatientOwnership`) sin confiar en filtros del cliente.
 2. **Cero Dobles Reservas (Zero Double-Booking) y FSM Formal**: Serialización transaccional atómica mediante `pg_advisory_xact_lock` en PostgreSQL por profesional y fecha, junto con máquinas de estado finitas formales (`canTransitionAppointment` y `canTransitionCashRegister`) que impiden saltos de estado ilegales o mutaciones sobre estados terminales.
-3. **Arquitectura Basada en Eventos (`@nestjs/event-emitter`)**: Desacoplamiento total de los efectos secundarios (envío de correos Brevo, alertas a Telegram) del hilo transaccional principal de agendamiento y cancelación de citas.
-4. **SaaS Marca Blanca Dinámico (White-Label Onboarding)**: Capacidad para que cada clínica opere con su propio logo, colores de marca, eslogan de bienvenida, nombre personalizado de Asistente IA y control de suspensión de servicio en tiempo real.
-5. **Producción Endurecida & Cero Advertencias**: Rate Limiting (`@nestjs/throttler`), filtro global de excepciones (`HttpExceptionFilter`) para sanitización de errores de base de datos (PostgreSQL 23505/23503), logging corporativo NestJS (`Logger`), optimización de bundle en Vite con `manualChunks` (< 500 kB) y 100% de pruebas automáticas pasando (409 tests).
+3. **Autenticación Blindada Anti-XSS (Gold Standard)**: Arquitectura de dos capas con **Access Token en memoria volátil de React** (`AuthContext`) y **Refresh Token en Cookie `HttpOnly; Secure; SameSite=Lax`**, complementada con Silent Refresh automático en recargas (`F5`), eliminando la exposición de credenciales en `localStorage`.
+4. **Arquitectura Basada en Eventos (`@nestjs/event-emitter`)**: Desacoplamiento total de los efectos secundarios (envío de correos Brevo, alertas a Telegram) del hilo transaccional principal de agendamiento y cancelación de citas.
+5. **SaaS Marca Blanca Dinámico (White-Label Onboarding)**: Capacidad para que cada clínica opere con su propio logo, colores de marca, eslogan de bienvenida, nombre personalizado de Asistente IA y control de suspensión de servicio en tiempo real.
+6. **Producción Endurecida & Cero Advertencias**: Rate Limiting (`@nestjs/throttler`), filtro global de excepciones (`HttpExceptionFilter`) para sanitización de errores de base de datos (PostgreSQL 23505/23503), logging corporativo NestJS (`Logger`), optimización de bundle en Vite con `manualChunks` (< 500 kB) y 100% de pruebas automáticas pasando (409 tests).
 
 ---
 
@@ -232,8 +233,9 @@ SistemaCitas_ok/
 ### 3.8 Dashboards por Rol (RBAC), Sesión Segura y Navegación Blindada
 
 - **Gestor Global de Autenticación (`AuthContext.tsx` + `storage.ts`)**:
-  - Single Source of Truth para tokens JWT y datos de sesión de usuario en `localStorage`.
-  - Rehidratación automática de sesión en recarga (`F5`) mediante `GET /api/auth/me`.
+  - **Defensa en profundidad contra XSS**: El Access Token vive únicamente en la memoria volátil de la aplicación React (`AuthContext`), sin persistirse en `localStorage`.
+  - **Refresh Token en Cookie `HttpOnly`**: Gestionado automáticamente por el navegador con flags `HttpOnly; Secure; SameSite=Lax; Path=/api/auth`, haciéndolo inaccesible ante ataques de script.
+  - **Silent Refresh en Recarga (`F5`)**: Al abrir o recargar la app, `AuthContext` ejecuta un refresco silencioso contra `POST /api/auth/refresh` con `credentials: 'include'`, restaurando la sesión sin parpadeos ni vulnerabilidades.
 - **Enrutamiento Blindado y Protección por Roles (`App.tsx`)**:
   - Soporte a navegación del historial del navegador (`popstate` atrás/adelante).
   - URLs amigables por vista (`?view=...`).
@@ -288,7 +290,7 @@ Todos los endpoints del backend NestJS están expuestos bajo el prefijo global `
 | **Validación & Config** | `Zod` + `class-validator` + `class-transformer` | Validación Fail-Fast de variables de entorno al arranque y DTOs HTTP |
 | **Tipos Compartidos & FSM** | `@citassistema/shared-types` | Contratos estrictos (`ClinicalVitals`), parser NLP compartido y máquinas de estado formales |
 | **Base de Datos** | `PostgreSQL 16+` (`pg` Pool) | Persistencia relacional ACID, advisory locks y 17 migraciones SQL |
-| **Autenticación** | `Passport JWT` + `@nestjs/jwt` + `bcrypt` | Access/Refresh tokens rotativos y hash seguro de contraseñas |
+| **Autenticación** | `Passport JWT` + `@nestjs/jwt` + `cookie-parser` + `bcrypt` | Access Token en memoria volátil, Refresh Token en cookie `HttpOnly` rotativo y hash seguro |
 | **Pruebas Backend** | `Jest 29` + `Supertest 7` | 23 suites unitarias (172 tests) + 2 suites E2E contra PostgreSQL real (35 tests) |
 | **Pruebas Frontend** | `Vitest 3` + `Testing Library` + `jsdom` + `Puppeteer` | 33 suites Vitest (202 tests con 0 warnings) + Smoke Test E2E en navegador Chromium real |
 | **Calidad de Código** | `ESLint 9` + `typescript-eslint 8` + `Prettier 3` | Linting estricto (`--max-warnings=0`) y formato uniforme en todo el monorepo |
@@ -449,6 +451,10 @@ Todas las cuentas demo de desarrollo comparten la contraseña **`Password123!`**
   - Los usuarios con rol `PACIENTE` solo pueden acceder o modificar recursos clínicos cuyo `patientId` coincida con el de su sesión autenticada (`403 Forbidden` ante intentos de acceso cruzado).
 - **Autorización RBAC (`JwtAuthGuard`, `RolesGuard`, `PermissionsGuard`)**:
   - 5 roles base y permisos granulares definidos en `SystemPermission`.
+- **Defensa en Profundidad Anti-XSS (Token Architecture)**:
+  - Access Token residente exclusivamente en la memoria volátil de React (`storage.ts`), inaccesible para scripts maliciosos.
+  - Refresh Token emitido en cookie con directivas `HttpOnly`, `Secure` y `SameSite=Lax`, blindando la sesión contra robo por XSS y mitigando CSRF.
+  - Endpoint `POST /api/auth/refresh` con rotación obligatoria de token y revocación persistente en base de datos.
 - **Protección Criptográfica**:
   - Contraseñas hasheadas con `bcrypt` (10 rounds).
   - Tokens JWT con rotación de Refresh Tokens y revocación persistente (`008_auth_refresh_tokens.sql`).
