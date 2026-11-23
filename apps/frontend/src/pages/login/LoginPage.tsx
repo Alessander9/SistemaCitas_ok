@@ -3,6 +3,7 @@ import { MaterialIcon } from '../../components/ui/MaterialIcon';
 import { TurnstileWidget } from '../../components/ui/TurnstileWidget';
 import { requestPasswordReset, confirmPasswordReset } from '../../services/api';
 import { useClinicBranding } from '../../context/ClinicBrandingContext';
+import { useAuth } from '../../context/AuthContext';
 import './LoginPage.css';
 
 interface DemoUser {
@@ -64,6 +65,7 @@ interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHome }) => {
   const { tenantSlug, branding, theme } = useClinicBranding();
+  const { login: authLogin } = useAuth();
   const [authMode, setAuthMode] = useState<'login' | 'forgot' | 'reset'>('login');
 
   const [email, setEmail] = useState('');
@@ -187,11 +189,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
       if (response && response.ok) {
         const data = await response.json();
-        if (data.accessToken && typeof window !== 'undefined') {
-          localStorage.setItem('vitalsalud_access_token', data.accessToken);
-        }
-        if (data.user?.clinicId && typeof window !== 'undefined') {
-          localStorage.setItem('clinic_id', data.user.clinicId);
+        if (data.user && data.accessToken) {
+          authLogin(data.accessToken, data.user, data.refreshToken);
         }
         setSuccessUser(data.user || userObj);
         setTimeout(() => {
@@ -235,6 +234,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
         clinicSlug: resolvedRole === 'SUPER_ADMIN' ? 'global' : clinicSlug,
         roles: [resolvedRole],
       };
+      authLogin('demo-session-token', {
+        id: 'demo-user-id',
+        email: userObj.email,
+        firstName: userObj.firstName,
+        lastName: '',
+        clinicId: 'a0000000-0000-4000-a000-000000000001',
+        clinicName: branding?.name || 'Clínica Sanitas Lima',
+        roles: userObj.roles,
+        permissions: ['*'],
+      });
       setSuccessUser(userObj);
       setTimeout(() => {
         onLoginSuccess?.(userObj);

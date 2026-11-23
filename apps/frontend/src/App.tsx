@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { MaterialIcon } from './components/ui/MaterialIcon';
 import { LandingPage } from './pages/public/LandingPage';
 import { LoginPage } from './pages/login/LoginPage';
@@ -6,6 +6,7 @@ import { AppShell } from './components/layout/AppShell';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { SpeedDialFAB } from './components/layout/SpeedDialFAB';
 import { SkeletonLoader } from './components/common/SkeletonLoader';
+import { useAuth } from './context/AuthContext';
 import type { ClinicalPatientData } from './pages/clinical/ClinicalConsultationView';
 
 type AppRole = 'SUPER_ADMIN' | 'ADMIN_CLINIC' | 'PROFESIONAL' | 'RECEPCION' | 'PACIENTE';
@@ -43,10 +44,27 @@ const DoctorDashboard = lazy(() => import('./pages/dashboards/DoctorDashboard').
 const ReceptionDashboard = lazy(() => import('./pages/dashboards/ReceptionDashboard').then((m) => ({ default: m.ReceptionDashboard })));
 const PatientDashboard = lazy(() => import('./pages/dashboards/PatientDashboard').then((m) => ({ default: m.PatientDashboard })));
 
+const ROLE_ALLOWED_VIEWS: Record<AppRole, AppView[]> = {
+  SUPER_ADMIN: ['landing', 'booking', 'login', 'dashboard', 'superadmin-users', 'superadmin-finance', 'superadmin-audit'],
+  ADMIN_CLINIC: ['landing', 'booking', 'login', 'dashboard', 'reception-booking', 'cash-register', 'inventory', 'communications', 'telegram-bot', 'clinical-knowledge'],
+  PROFESIONAL: ['landing', 'booking', 'login', 'dashboard', 'clinical-consultation', 'doctor-schedule'],
+  RECEPCION: ['landing', 'booking', 'login', 'dashboard', 'reception-booking', 'cash-register'],
+  PACIENTE: ['landing', 'booking', 'login', 'patient-portal', 'dashboard'],
+};
+
 export const App: React.FC = () => {
-  const [activeRole, setActiveRole] = useState<AppRole>('ADMIN_CLINIC');
+  const { user, activeRole: contextRole, switchRole, logout, isAuthenticated } = useAuth();
+  const [localRole, setLocalRole] = useState<AppRole>((contextRole as AppRole) || 'ADMIN_CLINIC');
+  const activeRole: AppRole = ((contextRole as AppRole) || localRole) as AppRole;
+
+  const setActiveRole = (role: AppRole) => {
+    setLocalRole(role);
+    switchRole(role);
+  };
+
   const [activeDoctorPatient, setActiveDoctorPatient] = useState<ClinicalPatientData | null>(null);
-  const getInitialView = (): AppView => {
+
+  const parseViewFromUrl = useCallback((): AppView => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlView = params.get('view');
@@ -75,11 +93,11 @@ export const App: React.FC = () => {
       }
     }
     return 'landing';
-  };
+  }, []);
 
-  const [currentView, setCurrentViewState] = useState<AppView>(getInitialView);
+  const [currentView, setCurrentViewState] = useState<AppView>(parseViewFromUrl);
 
-  const setCurrentView = (view: typeof currentView) => {
+  const setCurrentView = useCallback((view: AppView, replace = false) => {
     setCurrentViewState(view);
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
@@ -88,9 +106,44 @@ export const App: React.FC = () => {
       } else {
         url.searchParams.set('view', view);
       }
-      window.history.replaceState({}, '', url.toString());
+      if (replace) {
+        window.history.replaceState({}, '', url.toString());
+      } else {
+        window.history.pushState({}, '', url.toString());
+      }
     }
-  };
+  }, []);
+
+  // Sincronizar navegación nativa (Botón Atrás / Adelante del navegador)
+  useEffect(() => {
+    const handlePopState = () => {
+      const targetView = parseViewFromUrl();
+      setCurrentViewState(targetView);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [parseViewFromUrl]);
+
+  // ProtectedRoute Guard: valida que el usuario autenticado tenga permiso a la vista
+  useEffect(() => {
+    const publicViews: AppView[] = ['landing', 'booking', 'login'];
+    if (publicViews.includes(currentView)) return;
+
+    if (!isAuthenticated && !user) {
+      // Si intenta acceder a vista privada sin estar autenticado, redirigir a login
+      setCurrentView('login', true);
+      return;
+    }
+
+    const allowed = ROLE_ALLOWED_VIEWS[activeRole] || [];
+    if (!allowed.includes(currentView)) {
+      const fallbackView: AppView = activeRole === 'PACIENTE' ? 'patient-portal' : 'dashboard';
+      setCurrentView(fallbackView, true);
+    }
+  }, [currentView, activeRole, isAuthenticated, user, setCurrentView]);
 
   const [bookingPreselect, setBookingPreselect] = useState<{
     specialtyId?: string;
@@ -107,9 +160,7 @@ export const App: React.FC = () => {
 
   const handleNavigateToLogin = () => {
     setSupervisedClinic(null);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('vitalsalud_access_token');
-    }
+    logout();
     setCurrentView('login');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -119,13 +170,18 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleLoginSuccess = (user: { roles: string[] }) => {
-    const primaryRole = (user.roles?.[0] as AppRole) || 'ADMIN_CLINIC';
+  const handleLoginSuccess = (loginUser: { roles: string[] }) => {
+    const primaryRole = (loginUser.roles?.[0] as AppRole) || 'ADMIN_CLINIC';
     setActiveRole(primaryRole);
     setSupervisedClinic(null);
     setCurrentView('dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const resolvedClinicName = user?.clinicName || 'Clínica Sanitas Lima';
+  const resolvedAdminName = user ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Alessander (Director Médico)';
+  const resolvedDoctorName = user ? `Dr(a). ${user.firstName} ${user.lastName || ''}`.trim() : 'Dra. María González';
+  const resolvedPatientName = user ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Juan Pérez Quispe';
 
   const renderDashboardByRole = () => {
     switch (activeRole) {
@@ -184,7 +240,7 @@ export const App: React.FC = () => {
               <ClinicAdminDashboard
                 onNavigate={(v) => setCurrentView(v as AppView)}
                 clinicName={supervisedClinic.name}
-                adminName="Alessander (Super Admin Global)"
+                adminName={resolvedAdminName}
               />
             </div>
           );
@@ -215,14 +271,14 @@ export const App: React.FC = () => {
         return (
           <ClinicAdminDashboard
             onNavigate={(v) => setCurrentView(v as AppView)}
-            clinicName="Clínica Sanitas Lima"
-            adminName="Alessander (Director Médico)"
+            clinicName={resolvedClinicName}
+            adminName={resolvedAdminName}
           />
         );
       case 'PROFESIONAL':
         return (
           <DoctorDashboard
-            doctorName="Dra. María González"
+            doctorName={resolvedDoctorName}
             specialty="Fisioterapia y Rehabilitación"
             onOpenConsultation={(patient) => {
               if (patient) {
@@ -242,7 +298,7 @@ export const App: React.FC = () => {
       case 'PACIENTE':
         return (
           <PatientDashboard
-            patientName="Juan Pérez Quispe"
+            patientName={resolvedPatientName}
             onBookAppointment={() => {
               /* El modal rápido QuickBookingModal gestiona la reserva en línea sin salir del portal */
             }}
@@ -250,7 +306,7 @@ export const App: React.FC = () => {
           />
         );
       default:
-        return <ClinicAdminDashboard onNavigate={(v) => setCurrentView(v as AppView)} />;
+        return <ClinicAdminDashboard onNavigate={(v) => setCurrentView(v as AppView)} clinicName={resolvedClinicName} adminName={resolvedAdminName} />;
     }
   };
 
@@ -397,7 +453,7 @@ export const App: React.FC = () => {
 
           {currentView === 'doctor-schedule' && (
             <DoctorDashboard
-              doctorName="Dra. María González"
+              doctorName={resolvedDoctorName}
               specialty="Fisioterapia y Rehabilitación"
               initialTab="weekly"
               onOpenConsultation={(patient) => {

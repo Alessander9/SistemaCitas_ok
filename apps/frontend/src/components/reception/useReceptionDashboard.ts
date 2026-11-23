@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { getAuthHeaders } from '../../services/api/http';
 import {
   ReceptionAppointment,
   ReceptionFilter,
@@ -8,7 +9,7 @@ import {
 } from './types';
 import { soundEffects } from '../../utils/soundEffects';
 
-const INITIAL_APPOINTMENTS: ReceptionAppointment[] = [
+const INITIAL_FALLBACK_APPOINTMENTS: ReceptionAppointment[] = [
   {
     id: 'rec-1',
     time: '09:30 AM',
@@ -70,7 +71,6 @@ const INITIAL_APPOINTMENTS: ReceptionAppointment[] = [
   },
 ];
 
-// Base inicial de cobros previos del turno (antes de los cobros en vivo)
 const OPENING_CASH_COLLECTED = 1170;
 
 export function formatPen(amount: number): string {
@@ -81,11 +81,12 @@ export function formatPen(amount: number): string {
 }
 
 export function useReceptionDashboard() {
-  const [appointments, setAppointments] = useState<ReceptionAppointment[]>(INITIAL_APPOINTMENTS);
+  const [appointments, setAppointments] = useState<ReceptionAppointment[]>(INITIAL_FALLBACK_APPOINTMENTS);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<ReceptionFilter>('all');
   const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
@@ -96,6 +97,58 @@ export function useReceptionDashboard() {
     const timer = setTimeout(() => setToastMessage(null), 3500);
     return () => clearTimeout(timer);
   }, [toastMessage]);
+
+  const loadReceptionAppointments = useCallback(async () => {
+    setIsLoading(true);
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      const res = await fetch(`/api/appointments?date=${today}`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: ReceptionAppointment[] = data.map((a) => {
+            const price = Number(a.servicePrice || a.price || 80);
+            let status: ReceptionStatus = 'pending_arrival';
+            if (a.status === 'confirmed' || a.status === 'checked_in') status = 'waiting';
+            else if (a.status === 'in_progress') status = 'in_consultation';
+            else if (a.status === 'completed') status = 'completed';
+            else if (a.status === 'cancelled') status = 'cancelled';
+
+            return {
+              id: a.id,
+              time: a.startTime ? a.startTime.slice(0, 5) : '09:00 AM',
+              patientName: a.patientName || `${a.patientFirstName || ''} ${a.patientLastName || ''}`.trim() || 'Paciente',
+              dni: a.patientDni || a.patientNationalId || '70000000',
+              phone: a.patientPhone || '51900000000',
+              doctor: a.professionalName || 'Dr(a). Tratante',
+              service: a.serviceName || 'Consulta Médica',
+              priceAmount: price,
+              priceLabel: `S/ ${price.toFixed(2)}`,
+              status,
+              paid: Boolean(a.paymentStatus === 'paid' || a.isPaid),
+              paymentMethod: (a.paymentMethod || 'Efectivo') as PaymentMethod,
+              room: a.roomNumber ? `Box ${a.roomNumber}` : 'Box 101',
+            };
+          });
+          setAppointments(mapped);
+        } else {
+          setAppointments(INITIAL_FALLBACK_APPOINTMENTS);
+        }
+      } else {
+        setAppointments(INITIAL_FALLBACK_APPOINTMENTS);
+      }
+    } catch {
+      setAppointments(INITIAL_FALLBACK_APPOINTMENTS);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReceptionAppointments();
+  }, [loadReceptionAppointments]);
 
   const counts = useMemo(() => {
     const pendingArrival = appointments.filter((a) => a.status === 'pending_arrival').length;
@@ -136,20 +189,33 @@ export function useReceptionDashboard() {
   }, [appointments, searchTerm, statusFilter]);
 
   const updateStatus = useCallback(
-    (id: string, nextStatus: ReceptionStatus) => {
+    async (id: string, nextStatus: ReceptionStatus) => {
       const target = appointments.find((apt) => apt.id === id);
       const targetName = target?.patientName || 'paciente';
       setAppointments((prev) =>
         prev.map((apt) => (apt.id === id ? { ...apt, status: nextStatus } : apt)),
       );
 
+      // Sincronizar con backend si corresponde
       if (nextStatus === 'waiting') {
+        fetch(`/api/appointments/${encodeURIComponent(id)}/check-in`, {
+          method: 'PATCH',
+          headers: getAuthHeaders(),
+        }).catch(() => {});
         soundEffects.playPop();
         showToast(`Llegada registrada: ${targetName} ya está en sala de espera.`);
       } else if (nextStatus === 'in_consultation') {
+        fetch(`/api/appointments/${encodeURIComponent(id)}/start`, {
+          method: 'PATCH',
+          headers: getAuthHeaders(),
+        }).catch(() => {});
         soundEffects.playChime();
         showToast(`${targetName} pasó a consulta.`);
       } else if (nextStatus === 'completed') {
+        fetch(`/api/appointments/${encodeURIComponent(id)}/complete`, {
+          method: 'PATCH',
+          headers: getAuthHeaders(),
+        }).catch(() => {});
         soundEffects.playSuccess();
         showToast(`Atención finalizada para ${targetName}.`);
       } else {
@@ -178,24 +244,24 @@ export function useReceptionDashboard() {
   const createBooking = useCallback(
     (input: CreateReceptionBookingInput) => {
       const newApt: ReceptionAppointment = {
-        id: `rec-${Date.now()}`,
+        id: `rec-new-${Date.now()}`,
         time: input.time,
-        patientName: input.patientName.trim(),
-        dni: input.dni.trim(),
-        phone: input.phone?.trim() || undefined,
+        patientName: input.patientName,
+        dni: input.dni,
+        phone: input.phone,
         doctor: input.doctor,
         service: input.service,
         priceAmount: input.priceAmount,
-        priceLabel: formatPen(input.priceAmount),
+        priceLabel: `S/ ${input.priceAmount.toFixed(2)}`,
         status: 'pending_arrival',
-        paid: input.paidNow,
-        paymentMethod: input.paidNow ? input.paymentMethod || 'Yape' : undefined,
-        urgent: input.urgent,
+        paid: input.paid,
+        paymentMethod: input.paymentMethod,
+        room: input.room,
       };
 
       setAppointments((prev) => [newApt, ...prev]);
       soundEffects.playSuccess();
-      showToast(`Cita agendada: ${newApt.patientName} · ${newApt.time}.`);
+      showToast(`Cita agendada para ${input.patientName} a las ${input.time}.`);
     },
     [showToast],
   );
@@ -212,9 +278,10 @@ export function useReceptionDashboard() {
     setViewMode,
     toastMessage,
     clearToast: () => setToastMessage(null),
-    showToast,
     updateStatus,
     registerPayment,
     createBooking,
+    isLoading,
+    refreshAppointments: loadReceptionAppointments,
   };
 }

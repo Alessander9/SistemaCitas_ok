@@ -1,5 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { HealthModule } from './modules/health/health.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -25,6 +27,18 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware';
       isGlobal: true,
       envFilePath: ['.env.local', '.env', '../../.env'],
     }),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: () => {
+        const isTest = process.env.NODE_ENV === 'test';
+        return [
+          {
+            ttl: 60000,
+            limit: isTest ? 10000 : 120,
+          },
+        ];
+      },
+    }),
     DatabaseModule,
     HealthModule,
     AuthModule,
@@ -43,9 +57,16 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware';
     AiAssistantModule,
     AdminModule,
   ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(TenantMiddleware).forRoutes('*');
   }
 }
+

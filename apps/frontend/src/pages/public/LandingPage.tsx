@@ -335,39 +335,39 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="specialties-grid">
           {specialtiesList.map((spec) => {
-              const getIconName = () => {
-                if (spec.id === 'spec-1' || spec.name.includes('Fisio')) return 'offline_bolt';
-                if (spec.id === 'spec-2' || spec.name.includes('Trauma')) return 'healing';
-                if (spec.id === 'spec-3' || spec.name.includes('Ocupacional')) return 'pan_tool';
-                return 'restaurant';
-              };
+            const getIconName = () => {
+              if (spec.id === 'spec-1' || spec.name.includes('Fisio')) return 'offline_bolt';
+              if (spec.id === 'spec-2' || spec.name.includes('Trauma')) return 'healing';
+              if (spec.id === 'spec-3' || spec.name.includes('Ocupacional')) return 'pan_tool';
+              return 'restaurant';
+            };
 
-              return (
-                <div key={spec.id} className="specialty-card">
-                  <div>
-                    <div className="specialty-card-top">
-                      <div className="specialty-icon-box">
-                        <MaterialIcon name={getIconName()} size={28} />
-                      </div>
-                      <span className="specialty-status-tag">Atención Activa</span>
+            return (
+              <div key={spec.id} className="specialty-card">
+                <div>
+                  <div className="specialty-card-top">
+                    <div className="specialty-icon-box">
+                      <MaterialIcon name={getIconName()} size={28} />
                     </div>
-                    <h3 className="specialty-name">{spec.name}</h3>
-                    <p className="specialty-desc">{spec.description}</p>
+                    <span className="specialty-status-tag">Atención Activa</span>
                   </div>
-
-                  <div className="specialty-card-footer">
-                    <button
-                      type="button"
-                      className="btn-card-action"
-                      onClick={() => onStartBooking(spec.id)}
-                    >
-                      <span>Ver Servicios y Agendar</span>
-                      <span className="arrow-icon">→</span>
-                    </button>
-                  </div>
+                  <h3 className="specialty-name">{spec.name}</h3>
+                  <p className="specialty-desc">{spec.description}</p>
                 </div>
-              );
-            })}
+
+                <div className="specialty-card-footer">
+                  <button
+                    type="button"
+                    className="btn-card-action"
+                    onClick={() => onStartBooking(spec.id)}
+                  >
+                    <span>Ver Servicios y Agendar</span>
+                    <span className="arrow-icon">→</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -502,40 +502,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div key={prof.id} className="doctor-card">
               <div className="doctor-img-wrap">
                 <img src={prof.avatarUrl} alt={prof.firstName} className="doctor-img" />
-                  <div className="doctor-verified-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                    <MaterialIcon name="verified" size={14} /> Verificado
-                  </div>
-                </div>
-                <div className="doctor-body">
-                  <div className="doctor-rating-row">
-                    <span className="doctor-stars" style={{ display: 'inline-flex', gap: '1px', color: '#f59e0b' }}>
-                      {[...Array(5)].map((_, i) => (
-                        <MaterialIcon key={i} name="star" size={14} />
-                      ))}
-                    </span>
-                    <span className="doctor-score">4.9</span>
-                    <span className="doctor-reviews">(+90 opiniones)</span>
-                  </div>
-                  <h3 className="doctor-name">
-                    {prof.firstName} {prof.lastName}
-                  </h3>
-                  <div className="doctor-license">Colegiatura: {prof.licenseNumber}</div>
-                  <p className="doctor-bio">{prof.bio}</p>
-
-                  <div className="doctor-card-footer">
-                    <button
-                      type="button"
-                      className="btn-card-action"
-                      onClick={() => onStartBooking()}
-                    >
-                      <span>Agendar con este Especialista</span>
-                      <span>→</span>
-                    </button>
-                  </div>
+                <div className="doctor-verified-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                  <MaterialIcon name="verified" size={14} /> Verificado
                 </div>
               </div>
-          ))}
+              <div className="doctor-body">
+                <div className="doctor-rating-row">
+                  <span className="doctor-stars" style={{ display: 'inline-flex', gap: '1px', color: '#f59e0b' }}>
+                    {[...Array(5)].map((_, i) => (
+                      <MaterialIcon key={i} name="star" size={14} />
+                    ))}
+                  </span>
+                  <span className="doctor-score">4.9</span>
+                  <span className="doctor-reviews">(+90 opiniones)</span>
+                </div>
+                <h3 className="doctor-name">
+                  {prof.firstName} {prof.lastName}
+                </h3>
+                <div className="doctor-license">Colegiatura: {prof.licenseNumber}</div>
+                <p className="doctor-bio">{prof.bio}</p>
+
+                <div className="doctor-card-footer">
+                  <button
+                    type="button"
+                    className="btn-card-action"
+                    onClick={() => onStartBooking()}
+                  >
+                    <span>Agendar con este Especialista</span>
+                    <span>→</span>
+                  </button>
+                </div>
+              </div>
             </div>
+          ))}
+        </div>
       </section>
 
       {/* Por Qué Elegirnos / Ventajas Clínicas */}

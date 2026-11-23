@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { getAuthToken, getActiveClinicId } from '../../utils/storage';
 import {
   PatientUpcomingAppointment,
   PatientPastAppointment,
@@ -146,15 +147,20 @@ export function usePatientDashboard(patientName: string) {
 
   // Intento silencioso de hidratar recetas reales si hay sesión autenticada con patientId
   useEffect(() => {
-    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+    const token = getAuthToken();
     const storedPatientId = localStorage.getItem('patient_id');
     if (!token || !storedPatientId) return;
 
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+    };
+    const clinicId = getActiveClinicId();
+    if (clinicId) {
+      headers['x-clinic-id'] = clinicId;
+    }
+
     fetch(`/api/clinical/prescriptions/patient/${encodeURIComponent(storedPatientId)}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'x-clinic-id': localStorage.getItem('clinic_id') || 'a0000000-0000-4000-a000-000000000001',
-      },
+      headers,
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((rows) => {

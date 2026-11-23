@@ -139,13 +139,10 @@ export interface CreateAdminClinicDto {
   };
 }
 
+import { getAuthToken } from '../../utils/storage';
+
 function getAuthHeaders(): HeadersInit {
-  const token =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('vitalsalud_access_token') ||
-      localStorage.getItem('auth_token') ||
-      localStorage.getItem('token')
-      : null;
+  const token = getAuthToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };

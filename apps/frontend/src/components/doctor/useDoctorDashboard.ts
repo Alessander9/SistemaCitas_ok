@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { getAuthHeaders } from '../../services/api/http';
 import { ParsedClinicalVoiceData } from '../clinical/VoiceConsultationAssistant';
 import { soundEffects } from '../../utils/soundEffects';
 import {
@@ -284,6 +285,64 @@ export function useDoctorDashboard(initialTab: DoctorMainView = 'queue') {
     const timer = setTimeout(() => setToastMessage(null), 3500);
     return () => clearTimeout(timer);
   }, [toastMessage]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadDoctorAppointments = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        const res = await fetch(`/api/appointments?date=${today}`, {
+          headers: getAuthHeaders(),
+        });
+        if (res.ok && mounted) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const mappedQueue: DoctorQueuePatient[] = data.map((a, idx) => {
+              const pName = a.patientName || `${a.patientFirstName || ''} ${a.patientLastName || ''}`.trim() || 'Paciente';
+              const initials = pName
+                .split(' ')
+                .map((n: string) => n[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase() || 'PX';
+              const status: DoctorQueuePatient['status'] =
+                a.status === 'in_progress' ? 'in_progress' : a.status === 'completed' ? 'completed' : 'waiting';
+
+              return {
+                id: a.patientId || a.id || `p-api-${idx}`,
+                time: a.startTime ? a.startTime.slice(0, 5) : '09:00',
+                patientName: pName,
+                initials,
+                age: '30 años',
+                dni: a.patientDni || a.patientNationalId || '70000000',
+                room: a.roomNumber ? `Box ${a.roomNumber}` : 'Box 101',
+                service: a.serviceName || 'Consulta Médica',
+                reason: a.reason || a.notes || 'Atención ambulatoria',
+                status,
+                evaLast: 5,
+                evaTrend: 'down',
+                sessionCurrent: 1,
+                sessionTotal: 5,
+                diagnosisCie10: 'M54.5',
+                diagnosisDesc: 'Lumbago no especificado',
+                appliedTechniques: ['Evaluación clínica'],
+                nextSessionRecommendation: 'Continuar sesiones pautadas',
+                notes: a.notes || 'Cita en agenda médica.',
+              };
+            });
+            setPatientsQueue(mappedQueue);
+          }
+        }
+      } catch {
+        // En caso de error o sin conexión, se mantiene persistedQueue
+      }
+    };
+
+    loadDoctorAppointments();
+    return () => {
+      mounted = false;
+    };
+  }, [setPatientsQueue]);
 
   const activePatient = useMemo(
     () => patientsQueue.find((p) => p.status === 'in_progress') || null,

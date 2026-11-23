@@ -3,6 +3,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { AppModule } from './app.module';
 import { validateEnv } from './config/env.schema';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const env = validateEnv();
@@ -33,6 +34,8 @@ async function bootstrap() {
     origin: allowedOrigins,
     credentials: true,
   });
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.useGlobalPipes(
     new ValidationPipe({
