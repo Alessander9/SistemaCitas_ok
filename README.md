@@ -7,6 +7,7 @@ Plataforma SaaS multi-tenant marca blanca para la gestión integral de clínicas
   <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Backend-NestJS%2011%20%2B%20TS%205.7-e0234e?style=flat-square&logo=nestjs&logoColor=white" alt="NestJS 11" /></a>
   <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite%206-61dafb?style=flat-square&logo=react&logoColor=black" alt="React 19" /></a>
   <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Database-PostgreSQL%2016+-4169e1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL 16+" /></a>
+  <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Methodology-RUP%20%7C%20UML%204%2B1-orange?style=flat-square" alt="RUP / UML" /></a>
   <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/Security-HttpOnly%20Cookies%20%7C%20Anti--XSS-8b5cf6?style=flat-square" alt="Security" /></a>
   <a href="https://github.com/Alessander9/SistemaCitas_ok"><img src="https://img.shields.io/badge/License-Proprietary-blue?style=flat-square" alt="Licencia" /></a>
   <a href="#inicio-rápido"><img src="https://img.shields.io/badge/Demo-Local%20%26%20Docker-brightgreen?style=flat-square&logo=docker&logoColor=white" alt="Demo Disponible" /></a>
@@ -34,61 +35,304 @@ Plataforma SaaS multi-tenant marca blanca para la gestión integral de clínicas
 
 ## Arquitectura (diagrama + enlace a docs/ARCHITECTURE.md)
 
-El sistema está construido como un **Monolito Modular con Clean Architecture pragmática** en el backend (`apps/backend`) y una **Single Page Application (SPA)** en el frontend (`apps/frontend`), coordinados a través de contratos tipados comunes en `@citassistema/shared-types` (`packages/shared-types`).
+El diseño del sistema se fundamenta en la metodología **RUP (Rational Unified Process)** y se formaliza a través del estándar **UML (Unified Modeling Language)** utilizando el **Modelo de Vistas Arquitectónicas 4+1 de Philippe Kruchten**:
+
+```text
+       ┌────────────────────────┐
+       │  Vista de Casos de Uso │ (Casos de uso del negocio)
+       └───────────┬────────────┘
+                   │
+    ┌──────────────┼──────────────┐
+    │              │              │
+┌───┴──────────┐   │   ┌──────────┴───┐
+│ Vista Lógica │   │   │  Vista de    │
+│ (Clases UML) │   │   │  Procesos    │
+└──────────────┘   │   │  (Secuencia) │
+                   │   └──────────────┘
+    ┌──────────────┼──────────────┐
+    │              │              │
+┌───┴──────────┐   │   ┌──────────┴───┐
+│ Vista de     │   │   │  Vista de    │
+│ Componentes  │   │   │  Despliegue  │
+└──────────────┘   │   └──────────────┘
+                   │
+       ┌───────────┴────────────┐
+       │ Fases RUP e Iteración  │
+       └────────────────────────┘
+```
+
+### 1. Vista de Casos de Uso UML (Modelo de Negocio RUP)
+
+Representa las interacciones entre los actores del dominio clínico y los casos de uso principales del sistema:
+
+```mermaid
+flowchart LR
+    subgraph ACTORS ["👥 Actores del Sistema"]
+        PAC["👤 Paciente"]
+        REC["📋 Recepción / Admisión"]
+        MED["👨‍⚕️ Médico / Fisioterapeuta"]
+        ADM["🏢 Director / Admin Clínica"]
+        SADM["👑 Super Administrador"]
+    end
+
+    subgraph SYSTEM ["🏥 Límites del Sistema CitasSistema (Casos de Uso)"]
+        UC01(["UC-01: Reservar Cita en Línea (6 Pasos)"])
+        UC02(["UC-02: Validar DNI en RENIEC / Decolecta"])
+        UC03(["UC-03: Triaje y Check-in Kanban"])
+        UC04(["UC-04: Cobro en Ventanilla y Arqueo POS"])
+        UC05(["UC-05: Consulta HCE y Escala EVA"])
+        UC06(["UC-06: Mapeo Anatómico del Dolor 2D/3D"])
+        UC07(["UC-07: Dictado de Voz 'Chanfainita'"])
+        UC08(["UC-08: Emisión de Receta y Descuento Kardex"])
+        UC09(["UC-09: Configurar Sede, Horarios y Marca"])
+        UC10(["UC-10: Gobernanza Multi-Tenant y Métricas"])
+    end
+
+    PAC --> UC01
+    UC01 -.->|«include»| UC02
+    REC --> UC03
+    REC --> UC04
+    MED --> UC05
+    MED --> UC06
+    MED --> UC07
+    MED --> UC08
+    ADM --> UC09
+    ADM --> UC04
+    SADM --> UC10
+```
+
+---
+
+### 2. Vista Lógica UML (Diagrama de Clases del Dominio)
+
+Estructura de entidades relacionales con encapsulamiento, atributos tipados, operaciones y multiplicidades de asociación/composición:
+
+```mermaid
+classDiagram
+    direction TB
+    class Clinic {
+        +UUID id
+        +string name
+        +string slug
+        +jsonb branding
+        +boolean isActive
+        +create()
+        +updateBranding()
+    }
+    class User {
+        +UUID id
+        +UUID clinicId
+        +string email
+        +string role
+        +boolean isActive
+        +authenticate()
+    }
+    class Patient {
+        +UUID id
+        +UUID clinicId
+        +string dni
+        +string fullName
+        +string phone
+        +string email
+    }
+    class Appointment {
+        +UUID id
+        +UUID clinicId
+        +UUID patientId
+        +UUID professionalId
+        +date appointmentDate
+        +time startTime
+        +AppointmentStatus status
+        +transitionTo()
+    }
+    class ClinicalRecord {
+        +UUID id
+        +UUID clinicId
+        +UUID appointmentId
+        +UUID patientId
+        +string anamnesis
+        +int painScaleEva
+        +string diagnosisCie10
+        +saveHce()
+    }
+    class PainMapPoint {
+        +UUID id
+        +UUID clinicalRecordId
+        +string anatomicalRegion
+        +string laterality
+        +float coordX
+        +float coordY
+        +float coordZ
+    }
+    class CashSession {
+        +UUID id
+        +UUID clinicId
+        +UUID openedBy
+        +decimal initialBalance
+        +decimal finalBalance
+        +CashStatus status
+        +openSession()
+        +closeSession()
+    }
+    class InventoryProduct {
+        +UUID id
+        +UUID clinicId
+        +string name
+        +int currentStock
+        +int minStock
+        +deductStock()
+    }
+
+    Clinic "1" *-- "*" User : contiene
+    Clinic "1" *-- "*" Patient : registra
+    Clinic "1" *-- "*" CashSession : gestiona
+    Clinic "1" *-- "*" InventoryProduct : almacena
+    Patient "1" --> "*" Appointment : agenda
+    User "1" --> "*" Appointment : atiende como profesional
+    Appointment "1" --> "0..1" ClinicalRecord : genera
+    ClinicalRecord "1" *-- "*" PainMapPoint : mapea puntos
+    ClinicalRecord "1" --> "*" InventoryProduct : descuenta insumos
+```
+
+---
+
+### 3. Vista de Procesos UML (Diagrama de Secuencia Transaccional)
+
+Flujo dinámico y atómico de agendamiento de citas con bloqueo consultivo en PostgreSQL y efectos secundarios desacoplados:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Paciente as 👤 Paciente / Cliente Web
+    participant Gateway as 🛡️ Gateway / Auth & Tenant
+    participant ApptService as 📅 AppointmentsService
+    participant DB as 🐘 PostgreSQL (DatabaseService)
+    participant EventBus as 📢 EventEmitter2
+    participant NotifListener as ✉️ NotificationListener
+
+    Paciente->>Gateway: POST /api/appointments/public (datos reserva)
+    Gateway->>Gateway: Zod / ValidationPipe + Turnstile check
+    Gateway->>ApptService: createPublicAppointment(dto)
+    ApptService->>DB: BEGIN TRANSACTION
+    ApptService->>DB: SELECT pg_advisory_xact_lock(hash(professional_id, date))
+    Note over ApptService,DB: Bloqueo transaccional atómico contra colisiones
+    ApptService->>DB: SELECT * FROM appointments WHERE prof_id & time (Check colisión)
+    alt Horario ya ocupado
+        ApptService-->>Gateway: ConflictException ("Horario no disponible")
+        Gateway-->>Paciente: HTTP 409 Conflict
+    else Horario libre disponible
+        ApptService->>DB: INSERT INTO appointments (...) RETURNING id
+        ApptService->>DB: INSERT INTO appointment_status_history (...)
+        ApptService->>DB: COMMIT TRANSACTION
+        ApptService->>EventBus: emit('appointment.created', eventPayload)
+        ApptService-->>Gateway: Cita Creada (AppointmentDto)
+        Gateway-->>Paciente: HTTP 201 Created (Comprobante Digital)
+        par Notificación Asíncrona Desacoplada
+            EventBus->>NotifListener: handleAppointmentCreated(eventPayload)
+            NotifListener->>NotifListener: Renderizar plantilla Resend & Telegram
+            NotifListener-->>Paciente: Envío de Email de Confirmación
+        end
+    end
+```
+
+---
+
+### 4. Vista Dinámica UML (Diagrama de Estados FSM de Citas)
+
+Máquina de estados formal (`AppointmentStatus`) gobernada por la regla de transición de negocio `canTransitionAppointment`:
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING_PAYMENT : Reserva con pasarela de pago
+    [*] --> CONFIRMED : Reserva presencial o confirmada
+
+    PENDING_PAYMENT --> CONFIRMED : Pago procesado / Aprobado
+    PENDING_PAYMENT --> CANCELLED : Expiración de tiempo / Rechazo
+
+    CONFIRMED --> IN_PROGRESS : Check-in del paciente e inicio de atención
+    CONFIRMED --> RESCHEDULED : Solicitud de cambio de horario
+    CONFIRMED --> NO_SHOW : Paciente inasistente
+    CONFIRMED --> CANCELLED : Cancelación voluntaria
+
+    RESCHEDULED --> CONFIRMED : Nuevo horario reasignado
+    RESCHEDULED --> CANCELLED : Cancelación definitiva
+
+    IN_PROGRESS --> COMPLETED : Cierre de consulta médica y guardado de HCE
+    IN_PROGRESS --> CANCELLED : Interrupción por fuerza mayor
+
+    COMPLETED --> [*]
+    NO_SHOW --> [*]
+    CANCELLED --> [*]
+```
+
+---
+
+### 5. Vista de Despliegue e Implementación UML (Diagrama de Despliegue)
+
+Arquitectura física y componentes de software distribuidos en el entorno productivo:
 
 ```mermaid
 flowchart TB
-    subgraph CLIENTS ["🖥️ Clientes y Canales de Entrada"]
-        WEB_PUB["🌐 Landing Pública y Wizard de Reserva (6 pasos)"]
-        PORTAL_PAC["👤 Portal y Dashboard del Paciente"]
-        PORTAL_MED["👨‍⚕️ Dashboard Médico, HCE, PainMap 2D/3D & Chanfainita IA"]
-        PORTAL_REC["📋 Dashboard de Recepción (Kanban, Admisión & Caja)"]
-        PORTAL_ADM["📊 Dashboard Admin de Clínica y SuperAdmin Global"]
+    subgraph CLIENT_TIER ["«device» Dispositivo de Usuario"]
+        BROWSER["«execution environment» Navegador Web
+        📦 SPA React 19 + Vite 6
+        📦 Three.js 3D Canvas
+        📦 Web Audio API (Micrófono)"]
     end
 
-    subgraph GATEWAY ["🛡️ Capa HTTP, Seguridad y Contexto (NestJS 11)"]
-        ENV_ZOD["⚡ Zod Fail-Fast Env Validator (env.schema.ts)"]
-        CORS_SEC["🔒 CORS con Credentials y Whitelist"]
-        THROTTLER["⏱️ Rate Limiting (@nestjs/throttler)"]
-        AUTH_GUARD["🔑 JwtAuthGuard (Access Token en memoria volátil)"]
-        COOKIE_PARSER["🍪 Cookie Parser (Refresh Token HttpOnly)"]
-        TENANT_GUARD["🏢 TenantGuard + Anti-IDOR PatientOwnership"]
-        RBAC_GUARD["🛡️ RolesGuard & PermissionsGuard"]
-        EXC_FILTER["🛡️ HttpExceptionFilter (Sanitización Postgres 23505/23503)"]
+    subgraph CLOUD_GATEWAY ["«node» Frontera de Red & Seguridad"]
+        CF["«proxy» Cloudflare Turnstile & CDN"]
     end
 
-    subgraph BUSINESS ["📦 Módulos de Dominio (Monolito Modular NestJS)"]
-        CORE_MOD["🔐 Auth · 🩺 Health · 🏛️ Admin Clinics (Multi-Tenant)"]
-        CAT_MOD["🏥 Specialties · Services · Professionals · Schedules"]
-        APPT_MOD["📅 Appointments (Motor FSM + pg_advisory_xact_lock)"]
-        CLIN_MOD["📋 Patients · Clinical (HCE, EVA, PainMap 2D/3D, Prescriptions)"]
-        VOICE_MOD["🎙️ Voice Assistant 'Chanfainita' (Groq/Gemini/OpenRouter/Local)"]
-        FIN_MOD["💳 Payments (Idempotency) · 💵 Cash Sessions · 📦 Inventory Kardex"]
-        EVENT_BUS["📢 EventEmitter2 (@nestjs/event-emitter)"]
+    subgraph APP_SERVER ["«device» Servidor de Aplicaciones (Linux Container)"]
+        subgraph RUNTIME ["«execution environment» Node.js 20+ Runtime"]
+            NEST["«subsystem» Backend NestJS 11
+            📦 REST API Gateway (/api)
+            📦 Throttler Rate Limiting
+            📦 Clean Architecture Modules
+            📦 EventEmitter2 Bus"]
+        end
     end
 
-    subgraph EXTERNAL ["🌐 Servicios Externos e Integraciones"]
-        RENIEC["🆔 DNI Lookup (Decolecta / RENIEC API)"]
-        RESEND["✉️ Resend / Brevo (Email Transaccional)"]
-        TG_BOT["🤖 Telegram Bot API"]
-        LLM_APIS["🧠 LLMs (Groq LPU / Google Gemini / OpenRouter)"]
-        TURNSTILE["🛡️ Cloudflare Turnstile (Anti-Bot)"]
+    subgraph DATA_SERVER ["«device» Servidor de Persistencia"]
+        subgraph PG_NODE ["«database system» PostgreSQL 16+ Engine"]
+            PG_SERVICE["🐘 DatabaseService (pg.Pool)
+            🗄️ Relational Schema (17 Migraciones)
+            🔒 Advisory Locks Engine (pg_advisory_xact_lock)
+            ⚡ B-Tree Performance Indexes"]
+        end
     end
 
-    subgraph STORAGE ["🗄️ Persistencia de Datos"]
-        POOL["⚡ DatabaseService (pg.Pool Connection Pooler)"]
-        PG_DB[("🐘 PostgreSQL 16+\n17 Migraciones DDL + Seeds\nAdvisory Locks & Índices B-Tree")]
+    subgraph THIRD_PARTY ["«cloud system» Proveedores de Servicios Externos"]
+        RESEND_API["✉️ Resend / Brevo (Email SMTP)"]
+        TG_API["📱 Telegram Bot API"]
+        GROQ_API["🧠 Groq LPU (GPT-OSS-120B)"]
+        GEMINI_API["🧠 Google Gemini 3.8 Flash"]
+        RENIEC_API["🆔 Decolecta / RENIEC API"]
     end
 
-    CLIENTS --> GATEWAY
-    GATEWAY --> BUSINESS
-    BUSINESS --> STORAGE
-    BUSINESS --> EVENT_BUS
-    EVENT_BUS --> EXTERNAL
-    VOICE_MOD --> LLM_APIS
-    APPT_MOD --> TURNSTILE
-    CLIN_MOD --> RENIEC
+    BROWSER -- "HTTPS / TLS 1.3 (JSON & Audio)" --> CF
+    CF -- "Reverse Proxy" --> NEST
+    NEST -- "TCP / Socket 5432 (pg.Pool Connection)" --> PG_SERVICE
+    NEST -- "HTTPS REST API (Async Events)" --> RESEND_API
+    NEST -- "HTTPS REST API (Alerts)" --> TG_API
+    NEST -- "HTTPS REST API (Inferencia <500ms)" --> GROQ_API
+    NEST -- "HTTPS REST API (JSON Schema)" --> GEMINI_API
+    NEST -- "HTTPS REST API (Token Auth)" --> RENIEC_API
 ```
+
+---
+
+### 6. Matriz de Fases y Disciplinas RUP
+
+El ciclo de desarrollo iterativo e incremental del proyecto sigue las 4 fases fundamentales del RUP:
+
+| Fase RUP                           | Objetivo Primario                                                                                                                                 | Entregables y Artefactos Producidos                                                                      | Hito RUP Alcanzado                                   |
+| :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------- | :--------------------------------------------------- |
+| **1. Inicio (Inception)**          | Definición del alcance del SaaS, viabilidad técnica, captura de requerimientos de clínicas y arquitectura monolítica modular.                     | Casos de uso base, modelo de dominio conceptual, prototipo de asistente de voz.                          | **LCO** (_Lifecycle Objectives Milestone_)           |
+| **2. Elaboración (Elaboration)**   | Mitigación de riesgos críticos de concurrencia y seguridad: Advisory Locks en PostgreSQL, autenticación anti-XSS y validación Fail-Fast Zod.      | Arquitectura ejecutable 4+1, paquete `@citassistema/shared-types`, esquemas DDL (001-008).               | **LCA** (_Lifecycle Architecture Milestone_)         |
+| **3. Construcción (Construction)** | Desarrollo iterativo de los 16 módulos de dominio NestJS, visor Three.js 3D, FSM de caja y citas, e inferencia LLM en cascada.                    | 17 migraciones completas, 409 pruebas automáticas aprobadas, integración con Telegram/Resend.            | **IOC** (_Initial Operational Capability Milestone_) |
+| **4. Transición (Transition)**     | Auditorías de seguridad de secretos, optimización de bundles Vite (`< 500 kB`), smoke tests en navegador real con Puppeteer y empaquetado Docker. | Versión `0.1.0-alpha` lista para producción, suite E2E superada al 100%, documentación técnica completa. | **PR** (_Product Release Milestone_)                 |
 
 > 📖 Para un análisis exhaustivo de componentes, patrones de diseño, flujos transaccionales y decisiones de ingeniería, consulta [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
@@ -326,7 +570,7 @@ SistemaCitas_ok/
 │   ├── migrations/                   # 17 archivos de migración DDL secuenciales
 │   └── seeds/                        # Scripts SQL de datos de prueba médicos
 ├── docs/
-│   ├── ARCHITECTURE.md               # Documentación formal de arquitectura
+│   ├── ARCHITECTURE.md               # Documentación formal de arquitectura (RUP / UML)
 │   ├── FLUJOS_OPERACIONALES_Y_REGLAS_DE_NEGOCIO.md # Reglas operativas detalladas
 │   ├── GLOSSARY.md                   # Glosario de términos del dominio
 │   ├── ROADMAP.md                    # Hoja de ruta del producto
@@ -369,7 +613,7 @@ npm run security:scan
 
 ## Documentación adicional
 
-- 🏛️ [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md): Especificación detallada de arquitectura, modelos y decisiones de diseño.
+- 🏛️ [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md): Especificación detallada de arquitectura, modelos RUP/UML y decisiones de diseño.
 - 📋 [`docs/FLUJOS_OPERACIONALES_Y_REGLAS_DE_NEGOCIO.md`](./docs/FLUJOS_OPERACIONALES_Y_REGLAS_DE_NEGOCIO.md): Guía de flujos operacionales y reglas de negocio.
 - 📘 [`DOCUMENTO_MAESTRO.md`](./DOCUMENTO_MAESTRO.md): Especificación funcional exhaustiva con 113 directrices de negocio.
 - 📖 [`GLOSSARY.md`](./GLOSSARY.md): Glosario de lenguaje ubicuo del dominio médico, clínico y administrativo.
