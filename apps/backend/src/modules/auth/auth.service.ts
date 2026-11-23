@@ -36,6 +36,7 @@ interface UserDbRow {
   clinic_slug?: string;
   clinic_is_active: boolean;
   clinic_deleted_at?: string | null;
+  is_super_admin?: boolean;
 }
 
 interface TokenDbRow {
@@ -119,7 +120,13 @@ export class AuthService {
         c.name AS clinic_name,
         c.slug AS clinic_slug,
         c.is_active AS clinic_is_active,
-        c.deleted_at AS clinic_deleted_at
+        c.deleted_at AS clinic_deleted_at,
+        EXISTS (
+          SELECT 1
+          FROM user_roles ur
+          JOIN roles r ON r.id = ur.role_id
+          WHERE ur.user_id = u.id AND r.name = 'SUPER_ADMIN'
+        ) AS is_super_admin
       FROM users u
       JOIN clinics c ON c.id = u.clinic_id
       WHERE u.email = $1 AND u.deleted_at IS NULL
@@ -139,11 +146,14 @@ export class AuthService {
 
     const user = users[0];
 
-    // Validar estado de la clínica
-    if (!user.clinic_is_active || user.clinic_deleted_at) {
-      throw new ForbiddenException(
-        'La clínica se encuentra temporalmente inactiva. Contacta a administración.',
-      );
+    // Validar estado de la clínica (el SUPER_ADMIN siempre conserva acceso global)
+    if (!user.is_super_admin && (!user.clinic_is_active || user.clinic_deleted_at)) {
+      throw new ForbiddenException({
+        code: 'CLINIC_SUSPENDED',
+        message:
+          'El servicio ha sido suspendido por falta de pago. Envía un mensaje para regularizar tu pago y reactivar el acceso.',
+        clinicName: user.clinic_name,
+      });
     }
 
     // Validar estado del usuario

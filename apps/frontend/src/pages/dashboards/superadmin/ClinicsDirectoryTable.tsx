@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ClinicRecord } from './types';
 import { IconBuilding, IconSearch } from '../../../components/ui/Icons';
 import { MaterialIcon } from '../../../components/ui/MaterialIcon';
@@ -28,8 +28,18 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
   onManageClinic,
   onToggleStatus,
 }) => {
+  const [confirmSuspendClinic, setConfirmSuspendClinic] = useState<ClinicRecord | null>(null);
+
   const activeCount = clinics.filter((c) => c.status === 'active').length;
   const suspendedCount = clinics.filter((c) => c.status === 'suspended').length;
+
+  const handleSwitchClick = (clinic: ClinicRecord) => {
+    if (clinic.status === 'active') {
+      setConfirmSuspendClinic(clinic);
+    } else {
+      onToggleStatus(clinic);
+    }
+  };
 
   return (
     <section className="table-card">
@@ -49,7 +59,7 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
             Directorio de Sedes (Tenants)
           </h2>
           <p className="table-subtitle" style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.2rem 0 0' }}>
-            Supervisa el estado operativo, ingresa en modo soporte o configura cada clínica de la red.
+            Habilita o suspende el acceso de cualquier clínica en 1 clic, o ingresa en modo soporte.
           </p>
         </div>
 
@@ -68,7 +78,7 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
             {(
               [
                 { id: 'all', label: `Todas (${clinics.length})`, color: '#7c3aed' },
-                { id: 'active', label: `Activas (${activeCount})`, color: '#15803d' },
+                { id: 'active', label: `Habilitadas (${activeCount})`, color: '#15803d' },
                 { id: 'suspended', label: `Suspendidas (${suspendedCount})`, color: '#b91c1c' },
               ] as const
             ).map((tab) => (
@@ -139,7 +149,7 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
               <th>Médicos</th>
               <th>Citas Hoy</th>
               <th>Ingresos Mes</th>
-              <th>Estado</th>
+              <th>Acceso / Servicio</th>
               <th style={{ textAlign: 'right' }}>Acciones</th>
             </tr>
           </thead>
@@ -152,11 +162,17 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
               </tr>
             ) : (
               filteredClinics.map((c) => {
-                const isSuspended = c.status === 'suspended';
+                const isActive = c.status === 'active';
                 return (
                   <tr
                     key={c.id}
-                    style={selectedClinic === c.id ? { backgroundColor: '#faf5ff' } : undefined}
+                    style={
+                      !isActive
+                        ? { backgroundColor: '#fef2f2' }
+                        : selectedClinic === c.id
+                        ? { backgroundColor: '#faf5ff' }
+                        : undefined
+                    }
                   >
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
@@ -165,9 +181,9 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
                             width: '34px',
                             height: '34px',
                             borderRadius: '10px',
-                            background: isSuspended ? '#fef2f2' : '#f5f3ff',
-                            color: isSuspended ? '#dc2626' : '#7c3aed',
-                            border: `1px solid ${isSuspended ? '#fecaca' : '#ddd6fe'}`,
+                            background: !isActive ? '#fee2e2' : '#f5f3ff',
+                            color: !isActive ? '#dc2626' : '#7c3aed',
+                            border: `1px solid ${!isActive ? '#fecaca' : '#ddd6fe'}`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -197,9 +213,56 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
                       <span style={{ fontWeight: 700, color: '#0f172a' }}>{c.monthlyRevenue}</span>
                     </td>
                     <td>
-                      <span className={`status-pill ${isSuspended ? 'status-in_consultation' : 'status-confirmed'}`}>
-                        <span>●</span> {isSuspended ? 'Suspendida' : 'Activa'}
-                      </span>
+                      {/* Switch Visual Habilitar / Deshabilitar Clínica */}
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={isActive}
+                          aria-label={`${isActive ? 'Deshabilitar' : 'Habilitar'} ${c.name}`}
+                          onClick={() => handleSwitchClick(c)}
+                          title={
+                            isActive
+                              ? 'Clic para suspender servicio por falta de pago'
+                              : 'Clic para rehabilitar acceso de la clínica'
+                          }
+                          style={{
+                            position: 'relative',
+                            width: '44px',
+                            height: '24px',
+                            borderRadius: '999px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            backgroundColor: isActive ? '#10b981' : '#cbd5e1',
+                            transition: 'background-color 180ms ease',
+                            padding: 0,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '3px',
+                              left: isActive ? '23px' : '3px',
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '999px',
+                              backgroundColor: '#ffffff',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                              transition: 'left 180ms ease',
+                            }}
+                          />
+                        </button>
+                        <span
+                          style={{
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            color: isActive ? '#15803d' : '#b91c1c',
+                          }}
+                        >
+                          {isActive ? 'Habilitada' : 'Suspendida'}
+                        </span>
+                      </div>
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -234,20 +297,6 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
                             <span>Configurar</span>
                           </span>
                         </button>
-
-                        <button
-                          type="button"
-                          className="table-action-btn"
-                          style={{
-                            color: isSuspended ? '#15803d' : '#b91c1c',
-                            borderColor: isSuspended ? '#bbf7d0' : '#fecaca',
-                            background: isSuspended ? '#f0fdf4' : '#fef2f2',
-                          }}
-                          onClick={() => onToggleStatus(c)}
-                          title={isSuspended ? 'Reactivar esta sede' : 'Suspender acceso de esta sede'}
-                        >
-                          {isSuspended ? 'Reactivar' : 'Suspender'}
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -257,6 +306,70 @@ export const ClinicsDirectoryTable: React.FC<ClinicsDirectoryTableProps> = ({
           </tbody>
         </table>
       </div>
+
+      {/* Modal de Confirmación Rápida para Suspender Clínica */}
+      {confirmSuspendClinic && (
+        <div className="modal-overlay-custom" onClick={() => setConfirmSuspendClinic(null)}>
+          <div
+            className="modal-content-custom"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '460px', width: '92%', padding: '1.5rem' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem' }}>
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '10px',
+                  background: '#fee2e2',
+                  color: '#dc2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <MaterialIcon name="block" size={22} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                  ¿Suspender servicio de esta clínica?
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b' }}>
+                  {confirmSuspendClinic.name} ({confirmSuspendClinic.slug})
+                </p>
+              </div>
+            </div>
+
+            <p style={{ margin: '0 0 1.25rem', fontSize: '0.84rem', color: '#475569', lineHeight: 1.55 }}>
+              Al deshabilitar esta clínica, <strong>su personal no podrá iniciar sesión</strong> y verá el aviso de{' '}
+              <em>&ldquo;Servicio suspendido por falta de pago&rdquo;</em> con el enlace para regularizar su suscripción. Tú como SuperAdmin conservarás acceso total.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <button
+                type="button"
+                className="cash-btn ghost"
+                onClick={() => setConfirmSuspendClinic(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="cash-btn primary"
+                style={{ background: '#dc2626', borderColor: '#dc2626' }}
+                onClick={() => {
+                  const target = confirmSuspendClinic;
+                  setConfirmSuspendClinic(null);
+                  onToggleStatus(target);
+                }}
+              >
+                Sí, deshabilitar clínica
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

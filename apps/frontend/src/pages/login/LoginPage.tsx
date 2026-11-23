@@ -73,6 +73,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [suspendedNotice, setSuspendedNotice] = useState<{
+    message: string;
+    clinicName?: string;
+  } | null>(null);
   const [successUser, setSuccessUser] = useState<{
     email: string;
     firstName: string;
@@ -114,11 +118,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
     setClinicSlug(demo.clinicSlug);
     setSelectedDemoRole(demo.role);
     setErrorMessage(null);
+    setSuspendedNotice(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setSuspendedNotice(null);
 
     if (!email.trim() || !password.trim()) {
       setErrorMessage('Por favor ingresa tu correo electrónico y contraseña.');
@@ -183,6 +189,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
         setTimeout(() => {
           onLoginSuccess?.(data.user || userObj);
         }, 300);
+      } else if (response && response.status === 403) {
+        const errData = await response.json().catch(() => ({}));
+        setSuspendedNotice({
+          message:
+            errData.message ||
+            'El servicio ha sido suspendido por falta de pago. Envía un mensaje para regularizar tu pago y reactivar el acceso.',
+          clinicName: errData.clinicName,
+        });
+      } else if (response && response.status === 401) {
+        const errData = await response.json().catch(() => ({}));
+        setErrorMessage(errData.message || 'Credenciales incorrectas.');
       } else {
         setSuccessUser(userObj);
         setTimeout(() => {
@@ -641,6 +658,50 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
               </div>
 
               {/* Alert Feedback */}
+              {suspendedNotice && (
+                <div
+                  role="alert"
+                  style={{
+                    background: '#fef2f2',
+                    border: '1.5px solid #fca5a5',
+                    borderRadius: '12px',
+                    padding: '1rem 1.15rem',
+                    marginBottom: '1rem',
+                    color: '#7f1d1d',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.45rem' }}>
+                    <MaterialIcon name="block" size={20} />
+                    <strong style={{ fontSize: '0.92rem' }}>Servicio suspendido por falta de pago</strong>
+                  </div>
+                  <p style={{ margin: '0 0 0.85rem', fontSize: '0.82rem', lineHeight: 1.5, color: '#991b1b' }}>
+                    {suspendedNotice.message}
+                  </p>
+                  <a
+                    href={`https://wa.me/51987654321?text=${encodeURIComponent(
+                      `Hola, necesito regularizar el pago para reactivar el servicio de mi clínica (${suspendedNotice.clinicName || clinicSlug}, usuario: ${email}).`,
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      background: '#16a34a',
+                      color: '#ffffff',
+                      padding: '0.55rem 1rem',
+                      borderRadius: '8px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <MaterialIcon name="chat" size={16} />
+                    <span>Enviar mensaje para regularizar pago</span>
+                  </a>
+                </div>
+              )}
+
               {errorMessage && (
                 <div className="alert-box alert-danger" role="alert">
                   <MaterialIcon name="error_outline" size={18} />
