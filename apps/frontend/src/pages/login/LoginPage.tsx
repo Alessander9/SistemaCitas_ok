@@ -86,6 +86,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
           'Content-Type': 'application/json',
           'x-clinic-id': clinicSlug,
         },
+        credentials: 'include',
         body: JSON.stringify({
           email: email.trim(),
           password,

@@ -229,6 +229,12 @@ export class AuthService {
   async refreshTokens(dto: RefreshTokenDto): Promise<AuthResponseDto> {
     const { refreshToken } = dto;
 
+    if (!refreshToken) {
+      throw new UnauthorizedException(
+        'El token de actualización es obligatorio.',
+      );
+    }
+
     let payload: { sub: string; clinicId: string; type: string };
     try {
       payload = await this.jwtService.verifyAsync(refreshToken, {

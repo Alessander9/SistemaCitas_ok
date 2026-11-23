@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { validateEnv } from './config/env.schema';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -23,6 +24,8 @@ async function bootstrap() {
     res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
     next();
   });
+
+  app.use(cookieParser());
 
   app.setGlobalPrefix('api');
 

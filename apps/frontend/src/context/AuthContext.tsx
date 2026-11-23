@@ -77,18 +77,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = useCallback(() => {
     const activeToken = getAuthToken();
     const activeRefresh = getRefreshToken();
-    if (activeToken) {
-      fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${activeToken}`,
-        },
-        body: JSON.stringify({ refreshToken: activeRefresh }),
-      }).catch(() => {
-        // Ignorar fallo de red en logout
-      });
-    }
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
+      },
+      credentials: 'include',
+      body: JSON.stringify({ refreshToken: activeRefresh }),
+    }).catch(() => {
+      // Ignorar fallo de red en logout
+    });
     clearAuthSession();
     setTokenState(null);
     setUser(null);
@@ -130,10 +129,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [activeRole, fetchProfile, logout]);
 
-  // Rehidratar sesión en montaje inicial
+  // Rehidratar sesión en montaje inicial (Silent Refresh con Cookie HttpOnly + Fallback)
   useEffect(() => {
     let mounted = true;
     const initSession = async () => {
+      // 1. Intento silencioso con cookie HttpOnly (Gold Standard seguro contra XSS)
+      try {
+        const refreshRes = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({}),
+        });
+
+        if (refreshRes.ok && mounted) {
+          const data = await refreshRes.json();
+          if (data.accessToken && data.user) {
+            setAuthToken(data.accessToken);
+            setTokenState(data.accessToken);
+            setUser(data.user);
+            const primaryRole = data.user.roles?.[0] || 'ADMIN_CLINIC';
+            setActiveRole(primaryRole);
+            if (data.user.clinicId) {
+              setActiveClinicId(data.user.clinicId);
+            }
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch {
+        // Fallback silencioso si no hay cookie activa o endpoint no disponible
+      }
+
+      // 2. Fallback de compatibilidad para tokens locales existentes o tests
       const savedToken = getAuthToken();
       if (!savedToken) {
         if (mounted) {
