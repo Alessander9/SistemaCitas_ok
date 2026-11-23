@@ -129,7 +129,7 @@ export class AppointmentsService {
 
   async getAvailableSlots(
     clinicId: string,
-    professionalId: string,
+    professionalId: string | undefined,
     serviceId: string,
     date: string,
   ): Promise<AvailabilitySlot[]> {
@@ -145,12 +145,30 @@ export class AppointmentsService {
     }
     const durationMinutes = durationRows[0].duration_minutes;
 
+    // Resolve professionalId when automatic assignment ("Primero disponible") is selected
+    let targetProfId = professionalId;
+    if (!targetProfId) {
+      const { rows: profRows } = await this.db.query<{ id: string }>(
+        `SELECT p.id
+         FROM professionals p
+         LEFT JOIN professional_services ps ON ps.professional_id = p.id AND ps.service_id = $2
+         WHERE p.clinic_id = $1 AND p.is_active = true AND p.deleted_at IS NULL
+         ORDER BY (ps.service_id IS NOT NULL) DESC, p.created_at ASC
+         LIMIT 1`,
+        [clinicId, serviceId],
+      );
+      if (profRows.length === 0) {
+        return [];
+      }
+      targetProfId = profRows[0].id;
+    }
+
     // 2. Professional schedule for this day
     const { rows: scheduleRows } = await this.db.query<ScheduleDbRow>(
       `SELECT day_of_week, start_time, end_time
        FROM professional_schedules
        WHERE professional_id = $1 AND day_of_week = $2 AND is_active = true AND deleted_at IS NULL`,
-      [professionalId, dayOfWeek],
+      [targetProfId, dayOfWeek],
     );
     if (scheduleRows.length === 0) {
       return []; // No schedule for this day
@@ -161,7 +179,7 @@ export class AppointmentsService {
       `SELECT id, start_time, end_time, reason
        FROM schedule_blocks
        WHERE professional_id = $1 AND block_date = $2 AND deleted_at IS NULL`,
-      [professionalId, date],
+      [targetProfId, date],
     );
 
     // 4. Existing appointments for this professional on this date (non-cancelled, non-no_show)
@@ -172,7 +190,7 @@ export class AppointmentsService {
          AND appointment_date = $2
          AND status NOT IN ('cancelled', 'no_show')
          AND deleted_at IS NULL`,
-      [professionalId, date],
+      [targetProfId, date],
     );
 
     // 5. Generate all possible slots
@@ -201,9 +219,11 @@ export class AppointmentsService {
         slots.push({
           startTime: minutesToTime(slotStart),
           endTime: minutesToTime(slotEnd),
-          professionalId,
+          professionalId: targetProfId,
           serviceId,
           date,
+          available: true,
+          state: 'available',
         });
       }
     }

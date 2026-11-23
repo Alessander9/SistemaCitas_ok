@@ -89,14 +89,24 @@ export const AppointmentSelectionStep: React.FC<AppointmentSelectionStepProps> =
     [serviceCards, serviceFilter, serviceSort],
   );
 
-  // Doctors
+  // Doctors filtered by the selected service (when service links exist on the professional)
+  const filteredProfessionals = useMemo(() => {
+    const list = professionals || [];
+    if (!selectedServiceId) return list;
+    const matching = list.filter((p) => {
+      if (!p.services || p.services.length === 0) return true;
+      return p.services.some((s) => s.id === selectedServiceId);
+    });
+    return matching.length > 0 ? matching : list;
+  }, [professionals, selectedServiceId]);
+
   const doctorCards = useMemo(
     () =>
       buildProfessionalCards({
-        professionals: professionals || [],
+        professionals: filteredProfessionals,
         specialtyName: selectedSpecialty?.name,
       }),
-    [professionals, selectedSpecialty],
+    [filteredProfessionals, selectedSpecialty],
   );
 
   const anyDoctorOption = useMemo(() => buildAnyProfessionalOption(), []);
@@ -106,8 +116,11 @@ export const AppointmentSelectionStep: React.FC<AppointmentSelectionStepProps> =
       return 'Cualquier profesional disponible (Mayor disponibilidad)';
     }
     const prof = (professionals || []).find((p) => p.id === selectedProfessionalId);
-    if (prof?.user) {
-      return `Dr(a). ${prof.user.firstName} ${prof.user.lastName}`;
+    if (prof) {
+      const firstName = prof.firstName || prof.user?.firstName || '';
+      const lastName = prof.lastName || prof.user?.lastName || '';
+      const fullName = `${firstName} ${lastName}`.trim();
+      if (fullName) return fullName;
     }
     return 'Profesional seleccionado';
   }, [professionals, selectedProfessionalId]);

@@ -176,6 +176,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
         if (data.accessToken && typeof window !== 'undefined') {
           localStorage.setItem('vitalsalud_access_token', data.accessToken);
         }
+        if (data.user?.clinicId && typeof window !== 'undefined') {
+          localStorage.setItem('clinic_id', data.user.clinicId);
+        }
         setSuccessUser(data.user || userObj);
         setTimeout(() => {
           onLoginSuccess?.(data.user || userObj);

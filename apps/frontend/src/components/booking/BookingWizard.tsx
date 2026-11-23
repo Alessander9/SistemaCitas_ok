@@ -132,8 +132,33 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
           fetchProfessionals(),
         ]);
         if (!isMounted) return;
-        if (specs?.length) setSpecialtiesList(specs);
-        if (servs?.length) setServicesList(servs);
+        if (specs?.length) {
+          setSpecialtiesList(specs);
+          setSelectedSpecialty((prev) => {
+            if (!prev) return null;
+            return (
+              specs.find((s) => s.id === prev.id) ||
+              specs.find((s) => s.name.toLowerCase() === prev.name.toLowerCase()) ||
+              (preselectedSpecialtyId?.includes('fisioterapia')
+                ? specs.find((s) => s.name.toLowerCase().includes('fisioterapia')) ?? null
+                : preselectedSpecialtyId?.includes('rehabilitacion') ||
+                    preselectedSpecialtyId?.includes('traumatologia')
+                  ? specs.find((s) => s.name.toLowerCase().includes('traumatolog')) ?? null
+                  : prev)
+            );
+          });
+        }
+        if (servs?.length) {
+          setServicesList(servs);
+          setSelectedService((prev) => {
+            if (!prev) return null;
+            return (
+              servs.find((s) => s.id === prev.id) ||
+              servs.find((s) => s.name.toLowerCase() === prev.name.toLowerCase()) ||
+              prev
+            );
+          });
+        }
         if (profs?.length) setProfessionalsList(profs);
       } catch (err) {
         console.warn('API error, using mock catalog data:', err);
@@ -295,12 +320,23 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     if (step === 5) {
       setIsSubmitting(true);
       try {
+        const matchedProfessionalForService =
+          professionalsList.find(
+            (p) =>
+              p.services &&
+              selectedService &&
+              p.services.some((s) => s.id === selectedService.id),
+          ) || professionalsList[0];
+
         const appointmentRes = await createAppointment({
           professionalId:
             manualProfessionalId ||
-            professionalsList[0]?.id ||
+            matchedProfessionalForService?.id ||
             'e0000000-0000-4000-a000-000000000001',
-          serviceId: selectedService?.id || servicesList[0]?.id || 'd0000000-0000-4000-a000-000000000001',
+          serviceId:
+            selectedService?.id ||
+            servicesList[0]?.id ||
+            'd0000000-0000-4000-a000-000000000001',
           appointmentDate: selectedDate || '2026-09-24',
           startTime: selectedTime || '05:30 PM',
           patientDocType,

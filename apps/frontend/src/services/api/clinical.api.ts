@@ -11,7 +11,8 @@ function getAuthHeaders(): HeadersInit {
     localStorage.getItem('vitalsalud_access_token') ||
     localStorage.getItem('auth_token') ||
     localStorage.getItem('token');
-  const clinicId = localStorage.getItem('clinic_id') || 'clinica-demo';
+  const clinicId =
+    localStorage.getItem('clinic_id') || 'a0000000-0000-4000-a000-000000000001';
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'x-clinic-id': clinicId,

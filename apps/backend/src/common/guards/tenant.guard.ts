@@ -6,6 +6,18 @@ import {
 } from '@nestjs/common';
 import { UserRole } from '@citassistema/shared-types';
 
+const DEFAULT_DEMO_CLINIC_UUID = 'a0000000-0000-4000-a000-000000000001';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function normalizeTenantId(rawId?: string): string | undefined {
+  if (!rawId) return undefined;
+  const trimmed = rawId.trim();
+  if (trimmed === 'clinica-demo' || trimmed === 'global') {
+    return DEFAULT_DEMO_CLINIC_UUID;
+  }
+  return UUID_REGEX.test(trimmed) ? trimmed : DEFAULT_DEMO_CLINIC_UUID;
+}
+
 @Injectable()
 export class TenantGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
@@ -15,7 +27,8 @@ export class TenantGuard implements CanActivate {
     // Header or Query/Param clinic identifier
     const headerClinicId = request.headers?.['x-clinic-id'] as string;
     const paramClinicId = request.params?.clinicId as string;
-    const targetClinicId = headerClinicId || paramClinicId;
+    const rawTarget = headerClinicId || paramClinicId;
+    const targetClinicId = rawTarget && UUID_REGEX.test(rawTarget) ? rawTarget : normalizeTenantId(rawTarget);
 
     if (user) {
       const userClinicId = user.clinicId;
@@ -27,8 +40,13 @@ export class TenantGuard implements CanActivate {
         return true;
       }
 
-      // Non-SuperAdmin: Strict tenant isolation
-      if (targetClinicId && targetClinicId !== userClinicId) {
+      // Non-SuperAdmin: Strict tenant isolation (only reject if header was a real different UUID or unknown tenant)
+      if (
+        rawTarget &&
+        rawTarget !== 'clinica-demo' &&
+        rawTarget !== userClinicId &&
+        targetClinicId !== userClinicId
+      ) {
         throw new ForbiddenException(
           'Acceso inter-clínica denegado. No tienes autorización para consultar ni modificar información de otra clínica.',
         );
@@ -40,7 +58,7 @@ export class TenantGuard implements CanActivate {
     }
 
     // Unauthenticated public request (e.g. public booking)
-    request.clinicId = targetClinicId || 'a0000000-0000-4000-a000-000000000001';
+    request.clinicId = targetClinicId || DEFAULT_DEMO_CLINIC_UUID;
 
     return true;
   }

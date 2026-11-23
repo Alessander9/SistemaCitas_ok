@@ -100,13 +100,18 @@ function normalizeAvailabilityPayload(data: unknown, fallbackDate?: string): Ava
     .filter((slot) => (typeof slot?.date === 'string' || Boolean(fallbackDate)) && typeof slot?.startTime === 'string')
     .map((slot) => {
       const resolvedDate = typeof slot.date === 'string' ? slot.date : (fallbackDate as string);
+      const resolvedState = (slot.state as AvailabilitySlot['state']) ?? (slot.available === false ? 'busy' : 'available');
+      const isAvailable =
+        typeof slot.available === 'boolean'
+          ? slot.available
+          : resolvedState === 'available';
       return {
         id: (slot.id as string) || `${resolvedDate}T${slot.startTime as string}`,
         date: resolvedDate,
         startTime: (slot.startTime as string).slice(0, 5),
         endTime: ((slot.endTime as string) || (slot.startTime as string)).slice(0, 5),
-        available: Boolean(slot.available ?? slot.state === 'available'),
-        state: slot.state as AvailabilitySlot['state'],
+        available: isAvailable,
+        state: resolvedState,
         professionalId: slot.professionalId as string | undefined,
         serviceId: slot.serviceId as string | undefined,
         recommended: slot.recommended === true ? true : undefined,
