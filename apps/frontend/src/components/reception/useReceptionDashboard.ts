@@ -201,21 +201,21 @@ export function useReceptionDashboard() {
         fetch(`/api/appointments/${encodeURIComponent(id)}/check-in`, {
           method: 'PATCH',
           headers: getAuthHeaders(),
-        }).catch(() => {});
+        }).catch(() => { });
         soundEffects.playPop();
         showToast(`Llegada registrada: ${targetName} ya está en sala de espera.`);
       } else if (nextStatus === 'in_consultation') {
         fetch(`/api/appointments/${encodeURIComponent(id)}/start`, {
           method: 'PATCH',
           headers: getAuthHeaders(),
-        }).catch(() => {});
+        }).catch(() => { });
         soundEffects.playChime();
         showToast(`${targetName} pasó a consulta.`);
       } else if (nextStatus === 'completed') {
         fetch(`/api/appointments/${encodeURIComponent(id)}/complete`, {
           method: 'PATCH',
           headers: getAuthHeaders(),
-        }).catch(() => {});
+        }).catch(() => { });
         soundEffects.playSuccess();
         showToast(`Atención finalizada para ${targetName}.`);
       } else {

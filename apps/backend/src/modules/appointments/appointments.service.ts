@@ -127,7 +127,7 @@ export class AppointmentsService {
     private readonly db: DatabaseService,
     @Optional() private readonly emailsService?: EmailsService,
     @Optional() private readonly eventEmitter?: EventEmitter2,
-  ) {}
+  ) { }
 
   // =========================================================================
   // 4.1 — AVAILABILITY ENGINE
@@ -949,8 +949,8 @@ export class AppointmentsService {
       serviceName: row.service_name,
       appointmentDate: row.appointment_date
         ? (typeof row.appointment_date === 'string'
-            ? row.appointment_date.split('T')[0]
-            : String(row.appointment_date).split('T')[0])
+          ? row.appointment_date.split('T')[0]
+          : String(row.appointment_date).split('T')[0])
         : '',
       startTime: row.start_time
         ? (typeof row.start_time === 'string' ? row.start_time.substring(0, 5) : String(row.start_time).substring(0, 5))

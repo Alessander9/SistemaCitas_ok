@@ -59,7 +59,7 @@ interface CashMovementDbRow {
 
 @Injectable()
 export class CashService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(private readonly db: DatabaseService) { }
 
   // =========================================================================
   // Mappers
