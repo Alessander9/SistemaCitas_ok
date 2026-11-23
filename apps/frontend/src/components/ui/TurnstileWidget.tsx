@@ -32,7 +32,7 @@ interface TurnstileWidgetProps {
 }
 
 export const TurnstileWidget: React.FC<TurnstileWidgetProps> = ({
-  siteKey = (import.meta as any).env?.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA',
+  siteKey = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA',
   onVerify,
   onError,
   onExpire,

@@ -7,51 +7,15 @@ import {
   IconChart,
   IconAlert,
   IconCheckCircle,
+  IconSearch,
 } from '../../components/ui/Icons';
-
-type MovementType = 'sale' | 'purchase' | 'adjustment' | 'return' | 'waste';
-
-interface CashMovement {
-  id: string;
-  type: MovementType;
-  amount: number;
-  description: string;
-  createdAt: string;
-}
-
-interface CashRegister {
-  id: string;
-  name: string;
-  status: 'open' | 'closed';
-  openingAmount: number;
-  closingAmount?: number;
-  difference?: number;
-  sessionDate?: string;
-  openedByName?: string;
-}
-
-const MOVEMENT_LABELS: Record<MovementType, string> = {
-  sale: 'Ingreso – Venta',
-  purchase: 'Egreso – Compra',
-  adjustment: 'Ajuste de Caja',
-  return: 'Devolución',
-  waste: 'Merma / Gasto',
-};
-
-const mockMovements: CashMovement[] = [
-  { id: '1', type: 'sale', amount: 120, description: 'Pago consulta Dr. Torres', createdAt: '2026-09-02T09:15:00Z' },
-  { id: '2', type: 'purchase', amount: 45, description: 'Compra insumos / gasas', createdAt: '2026-09-02T10:30:00Z' },
-  { id: '3', type: 'sale', amount: 85, description: 'Pago sesión fisioterapia', createdAt: '2026-09-02T11:00:00Z' },
-];
-
-const mockRegister: CashRegister = {
-  id: 'reg-1',
-  name: 'Caja 2026-09-02',
-  status: 'open',
-  openingAmount: 200,
-  sessionDate: '2026-09-02',
-  openedByName: 'Ana López',
-};
+import {
+  useCashRegister,
+  CASH_MOVEMENT_LABELS,
+  CashMovementType,
+  CashFilter,
+  isCashIncome,
+} from '../../components/admin/cash/useCashRegister';
 
 interface CashRegisterPageProps {
   onNavigateToInventory?: () => void;
@@ -62,199 +26,207 @@ export function CashRegisterPage({
   onNavigateToInventory,
   onNavigateToBooking,
 }: CashRegisterPageProps = {}) {
-  const [register, setRegister] = useState<CashRegister | null>(mockRegister);
-  const [movements, setMovements] = useState<CashMovement[]>(mockMovements);
-  const [showMovementForm, setShowMovementForm] = useState(false);
-  const [showCloseForm, setShowCloseForm] = useState(false);
-  const [newMovement, setNewMovement] = useState<{ type: MovementType; amount: string; description: string }>({
-    type: 'purchase',
-    amount: '',
-    description: '',
-  });
+  const {
+    register,
+    movements,
+    filteredMovements,
+    totals,
+    filter,
+    setFilter,
+    searchTerm,
+    setSearchTerm,
+    addMovement,
+    closeRegister,
+    openNewShift,
+  } = useCashRegister();
+
+  const [activePanel, setActivePanel] = useState<'none' | 'movement' | 'close'>('none');
+  const [movType, setMovType] = useState<CashMovementType>('purchase');
+  const [movAmount, setMovAmount] = useState('');
+  const [movDesc, setMovDesc] = useState('');
   const [closingAmount, setClosingAmount] = useState('');
 
-  const totalIncome = movements.filter(m => m.type === 'sale' || m.type === 'return').reduce((s, m) => s + m.amount, 0);
-  const totalExpense = movements.filter(m => m.type === 'purchase' || m.type === 'waste').reduce((s, m) => s + m.amount, 0);
-  const balance = (register?.openingAmount ?? 0) + totalIncome - totalExpense;
-
-  const handleAddMovement = () => {
-    if (!newMovement.amount || !newMovement.description) return;
-    const mov: CashMovement = {
-      id: Date.now().toString(),
-      type: newMovement.type,
-      amount: parseFloat(newMovement.amount),
-      description: newMovement.description,
-      createdAt: new Date().toISOString(),
-    };
-    setMovements(prev => [...prev, mov]);
-    setNewMovement({ type: 'purchase', amount: '', description: '' });
-    setShowMovementForm(false);
+  const handleSaveMovement = () => {
+    const parsed = parseFloat(movAmount);
+    if (addMovement(movType, parsed, movDesc)) {
+      setMovAmount('');
+      setMovDesc('');
+      setActivePanel('none');
+    }
   };
 
-  const handleClose = () => {
-    if (!closingAmount || !register) return;
-    const expected = balance;
-    const difference = parseFloat(closingAmount) - expected;
-    setRegister({ ...register, status: 'closed', closingAmount: parseFloat(closingAmount), difference });
-    setShowCloseForm(false);
+  const handleConfirmClose = () => {
+    const parsed = parseFloat(closingAmount);
+    if (closeRegister(parsed)) {
+      setClosingAmount('');
+      setActivePanel('none');
+    }
   };
+
+  const liveClosingDiff =
+    closingAmount.trim() !== '' && !Number.isNaN(parseFloat(closingAmount))
+      ? Number((parseFloat(closingAmount) - totals.expectedBalance).toFixed(2))
+      : null;
 
   return (
-    <div className="cash-page">
-      {/* Header with Clinic Medical Badge */}
-      <div className="cash-header">
+    <div className="cash-shell">
+      {/* Header limpio */}
+      <header className="cash-header">
         <div>
-          <div className="clinic-badge" style={{ background: '#ecfdf5', borderColor: '#a7f3d0', color: '#059669', marginBottom: '0.45rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '999px', background: '#10b981', display: 'inline-block' }} />
-            Gestión Financiera · Arqueo de Caja Chica
-          </div>
+          <span className="cash-kicker">
+            Arqueo diario · {register ? `Responsable: ${register.openedByName}` : 'Sin turno activo'}
+          </span>
           <h1 className="cash-title">Caja Chica</h1>
-          <p className="cash-subtitle">Arqueo diario · Movimientos de efectivo en tiempo real</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+
+        <div className="cash-header-right">
           {onNavigateToBooking && (
-            <button
-              type="button"
-              className="cash-btn ghost"
-              onClick={onNavigateToBooking}
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              title="Ir a agenda de citas y cobros pendientes"
-            >
+            <button type="button" className="cash-btn ghost" onClick={onNavigateToBooking}>
               <MaterialIcon name="calendar_today" size={15} />
-              <span>Ver Citas & Cobros ↗</span>
+              <span>Citas</span>
             </button>
           )}
           {onNavigateToInventory && (
-            <button
-              type="button"
-              className="cash-btn ghost"
-              onClick={onNavigateToInventory}
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              title="Ir a kardex de inventario médico"
-            >
+            <button type="button" className="cash-btn ghost" onClick={onNavigateToInventory}>
               <MaterialIcon name="inventory_2" size={15} />
-              <span>Ver Inventario ↗</span>
+              <span>Inventario</span>
             </button>
           )}
           {register && (
-            <span className={`cash-status-badge ${register.status === 'open' ? 'open' : 'closed'}`} id="cash-status-badge">
-              <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: register.status === 'open' ? '#16a34a' : '#64748b', display: 'inline-block' }} />
+            <span
+              id="cash-status-badge"
+              className={`cash-status-badge ${register.status}`}
+            >
+              <span className="cash-dot" />
               {register.status === 'open' ? 'CAJA ABIERTA' : 'CAJA CERRADA'}
             </span>
           )}
         </div>
-      </div>
+      </header>
 
-      {!register && (
-        <div className="cash-no-session">
-          <div className="no-session-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <MaterialIcon name="point_of_sale" size={48} color="#0284c7" />
-          </div>
+      {!register ? (
+        <section className="cash-empty-card">
+          <MaterialIcon name="point_of_sale" size={40} color="#0284c7" />
           <h2>No hay caja abierta en este turno</h2>
-          <p>Abre la caja para comenzar a registrar los cobros y movimientos del día.</p>
+          <p>Inicia un turno de caja para registrar ingresos, gastos menores y arqueo final.</p>
           <button
             id="btn-open-cash"
+            type="button"
             className="cash-btn primary"
-            onClick={() => setRegister({ id: 'new', name: 'Caja ' + new Date().toISOString().split('T')[0], status: 'open', openingAmount: 200, sessionDate: new Date().toISOString().split('T')[0], openedByName: 'Usuario' })}
+            onClick={() => openNewShift(200)}
           >
             <IconPlus className="w-4 h-4" />
-            <span>Abrir Caja de Turno</span>
+            <span>Abrir caja de turno</span>
           </button>
-        </div>
-      )}
-
-      {register && (
+        </section>
+      ) : (
         <>
-          {/* Summary KPI Cards with Icon Wrappers */}
-          <div className="cash-summary-grid">
-            {/* Card 1: Monto Inicial */}
-            <div className="cash-card green">
-              <div className="kpi-header">
-                <span className="card-label">Monto Inicial</span>
-                <div className="kpi-icon-wrap kpi-icon-emerald">
-                  <IconCash className="w-4 h-4" />
-                </div>
+          {/* 4 KPIs Financieros Exactos */}
+          <section className="cash-kpi-grid" aria-label="Resumen de caja">
+            <article className="cash-kpi-card">
+              <div className="cash-kpi-top">
+                <span>Monto Inicial</span>
+                <span className="cash-kpi-icon emerald"><IconCash className="w-4 h-4" /></span>
               </div>
-              <span className="card-value">S/ {register.openingAmount.toFixed(2)}</span>
-              <span className="card-hint">● Apertura de turno</span>
-            </div>
+              <strong className="cash-kpi-val">S/ {register.openingAmount.toFixed(2)}</strong>
+              <small>Fondo de apertura</small>
+            </article>
 
-            {/* Card 2: Total Ingresos */}
-            <div className="cash-card blue">
-              <div className="kpi-header">
-                <span className="card-label">Total Ingresos</span>
-                <div className="kpi-icon-wrap kpi-icon-sky">
-                  <IconChart className="w-4 h-4" />
-                </div>
+            <article className="cash-kpi-card">
+              <div className="cash-kpi-top">
+                <span>Total Ingresos</span>
+                <span className="cash-kpi-icon sky"><IconChart className="w-4 h-4" /></span>
               </div>
-              <span className="card-value">+ S/ {totalIncome.toFixed(2)}</span>
-              <span className="card-hint" style={{ color: '#0284c7' }}>↑ Cobros y ventas del día</span>
-            </div>
+              <strong className="cash-kpi-val tone-income">+ S/ {totals.totalIncome.toFixed(2)}</strong>
+              <small>Cobros y ventas en efectivo</small>
+            </article>
 
-            {/* Card 3: Total Egresos */}
-            <div className="cash-card red">
-              <div className="kpi-header">
-                <span className="card-label">Total Egresos</span>
-                <div className="kpi-icon-wrap kpi-icon-amber">
-                  <IconAlert className="w-4 h-4" />
-                </div>
+            <article className="cash-kpi-card">
+              <div className="cash-kpi-top">
+                <span>Total Egresos</span>
+                <span className="cash-kpi-icon amber"><IconAlert className="w-4 h-4" /></span>
               </div>
-              <span className="card-value">- S/ {totalExpense.toFixed(2)}</span>
-              <span className="card-hint" style={{ color: '#dc2626' }}>↓ Compras y gastos menores</span>
-            </div>
+              <strong className="cash-kpi-val tone-expense">- S/ {totals.totalExpense.toFixed(2)}</strong>
+              <small>Compras, gastos y devoluciones</small>
+            </article>
 
-            {/* Card 4: Balance Esperado */}
-            <div className="cash-card purple">
-              <div className="kpi-header">
-                <span className="card-label">Balance Esperado</span>
-                <div className="kpi-icon-wrap kpi-icon-purple">
-                  <IconCash className="w-4 h-4" />
-                </div>
+            <article className="cash-kpi-card highlight">
+              <div className="cash-kpi-top">
+                <span>Balance Esperado</span>
+                <span className="cash-kpi-icon violet"><IconCash className="w-4 h-4" /></span>
               </div>
-              <span className="card-value">S/ {balance.toFixed(2)}</span>
-              <span className="card-hint" style={{ color: '#7c3aed' }}>● Efectivo en gaveta física</span>
-            </div>
-          </div>
+              <strong className="cash-kpi-val">S/ {totals.expectedBalance.toFixed(2)}</strong>
+              <small>Efectivo esperado en gaveta</small>
+            </article>
+          </section>
 
-          {/* Closing difference alert */}
+          {/* Resultado de arqueo si está cerrada */}
           {register.status === 'closed' && register.difference !== undefined && (
-            <div className={`cash-difference-alert ${register.difference >= 0 ? 'surplus' : 'deficit'}`}>
-              <IconCheckCircle className="w-5 h-5" />
-              <span>
-                {register.difference >= 0
-                  ? `Arqueo Cuadrado / Sobrante: S/ ${register.difference.toFixed(2)}`
-                  : `Diferencia de Caja (Faltante): S/ ${Math.abs(register.difference).toFixed(2)}`}
-              </span>
+            <div className={`cash-diff-banner ${register.difference === 0 ? 'exact' : register.difference > 0 ? 'surplus' : 'deficit'}`}>
+              <div className="cash-diff-info">
+                <IconCheckCircle className="w-5 h-5" />
+                <div>
+                  <strong>
+                    {register.difference === 0
+                      ? 'Arqueo cuadrado exacto (S/ 0.00 de diferencia)'
+                      : register.difference > 0
+                        ? `Arqueo cerrado con sobrante de S/ ${register.difference.toFixed(2)}`
+                        : `Arqueo cerrado con faltante de S/ ${Math.abs(register.difference).toFixed(2)}`}
+                  </strong>
+                  <span>
+                    Contado físicamente: S/ {(register.closingAmount ?? 0).toFixed(2)} · Esperado: S/ {totals.expectedBalance.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="cash-btn primary"
+                onClick={() => openNewShift(200)}
+              >
+                Abrir nuevo turno
+              </button>
             </div>
           )}
 
-          {/* Action buttons with modern icons */}
+          {/* Barra de acciones (mutuamente excluyentes) */}
           {register.status === 'open' && (
-            <div className="cash-actions">
-              <button id="btn-add-movement" className="cash-btn primary" onClick={() => setShowMovementForm(v => !v)}>
+            <div className="cash-actions-bar">
+              <button
+                id="btn-add-movement"
+                type="button"
+                className="cash-btn primary"
+                onClick={() => setActivePanel(activePanel === 'movement' ? 'none' : 'movement')}
+              >
                 <IconPlus className="w-4 h-4" />
-                <span>+ Registrar Movimiento</span>
+                <span>Registrar movimiento</span>
               </button>
-              <button id="btn-close-cash" className="cash-btn danger" onClick={() => setShowCloseForm(v => !v)}>
+              <button
+                id="btn-close-cash"
+                type="button"
+                className="cash-btn danger"
+                onClick={() => setActivePanel(activePanel === 'close' ? 'none' : 'close')}
+              >
                 <IconCheckCircle className="w-4 h-4" />
-                <span>Cerrar Caja & Arqueo</span>
+                <span>Cerrar caja y arquear</span>
               </button>
             </div>
           )}
 
-          {/* Movement form */}
-          {showMovementForm && (
-            <div className="cash-form-card">
-              <h3>Registrar Nuevo Movimiento de Caja</h3>
-              <div className="form-row">
+          {/* Formulario de Nuevo Movimiento */}
+          {activePanel === 'movement' && register.status === 'open' && (
+            <section className="cash-form-card" aria-label="Nuevo movimiento de caja">
+              <h3>Registrar movimiento</h3>
+              <div className="cash-form-grid">
                 <select
                   id="movement-type"
-                  value={newMovement.type}
-                  onChange={e => setNewMovement(p => ({ ...p, type: e.target.value as MovementType }))}
                   className="cash-input"
+                  value={movType}
+                  onChange={(e) => setMovType(e.target.value as CashMovementType)}
                 >
-                  {(Object.entries(MOVEMENT_LABELS) as [MovementType, string][]).map(([k, v]) => (
-                    <option key={k} value={k}>{v}</option>
+                  {(Object.entries(CASH_MOVEMENT_LABELS) as [CashMovementType, string][]).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
                   ))}
                 </select>
                 <input
@@ -264,106 +236,147 @@ export function CashRegisterPage({
                   step="0.01"
                   placeholder="Monto (S/)"
                   className="cash-input"
-                  value={newMovement.amount}
-                  onChange={e => setNewMovement(p => ({ ...p, amount: e.target.value }))}
+                  value={movAmount}
+                  onChange={(e) => setMovAmount(e.target.value)}
                 />
               </div>
               <input
                 id="movement-description"
                 type="text"
-                placeholder="Descripción del gasto o ingreso (ej. Compra de gasas, Pago cita Dra. González)"
-                className="cash-input full"
-                value={newMovement.description}
-                onChange={e => setNewMovement(p => ({ ...p, description: e.target.value }))}
+                placeholder="Concepto (ej. Compra de gasas, Pago consulta)"
+                className="cash-input"
+                value={movDesc}
+                onChange={(e) => setMovDesc(e.target.value)}
               />
-              <div className="form-actions">
-                <button id="btn-save-movement" className="cash-btn primary" onClick={handleAddMovement}>
-                  Guardar Movimiento
-                </button>
-                <button className="cash-btn ghost" onClick={() => setShowMovementForm(false)}>
+              <div className="cash-form-actions">
+                <button type="button" className="cash-btn ghost" onClick={() => setActivePanel('none')}>
                   Cancelar
                 </button>
+                <button id="btn-save-movement" type="button" className="cash-btn primary" onClick={handleSaveMovement}>
+                  Guardar movimiento
+                </button>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Close form */}
-          {showCloseForm && (
-            <div className="cash-form-card">
-              <h3>Arqueo de Cierre de Turno</h3>
-              <p className="form-helper">
-                Balance calculado por el sistema: <strong style={{ color: '#0f172a' }}>S/ {balance.toFixed(2)}</strong>
+          {/* Formulario de Arqueo Asistido en Vivo */}
+          {activePanel === 'close' && register.status === 'open' && (
+            <section className="cash-form-card close-panel" aria-label="Arqueo de cierre">
+              <h3>Arqueo de cierre de turno</h3>
+              <p className="cash-helper">
+                Efectivo esperado según sistema: <strong>S/ {totals.expectedBalance.toFixed(2)}</strong>
               </p>
+
               <input
                 id="closing-amount"
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="Ingresa el monto contado físicamente en efectivo (S/)"
-                className="cash-input full"
+                placeholder="Efectivo contado físicamente en gaveta (S/)"
+                className="cash-input"
                 value={closingAmount}
-                onChange={e => setClosingAmount(e.target.value)}
+                onChange={(e) => setClosingAmount(e.target.value)}
               />
-              <div className="form-actions">
-                <button id="btn-confirm-close" className="cash-btn danger" onClick={handleClose}>
-                  Confirmar Arqueo y Cerrar Caja
-                </button>
-                <button className="cash-btn ghost" onClick={() => setShowCloseForm(false)}>
+
+              {liveClosingDiff !== null && (
+                <div className={`cash-live-diff ${liveClosingDiff === 0 ? 'exact' : liveClosingDiff > 0 ? 'surplus' : 'deficit'}`}>
+                  {liveClosingDiff === 0
+                    ? '✓ Cuadra exacto (diferencia S/ 0.00)'
+                    : liveClosingDiff > 0
+                      ? `↑ Sobrante detectado: + S/ ${liveClosingDiff.toFixed(2)}`
+                      : `↓ Faltante detectado: - S/ ${Math.abs(liveClosingDiff).toFixed(2)}`}
+                </div>
+              )}
+
+              <div className="cash-form-actions">
+                <button type="button" className="cash-btn ghost" onClick={() => setActivePanel('none')}>
                   Cancelar
                 </button>
+                <button id="btn-confirm-close" type="button" className="cash-btn danger" onClick={handleConfirmClose}>
+                  Confirmar arqueo y cerrar
+                </button>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Movements table */}
-          <div className="cash-table-wrapper">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <h3 className="table-title" style={{ margin: 0 }}>
-                Movimientos del Día ({movements.length})
-              </h3>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-                Trazabilidad financiera inmutable
-              </span>
+          {/* Tabla de Movimientos Filtrable */}
+          <section className="cash-panel">
+            <div className="cash-panel-toolbar">
+              <div className="cash-filter-pills" role="tablist">
+                {(
+                  [
+                    { id: 'all', label: `Todos (${movements.length})` },
+                    { id: 'income', label: 'Ingresos' },
+                    { id: 'expense', label: 'Egresos' },
+                  ] as Array<{ id: CashFilter; label: string }>
+                ).map((pill) => (
+                  <button
+                    key={pill.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={filter === pill.id}
+                    className={`cash-pill ${filter === pill.id ? 'active' : ''}`}
+                    onClick={() => setFilter(pill.id)}
+                  >
+                    {pill.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="cash-search-box">
+                <span className="cash-search-icon"><IconSearch className="w-4 h-4" /></span>
+                <input
+                  type="text"
+                  placeholder="Buscar concepto..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
 
-            {movements.length === 0 ? (
-              <p className="no-data">Sin movimientos registrados aún en este turno.</p>
+            {filteredMovements.length === 0 ? (
+              <p className="cash-no-data">No hay movimientos para mostrar con este filtro.</p>
             ) : (
-              <table className="cash-table" id="movements-table">
-                <thead>
-                  <tr>
-                    <th>Tipo de Movimiento</th>
-                    <th>Concepto / Descripción</th>
-                    <th>Monto en Efectivo</th>
-                    <th>Hora de Registro</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {movements.map(m => {
-                    const isIncome = m.type === 'sale' || m.type === 'return';
-                    return (
-                      <tr key={m.id}>
-                        <td>
-                          <span className={`movement-chip ${isIncome ? 'income' : 'expense'}`}>
-                            <span>{isIncome ? '↑' : '↓'}</span> {MOVEMENT_LABELS[m.type]}
-                          </span>
-                        </td>
-                        <td style={{ fontWeight: 600, color: '#0f172a' }}>{m.description}</td>
-                        <td className={isIncome ? 'amount-income' : 'amount-expense'}>
-                          {isIncome ? '+' : '-'} S/ {m.amount.toFixed(2)}
-                        </td>
-                        <td>
-                          <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.78rem', background: '#f1f5f9', padding: '0.2rem 0.5rem', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
-                            {new Date(m.createdAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="cash-table-wrap">
+                <table className="cash-table" id="movements-table">
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Concepto</th>
+                      <th>Monto</th>
+                      <th>Hora</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredMovements.map((m) => {
+                      const income = isCashIncome(m.type);
+                      return (
+                        <tr key={m.id}>
+                          <td>
+                            <span className={`cash-mov-chip ${income ? 'income' : 'expense'}`}>
+                              {income ? '↑' : '↓'} {CASH_MOVEMENT_LABELS[m.type]}
+                            </span>
+                          </td>
+                          <td className="cash-cell-desc">{m.description}</td>
+                          <td className={income ? 'cash-amt income' : 'cash-amt expense'}>
+                            {income ? '+' : '-'} S/ {m.amount.toFixed(2)}
+                          </td>
+                          <td>
+                            <span className="cash-time-chip">
+                              {new Date(m.createdAt).toLocaleTimeString('es-PE', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </section>
         </>
       )}
     </div>

@@ -340,7 +340,7 @@ describe('AuthService (Unit & Security Tests)', () => {
       const mockEmailsService = {
         sendPasswordResetEmail: jest.fn().mockResolvedValue({ status: 'sent' }),
       };
-      (service as any).emailsService = mockEmailsService;
+      (service as unknown as { emailsService: typeof mockEmailsService }).emailsService = mockEmailsService;
 
       db.query
         .mockResolvedValueOnce({
@@ -382,7 +382,7 @@ describe('AuthService (Unit & Security Tests)', () => {
       });
 
       const mockClient = { query: jest.fn() };
-      (db as any).transaction = jest.fn().mockImplementation(async (callback) => {
+      (db as unknown as { transaction: jest.Mock }).transaction = jest.fn().mockImplementation(async (callback) => {
         return callback(mockClient);
       });
 

@@ -141,9 +141,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
         }),
       }).catch(() => null);
 
-      const resolvedRole =
-        selectedDemoRole ||
-        (email.toLowerCase().includes('superadmin') ? 'SUPER_ADMIN' : 'ADMIN_CLINIC');
+      const lowerEmail = email.toLowerCase();
+      const inferredRole = lowerEmail.includes('superadmin')
+        ? 'SUPER_ADMIN'
+        : lowerEmail.includes('doctor') || lowerEmail.includes('medic')
+          ? 'PROFESIONAL'
+          : lowerEmail.includes('recepcion') || lowerEmail.includes('admision')
+            ? 'RECEPCION'
+            : lowerEmail.includes('paciente')
+              ? 'PACIENTE'
+              : 'ADMIN_CLINIC';
+
+      const resolvedRole = selectedDemoRole || inferredRole;
       const resolvedName =
         resolvedRole === 'SUPER_ADMIN'
           ? 'Alessander (Super Admin Global)'
@@ -164,6 +173,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
       if (response && response.ok) {
         const data = await response.json();
+        if (data.accessToken && typeof window !== 'undefined') {
+          localStorage.setItem('vitalsalud_access_token', data.accessToken);
+        }
         setSuccessUser(data.user || userObj);
         setTimeout(() => {
           onLoginSuccess?.(data.user || userObj);

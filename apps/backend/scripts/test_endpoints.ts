@@ -129,6 +129,12 @@ async function runAllTests() {
   const patientToken = patientLogin?.accessToken;
 
   await testEndpoint('Auth', 'GET', '/auth/me', [200], { token: adminToken });
+  await testEndpoint('Auth (Paciente)', 'GET', '/auth/me', [200], { token: patientToken });
+  await testEndpoint('RBAC (Paciente -> Caja)', 'GET', '/cash/today', [403], { token: patientToken });
+  await testEndpoint('RBAC (Paciente -> Payments)', 'GET', '/payments', [403], { token: patientToken });
+  await testEndpoint('Security (Unauth -> Clinical Save)', 'POST', '/clinical/voice-assistant/save', [401], {
+    body: { patientId: '00000000-0000-4000-a000-000000000001', clinicalData: {} },
+  });
 
   // 3. SPECIALTIES MODULE
   console.log('📋 3. Módulo Especialidades...');
@@ -420,6 +426,15 @@ async function runAllTests() {
       role: 'PROFESIONAL',
     },
   });
+
+  // 14. EMAILS & COMMUNICATIONS MODULE
+  console.log('✉️ 14. Módulo Emails & Recordatorios...');
+  await testEndpoint('Emails', 'GET', '/emails/templates', [200], { token: adminToken });
+  await testEndpoint('Emails', 'GET', '/emails/logs', [200], { token: adminToken });
+
+  // 15. PAYMENTS MODULE
+  console.log('💳 15. Módulo Pagos...');
+  await testEndpoint('Payments', 'GET', '/payments', [200], { token: adminToken });
 
   // SUMMARY REPORT
   console.log('\n=============================================================================');

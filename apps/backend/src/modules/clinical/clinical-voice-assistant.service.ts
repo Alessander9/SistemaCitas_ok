@@ -1,6 +1,30 @@
 // apps/backend/src/modules/clinical/clinical-voice-assistant.service.ts
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { parseClinicalSpeechShared } from '@citassistema/shared-types';
 import { DatabaseService } from '../../database/database.service';
+import {
+  ClinicalKnowledgeService,
+  ClinicalAlertItem,
+  Cie10Match,
+  SuggestedSupplyItem,
+} from './clinical-knowledge.service';
+
+export type VoiceAssistantIntent =
+  | 'AMBIENT_EXTRACT'
+  | 'DICTATE_OR_CORRECT'
+  | 'ASK_PATIENT_HISTORY'
+  | 'ASK_CLINICAL_PROTOCOL'
+  | 'APPLY_MACRO'
+  | 'UNDO'
+  | 'COMMAND_SAVE';
+
+export interface VoiceProcessOptions {
+  mode?: 'ambient' | 'active';
+  clinicId?: string;
+  patientId?: string;
+  patientAllergies?: string;
+  privacyMode?: boolean;
+}
 
 export interface ParsedMedicationItem {
   medicationName: string;
@@ -38,6 +62,13 @@ export interface VoiceAssistantProcessResult {
   spokenAlert: string;
   providerUsed: string;
   rawTranscript: string;
+  mode: 'ambient' | 'active';
+  wakeWordDetected: boolean;
+  intent: VoiceAssistantIntent;
+  shouldSpeak: boolean;
+  clinicalAlerts: ClinicalAlertItem[];
+  silentCie10?: Cie10Match | null;
+  suggestedSupplies?: SuggestedSupplyItem[];
 }
 
 export interface SaveConsultationDto {
@@ -51,82 +82,332 @@ export interface SaveConsultationDto {
 export class ClinicalVoiceAssistantService {
   private readonly logger = new Logger(ClinicalVoiceAssistantService.name);
 
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    @Optional() private readonly knowledge?: ClinicalKnowledgeService,
+  ) {}
 
   /**
-   * Procesa el dictado del médico utilizando la Cascada Multi-Proveedor:
-   * 1. Groq Cloud (openai/gpt-oss-120b - Ultra rápido)
-   * 2. Google Gemini (gemini-3.8-flash / gemini-flash-latest)
-   * 3. OpenRouter
-   * 4. Motor Determinista por Reglas (Fallback local 100% garantizado)
+   * Detecta la invocación por nombre configurado (por defecto "Chanfainita") con tolerancia fonética en español peruano.
+   */
+  public detectChanfainitaWakeWord(
+    transcript: string,
+    customAliases?: string[],
+  ): { invoked: boolean; commandText: string } {
+    const aliases =
+      customAliases && customAliases.length > 0
+        ? customAliases
+        : ['chanfainita', 'chanfanita', 'chanfaina', 'chanfa'];
+    const escaped = aliases
+      .map((a) => a.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .filter(Boolean)
+      .join('|');
+    const regex = new RegExp(`(?:^|[\\s,.;:!?])(?:(?:oye|hola|ey)\\s+)?(?:${escaped})\\b[\\s,.;:!?-]*`, 'i');
+    const match = transcript.match(regex);
+    if (!match) {
+      return { invoked: false, commandText: transcript.trim() };
+    }
+    const afterWake = transcript.slice((match.index || 0) + match[0].length).trim();
+    return { invoked: true, commandText: afterWake || transcript.trim() };
+  }
+
+  /**
+   * Regla de Doble Canal: garantiza que el canal de voz NUNCA recite códigos CIE-10 ni siglas técnicas.
+   */
+  public stripTechnicalCodesForSpeech(text: string): string {
+    return (text || '')
+      .replace(/\b(?:CIE-?10\s*:?\s*)?[A-Z]\d{2}(?:\.\d{1,2})?\s*[-–:]?\s*/g, '')
+      .replace(/\b(?:CMP|RNE|UUID|ID)\s*[:#]?\s*[\w-]+/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  /**
+   * Procesa el audio del consultorio en modo Ambiental Silencioso o Bilateral Activo ("Chanfainita").
+   * Cascada Multi-Proveedor: Groq -> Gemini -> OpenRouter -> Motor Determinista Local.
    */
   async processDictation(
     transcript: string,
     currentData?: Partial<ParsedClinicalData>,
+    options?: VoiceProcessOptions,
   ): Promise<VoiceAssistantProcessResult> {
     const text = transcript.trim();
+    const requestedMode = options?.mode || 'ambient';
+
     if (!text) {
       return {
         parsedData: currentData || {},
         missingFields: this.calculateMissingFields(currentData || {}),
         isComplete: false,
-        spokenAlert: 'No se detectó audio en el dictado. Por favor, hable al micrófono.',
+        spokenAlert: requestedMode === 'active' ? 'No escuché audio. ¿En qué te ayudo?' : '',
         providerUsed: 'Ninguno',
         rawTranscript: '',
+        mode: requestedMode,
+        wakeWordDetected: false,
+        intent: 'AMBIENT_EXTRACT',
+        shouldSpeak: false,
+        clinicalAlerts: [],
       };
     }
 
+    const voiceSettings = this.knowledge
+      ? await this.knowledge.getVoiceSettings(options?.clinicId)
+      : null;
+    const wake = this.detectChanfainitaWakeWord(text, voiceSettings?.wakeAliases);
+    const effectiveMode: 'ambient' | 'active' = wake.invoked || requestedMode === 'active' ? 'active' : 'ambient';
+    const commandText = wake.invoked ? wake.commandText : text;
+    const normCmd = commandText
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    const patientCtx = this.knowledge
+      ? await this.knowledge.getPatientClinicalContext(
+          options?.clinicId,
+          options?.patientId,
+          options?.patientAllergies,
+        )
+      : { allergies: options?.patientAllergies || 'Ninguna conocida', activeMedications: [] };
+
+    // -------------------------------------------------------------------------
+    // 1. Intenciones Bilaterales Directas (solo cuando Chanfainita fue invocada o modo activo)
+    // -------------------------------------------------------------------------
+    if (effectiveMode === 'active') {
+      // 1A. Deshacer último cambio (Undo 1-paso)
+      if (/\b(deshaz|deshacer|borra lo ultimo|revertir)\b/.test(normCmd)) {
+        return {
+          parsedData: currentData || {},
+          missingFields: this.calculateMissingFields(currentData || {}),
+          isComplete: this.calculateMissingFields(currentData || {}).length === 0,
+          spokenAlert: 'Listo, deshice el último cambio en la ficha.',
+          providerUsed: 'Chanfainita · Comando Rápido',
+          rawTranscript: text,
+          mode: 'active',
+          wakeWordDetected: wake.invoked,
+          intent: 'UNDO',
+          shouldSpeak: !options?.privacyMode,
+          clinicalAlerts: [],
+        };
+      }
+
+      // 1B. Pregunta sobre historial / alergias / resumen del paciente (NO modifica la ficha)
+      if (
+        /\b(alergia|alergias|resumeme|resumen|sesion pasada|ultima sesion|como estuvo|como vino|historial|que toma|medicacion actual)\b/.test(
+          normCmd,
+        )
+      ) {
+        const parts: string[] = [];
+        if (normCmd.includes('alergia')) {
+          parts.push(
+            patientCtx.allergies.toLowerCase().includes('ninguna')
+              ? 'No registra alergias conocidas.'
+              : `Registra alergia a ${patientCtx.allergies}.`,
+          );
+        } else {
+          if (patientCtx.ageLabel) parts.push(`Paciente de ${patientCtx.ageLabel}.`);
+          if (patientCtx.recentDiagnosis) {
+            parts.push(`Último cuadro: ${this.stripTechnicalCodesForSpeech(patientCtx.recentDiagnosis)}.`);
+          }
+          if (patientCtx.lastEva !== undefined) {
+            parts.push(
+              patientCtx.previousEva !== undefined
+                ? `Su dolor pasó de ${patientCtx.previousEva} a ${patientCtx.lastEva} sobre diez.`
+                : `Su último dolor registrado fue de ${patientCtx.lastEva} sobre diez.`,
+            );
+          }
+          parts.push(
+            patientCtx.allergies.toLowerCase().includes('ninguna')
+              ? 'Sin alergias registradas.'
+              : `Atención: alergia a ${patientCtx.allergies}.`,
+          );
+        }
+
+        const spoken = this.stripTechnicalCodesForSpeech(parts.join(' '));
+        return {
+          parsedData: currentData || {},
+          missingFields: this.calculateMissingFields(currentData || {}),
+          isComplete: this.calculateMissingFields(currentData || {}).length === 0,
+          spokenAlert: spoken,
+          providerUsed: 'Chanfainita · Contexto Vivo del Paciente',
+          rawTranscript: text,
+          mode: 'active',
+          wakeWordDetected: wake.invoked,
+          intent: 'ASK_PATIENT_HISTORY',
+          shouldSpeak: !options?.privacyMode,
+          clinicalAlerts: [],
+        };
+      }
+
+      // 1C. Consulta de Protocolo Clínico de la sede (NO modifica la ficha)
+      if (/\b(protocolo|que ejercicios|que indicamos|que recomendamos|guia clinica)\b/.test(normCmd)) {
+        const proto = this.knowledge ? await this.knowledge.findProtocol(commandText, options?.clinicId) : null;
+        const spoken = proto
+          ? `Para ${proto.pathology.toLowerCase()} recomendamos ${proto.recommendedTechniques.slice(0, 2).join(' y ')}. Para casa: ${proto.homeExercises}`
+          : 'No encontré un protocolo específico para esa consulta en la base de la clínica.';
+        return {
+          parsedData: currentData || {},
+          missingFields: this.calculateMissingFields(currentData || {}),
+          isComplete: this.calculateMissingFields(currentData || {}).length === 0,
+          spokenAlert: this.stripTechnicalCodesForSpeech(spoken),
+          providerUsed: 'Chanfainita · Protocolos Clínicos',
+          rawTranscript: text,
+          mode: 'active',
+          wakeWordDetected: wake.invoked,
+          intent: 'ASK_CLINICAL_PROTOCOL',
+          shouldSpeak: !options?.privacyMode,
+          clinicalAlerts: [],
+        };
+      }
+
+      // 1D. Macro Clínica por Voz (Plantillas de Control Rápido)
+      if (this.knowledge) {
+        const macro = await this.knowledge.findVoiceMacro(commandText, options?.clinicId);
+        if (macro) {
+          const merged: ParsedClinicalData = { ...(currentData || {}), ...macro.templateData };
+          const missing = this.calculateMissingFields(merged);
+          return {
+            parsedData: merged,
+            missingFields: missing,
+            isComplete: missing.length === 0,
+            spokenAlert: `Apliqué la plantilla de ${macro.title.toLowerCase()}. ¿Deseas ajustar el nivel de dolor o algún dato de hoy?`,
+            providerUsed: 'Chanfainita · Macro Clínica',
+            rawTranscript: text,
+            mode: 'active',
+            wakeWordDetected: wake.invoked,
+            intent: 'APPLY_MACRO',
+            shouldSpeak: !options?.privacyMode,
+            clinicalAlerts: [],
+          };
+        }
+      }
+
+      // 1E. Comando de Cierre / Revisión de Faltantes
+      if (/\b(que falta|falta algo|cerrar ficha|guarda la ficha|guardar ficha|esta completa)\b/.test(normCmd)) {
+        const missing = this.calculateMissingFields(currentData || {});
+        const isComplete = missing.length === 0;
+        const spoken = isComplete
+          ? 'La ficha está completa y lista. Cuando gustes confirma para guardarla.'
+          : this.buildSpokenAlert(currentData || {}, missing, false);
+        return {
+          parsedData: currentData || {},
+          missingFields: missing,
+          isComplete,
+          spokenAlert: this.stripTechnicalCodesForSpeech(spoken),
+          providerUsed: 'Chanfainita · Verificador de Ficha',
+          rawTranscript: text,
+          mode: 'active',
+          wakeWordDetected: wake.invoked,
+          intent: 'COMMAND_SAVE',
+          shouldSpeak: !options?.privacyMode,
+          clinicalAlerts: [],
+        };
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. Extracción Clínica (Cascada Multi-Proveedor -> Fallback Local)
+    // -------------------------------------------------------------------------
     let parsed: ParsedClinicalData | null = null;
     let providerUsed = '';
 
-    // -------------------------------------------------------------------------
-    // Proveedor 1: Groq Cloud LPU
-    // -------------------------------------------------------------------------
     if (process.env.GROQ_API_KEY && !parsed) {
       try {
-        parsed = await this.callGroq(text, currentData);
+        parsed = await this.callGroq(commandText, currentData);
         if (parsed) providerUsed = 'Groq LPU (GPT-OSS-120B)';
-      } catch (err: any) {
-        this.logger.warn(`Groq falló, pasando al siguiente proveedor: ${err.message}`);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`Groq falló, pasando al siguiente proveedor: ${msg}`);
       }
     }
 
-    // -------------------------------------------------------------------------
-    // Proveedor 2: Google Gemini (AI Studio)
-    // -------------------------------------------------------------------------
     if (process.env.GEMINI_API_KEY && !parsed) {
       try {
-        parsed = await this.callGemini(text, currentData);
+        parsed = await this.callGemini(commandText, currentData);
         if (parsed) providerUsed = 'Google Gemini (Flash)';
-      } catch (err: any) {
-        this.logger.warn(`Gemini falló, pasando al siguiente proveedor: ${err.message}`);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`Gemini falló, pasando al siguiente proveedor: ${msg}`);
       }
     }
 
-    // -------------------------------------------------------------------------
-    // Proveedor 3: OpenRouter
-    // -------------------------------------------------------------------------
     if (process.env.OPENROUTER_API_KEY && !parsed) {
       try {
-        parsed = await this.callOpenRouter(text, currentData);
+        parsed = await this.callOpenRouter(commandText, currentData);
         if (parsed) providerUsed = 'OpenRouter AI';
-      } catch (err: any) {
-        this.logger.warn(`OpenRouter falló, pasando al fallback local: ${err.message}`);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`OpenRouter falló, pasando al fallback local: ${msg}`);
+      }
+    }
+
+    if (!parsed) {
+      parsed = this.localDeterministicParser(commandText, currentData);
+      providerUsed = 'Chanfainita · Motor Clínico Local';
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. Codificación CIE-10 Silenciosa (Solo en pantalla/BD, NUNCA por voz)
+    // -------------------------------------------------------------------------
+    let silentCie10: Cie10Match | null = null;
+    if (this.knowledge) {
+      const diagSource = [parsed.diagnosis, parsed.chiefComplaint, commandText].filter(Boolean).join(' ');
+      silentCie10 = await this.knowledge.matchCie10(diagSource);
+      if (silentCie10 && (!parsed.diagnosis || !/^[A-Z]\d{2}/.test(parsed.diagnosis))) {
+        parsed.diagnosis = `${silentCie10.code} - ${silentCie10.displayName}`;
       }
     }
 
     // -------------------------------------------------------------------------
-    // Fallback: Analizador Determinista Local (Garantía 0% downtime)
+    // 4. Guardrails Deterministas: Alergias, Banderas Rojas e Insumos Kardex
     // -------------------------------------------------------------------------
-    if (!parsed) {
-      parsed = this.localDeterministicParser(text, currentData);
-      providerUsed = 'Motor Local Inteligente (Reglas Clínicas)';
+    const clinicalAlerts: ClinicalAlertItem[] = [];
+    let suggestedSupplies: SuggestedSupplyItem[] = [];
+    if (this.knowledge) {
+      const allergyAlerts = await this.knowledge.checkAllergyConflicts(
+        patientCtx.allergies,
+        parsed.medications || [],
+        commandText,
+      );
+      const redFlagAlerts = await this.knowledge.detectRedFlags(commandText);
+      clinicalAlerts.push(...allergyAlerts, ...redFlagAlerts);
+
+      if (clinicalAlerts.length > 0) {
+        this.knowledge
+          .logClinicalAlerts(options?.clinicId, options?.patientId, clinicalAlerts, text)
+          .catch(() => null);
+      }
+
+      suggestedSupplies = await this.knowledge.detectMentionedSupplies(text, options?.clinicId);
     }
 
-    // Calcular campos faltantes y generar frase para el altavoz (TTS)
+    // -------------------------------------------------------------------------
+    // 5. Salida Dual (Silencio total en modo ambiental; Voz Humana si invocada)
+    // -------------------------------------------------------------------------
     const missingFields = this.calculateMissingFields(parsed);
     const isComplete = missingFields.length === 0;
-    const spokenAlert = this.buildSpokenAlert(parsed, missingFields, isComplete);
+
+    let spokenAlert = '';
+    const shouldSpeak = effectiveMode === 'active' && !options?.privacyMode;
+
+    if (effectiveMode === 'active') {
+      if (clinicalAlerts.length > 0) {
+        spokenAlert = this.stripTechnicalCodesForSpeech(clinicalAlerts[0].spokenWarning);
+      } else if (/\b(apunta|anota|corrige|cambia)\b/.test(normCmd)) {
+        const cleanDiag = silentCie10
+          ? silentCie10.displayName.toLowerCase()
+          : parsed.diagnosis
+            ? this.stripTechnicalCodesForSpeech(parsed.diagnosis).toLowerCase()
+            : '';
+        const painPart = parsed.painScale !== undefined ? ` con dolor de ${parsed.painScale}` : '';
+        spokenAlert = cleanDiag
+          ? `Anotado como ${cleanDiag}${painPart}.`
+          : `Anotado${painPart}.`;
+      } else {
+        spokenAlert = this.stripTechnicalCodesForSpeech(
+          this.buildSpokenAlert(parsed, missingFields, isComplete),
+        );
+      }
+    }
 
     return {
       parsedData: parsed,
@@ -135,6 +416,207 @@ export class ClinicalVoiceAssistantService {
       spokenAlert,
       providerUsed,
       rawTranscript: text,
+      mode: effectiveMode,
+      wakeWordDetected: wake.invoked,
+      intent: effectiveMode === 'active' ? 'DICTATE_OR_CORRECT' : 'AMBIENT_EXTRACT',
+      shouldSpeak,
+      clinicalAlerts,
+      silentCie10,
+      suggestedSupplies,
+    };
+  }
+
+  /**
+   * FASE 3: Transcripción de audio médico de alta precisión con Groq Whisper (español peruano).
+   */
+  async transcribeAudioWithGroq(
+    audioBase64: string,
+    mimeType = 'audio/webm',
+  ): Promise<{ transcript: string; provider: string }> {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      throw new Error('GROQ_API_KEY no configurada en el servidor. Use el dictado nativo del navegador.');
+    }
+
+    const cleanBase64 = audioBase64.includes(',') ? audioBase64.split(',')[1] : audioBase64;
+    const buffer = Buffer.from(cleanBase64, 'base64');
+    const ext = mimeType.includes('mp4') ? 'm4a' : mimeType.includes('wav') ? 'wav' : 'webm';
+
+    const formData = new FormData();
+    formData.append('file', new Blob([buffer], { type: mimeType }), `consulta.${ext}`);
+    formData.append('model', 'whisper-large-v3-turbo');
+    formData.append('language', 'es');
+    formData.append(
+      'prompt',
+      'Consulta médica y de fisioterapia en Perú. Términos frecuentes: Chanfainita, lumbalgia, ciática, EVA, paravertebrales, Lasègue, punción seca, kinesiotape, ultrasonido, TENS, Ibuprofeno, Paracetamol, Celecoxib.',
+    );
+
+    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      throw new Error(`Groq Whisper HTTP ${response.status}: ${errText.slice(0, 120)}`);
+    }
+
+    const data = (await response.json()) as { text?: string };
+    return {
+      transcript: (data.text || '').trim(),
+      provider: 'Groq Whisper Large v3 Turbo',
+    };
+  }
+
+  /**
+   * FASE 3: Briefing Rápido Bajo Demanda (visual 3 líneas + audio de 10s solo cuando el médico lo pide).
+   */
+  async getPatientBriefing(
+    clinicId: string,
+    patientId: string,
+    fallback?: { patientName?: string; allergies?: string; diagnosis?: string; evaLast?: number; sessionLabel?: string },
+  ): Promise<{
+    lines: string[];
+    spokenBriefing: string;
+    allergies: string;
+  }> {
+    const ctx = this.knowledge
+      ? await this.knowledge.getPatientClinicalContext(clinicId, patientId, fallback?.allergies)
+      : { allergies: fallback?.allergies || 'Ninguna conocida', activeMedications: [] };
+
+    const cleanDiag = this.stripTechnicalCodesForSpeech(
+      ctx.recentDiagnosis || fallback?.diagnosis || 'Evaluación de rehabilitación activa',
+    );
+    const evaText =
+      ctx.lastEva !== undefined && ctx.previousEva !== undefined
+        ? `Dolor bajó de ${ctx.previousEva} a ${ctx.lastEva} sobre 10`
+        : ctx.lastEva !== undefined
+          ? `Último dolor EVA registrado: ${ctx.lastEva}/10`
+          : fallback?.evaLast !== undefined
+            ? `Último dolor EVA registrado: ${fallback.evaLast}/10`
+            : 'Sin registro previo de dolor EVA';
+
+    const allergyLine =
+      ctx.allergies && !ctx.allergies.toLowerCase().includes('ninguna')
+        ? `⚠️ Alergias: ${ctx.allergies}`
+        : 'Alergias: Ninguna registrada';
+
+    const lines = [
+      `Cuadro activo: ${cleanDiag}${fallback?.sessionLabel ? ` (${fallback.sessionLabel})` : ''}`,
+      evaText,
+      allergyLine,
+    ];
+
+    const namePart = fallback?.patientName ? `para ${fallback.patientName}` : 'del paciente';
+    const spokenBriefing = this.stripTechnicalCodesForSpeech(
+      `Resumen rápido ${namePart}: ${cleanDiag}. ${evaText}. ${
+        ctx.allergies && !ctx.allergies.toLowerCase().includes('ninguna')
+          ? `Importante, registra alergia a ${ctx.allergies}.`
+          : 'No registra alergias conocidas.'
+      }`,
+    );
+
+    return {
+      lines,
+      spokenBriefing,
+      allergies: ctx.allergies,
+    };
+  }
+
+  /**
+   * FASE 3: Traductor a "Lenguaje de Paciente" Post-Consulta (listo para WhatsApp y Portal del Paciente).
+   */
+  async generatePatientSummary(
+    clinicalData: ParsedClinicalData,
+    patientName = 'estimado paciente',
+  ): Promise<{ whatsappMessage: string; portalSummary: string; provider: string }> {
+    const cleanDiag = this.stripTechnicalCodesForSpeech(
+      clinicalData.diagnosis || clinicalData.chiefComplaint || 'su evaluación clínica de hoy',
+    );
+    const medsList = (clinicalData.medications || [])
+      .filter((m) => m.medicationName?.trim())
+      .map(
+        (m) =>
+          `• ${m.medicationName}: tomar ${m.dose || 'la dosis indicada'} ${m.frequency || ''} ${m.duration || ''}`.trim(),
+      );
+    const techniquesList = (clinicalData.techniques || []).filter(Boolean);
+    const homeCare =
+      clinicalData.homeRecommendations ||
+      clinicalData.treatmentPlan ||
+      'Mantener reposo relativo, hidratación y seguir los ejercicios suaves indicados en consulta.';
+
+    // Intento con LLM (anonimizado) si hay Groq API key; fallback determinista ultra claro
+    if (process.env.GROQ_API_KEY) {
+      try {
+        const prompt = `Redacta un mensaje breve, cálido y 100% entendible para un paciente en Perú (para enviar por WhatsApp) resumiendo su consulta de hoy.
+REGLAS ESTRICTAS:
+- NO incluyas códigos CIE-10 ni jerga médica difícil.
+- Usa viñetas cortas: Qué encontramos, Qué hicimos hoy, Medicación (si hay), Cuidados en casa y Señales para avisarnos.
+- Máximo 120 palabras.
+
+DATOS ANONIMIZADOS:
+Diagnóstico limpio: ${cleanDiag}
+Dolor reportado: ${clinicalData.painScale ?? 'no registrado'}/10
+Técnicas aplicadas: ${techniquesList.join(', ') || 'Evaluación clínica'}
+Medicamentos: ${medsList.join(' | ') || 'Sin medicamentos'}
+Indicaciones: ${homeCare}`;
+
+        const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.3,
+            max_tokens: 320,
+            messages: [{ role: 'user', content: prompt }],
+          }),
+        });
+
+        if (resp.ok) {
+          const json = (await resp.json()) as { choices?: Array<{ message?: { content?: string } }> };
+          const text = json.choices?.[0]?.message?.content?.trim();
+          if (text) {
+            const personalized = `Hola ${patientName} 👋\n\n${this.stripTechnicalCodesForSpeech(text)}`;
+            return {
+              whatsappMessage: personalized,
+              portalSummary: this.stripTechnicalCodesForSpeech(text),
+              provider: 'Chanfainita · Traductor Clínico IA',
+            };
+          }
+        }
+      } catch {
+        // Fallback determinista
+      }
+    }
+
+    const lines: string[] = [
+      `Hola ${patientName} 👋, aquí tienes el resumen claro de tu consulta de hoy:`,
+      '',
+      `🩺 *Qué evaluamos:* ${cleanDiag}.`,
+    ];
+
+    if (techniquesList.length > 0) {
+      lines.push(`💆 *Qué trabajamos en sesión:* ${techniquesList.join(', ')}.`);
+    }
+    if (medsList.length > 0) {
+      lines.push(`💊 *Tu medicación:*`);
+      lines.push(...medsList);
+    }
+    lines.push(`🏠 *Cuidados en casa:* ${this.stripTechnicalCodesForSpeech(homeCare)}`);
+    lines.push(
+      `⚠️ *Avísanos de inmediato* si el dolor empeora bruscamente, sientes hormigueo intenso o pérdida de fuerza.`,
+    );
+    lines.push('', '¡Seguimos acompañando tu recuperación! 💙');
+
+    const whatsappMessage = lines.join('\n');
+    return {
+      whatsappMessage,
+      portalSummary: whatsappMessage.replace(/\*/g, ''),
+      provider: 'Chanfainita · Traductor Clínico Local',
     };
   }
 
@@ -344,7 +826,7 @@ NO agregues texto fuera del bloque JSON. Responde únicamente con el JSON válid
       throw new Error(`Groq HTTP ${res.status}: ${await res.text()}`);
     }
 
-    const json = (await res.json()) as any;
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = json.choices?.[0]?.message?.content;
     return this.cleanAndParseJson(content);
   }
@@ -372,7 +854,9 @@ NO agregues texto fuera del bloque JSON. Responde únicamente con el JSON válid
       throw new Error(`Gemini HTTP ${res.status}: ${await res.text()}`);
     }
 
-    const json = (await res.json()) as any;
+    const json = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
     const content = json.candidates?.[0]?.content?.parts?.[0]?.text;
     return this.cleanAndParseJson(content);
   }
@@ -406,7 +890,7 @@ NO agregues texto fuera del bloque JSON. Responde únicamente con el JSON válid
       throw new Error(`OpenRouter HTTP ${res.status}: ${await res.text()}`);
     }
 
-    const json = (await res.json()) as any;
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = json.choices?.[0]?.message?.content;
     return this.cleanAndParseJson(content);
   }
@@ -500,43 +984,12 @@ NO agregues texto fuera del bloque JSON. Responde únicamente con el JSON válid
   }
 
   /**
-   * Analizador Determinista basado en Reglas y Expresiones Regulares
+   * Analizador Determinista compartido (fuente única de verdad en @citassistema/shared-types)
    */
   public localDeterministicParser(
     text: string,
     current?: Partial<ParsedClinicalData>,
   ): ParsedClinicalData {
-    const data: ParsedClinicalData = { ...(current || {}) };
-
-    // Escala EVA
-    const evaMatch =
-      text.match(/(?:dolor|escala|eva|nivel de dolor)\s*(?:eva)?\s*(?:de\s*)?(\d{1,2})(?:\s*(?:sobre|\/)\s*10)?/i) ||
-      text.match(/(\d{1,2})\s*(?:sobre|\/)\s*10/i);
-    if (evaMatch) {
-      const s = parseInt(evaMatch[1], 10);
-      if (s >= 0 && s <= 10) data.painScale = s;
-    }
-
-    // Motivo
-    const motivoMatch = text.match(/(?:motivo(?: de consulta)?|paciente refiere|consulta por)\s*[:\-]?\s*([^.]+)/i);
-    if (motivoMatch) data.chiefComplaint = motivoMatch[1].trim();
-
-    // Diagnóstico
-    const diagMatch = text.match(/(?:diagn[oó]stico|cie-?10|cuadro de)\s*[:\-]?\s*([^.]+)/i);
-    if (diagMatch) data.diagnosis = diagMatch[1].trim();
-
-    // Plan
-    const planMatch = text.match(/(?:plan(?: de tratamiento| terap[eé]utico)?|tratamiento)\s*[:\-]?\s*([^.]+)/i);
-    if (planMatch) data.treatmentPlan = planMatch[1].trim();
-
-    // Examen Físico
-    const examenMatch = text.match(/(?:examen f[ií]sico|evaluaci[oó]n|a la palpaci[oó]n)\s*[:\-]?\s*([^.]+)/i);
-    if (examenMatch) data.physicalExam = examenMatch[1].trim();
-
-    if (!data.chiefComplaint && text.length > 10) {
-      data.chiefComplaint = text.split('.')[0].trim();
-    }
-
-    return data;
+    return parseClinicalSpeechShared(text, current);
   }
 }

@@ -6,6 +6,23 @@ import { AppShell } from './components/layout/AppShell';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { SpeedDialFAB } from './components/layout/SpeedDialFAB';
 import { SkeletonLoader } from './components/common/SkeletonLoader';
+import type { ClinicalPatientData } from './pages/clinical/ClinicalConsultationView';
+
+type AppRole = 'SUPER_ADMIN' | 'ADMIN_CLINIC' | 'PROFESIONAL' | 'RECEPCION' | 'PACIENTE';
+type AppView =
+  | 'landing'
+  | 'booking'
+  | 'login'
+  | 'dashboard'
+  | 'doctor-schedule'
+  | 'reception-booking'
+  | 'clinical-consultation'
+  | 'cash-register'
+  | 'inventory'
+  | 'communications'
+  | 'telegram-bot'
+  | 'clinical-knowledge'
+  | 'patient-portal';
 
 // Lazy-loaded heavy pages and dashboards for optimized bundle splitting
 import { BookingWizard } from './components/booking/BookingWizard';
@@ -14,6 +31,7 @@ const CashRegisterPage = lazy(() => import('./pages/admin/CashRegisterPage').the
 const InventoryPage = lazy(() => import('./pages/admin/InventoryPage').then((m) => ({ default: m.InventoryPage })));
 const CommunicationsPage = lazy(() => import('./pages/admin/CommunicationsPage').then((m) => ({ default: m.CommunicationsPage })));
 const TelegramBotPage = lazy(() => import('./pages/admin/TelegramBotPage').then((m) => ({ default: m.TelegramBotPage })));
+const ClinicalKnowledgeAdminPage = lazy(() => import('./pages/admin/ClinicalKnowledgeAdminPage').then((m) => ({ default: m.ClinicalKnowledgeAdminPage })));
 const ReceptionBookingPage = lazy(() => import('./pages/admin/ReceptionBookingPage').then((m) => ({ default: m.ReceptionBookingPage })));
 const PatientPortal = lazy(() => import('./pages/patient/PatientPortal').then((m) => ({ default: m.PatientPortal })));
 const SuperAdminDashboard = lazy(() => import('./pages/dashboards/SuperAdminDashboard').then((m) => ({ default: m.SuperAdminDashboard })));
@@ -23,14 +41,15 @@ const ReceptionDashboard = lazy(() => import('./pages/dashboards/ReceptionDashbo
 const PatientDashboard = lazy(() => import('./pages/dashboards/PatientDashboard').then((m) => ({ default: m.PatientDashboard })));
 
 export const App: React.FC = () => {
-  const [activeRole, setActiveRole] = useState<'SUPER_ADMIN' | 'ADMIN_CLINIC' | 'PROFESIONAL' | 'RECEPCION' | 'PACIENTE'>('ADMIN_CLINIC');
-  const getInitialView = () => {
+  const [activeRole, setActiveRole] = useState<AppRole>('ADMIN_CLINIC');
+  const [activeDoctorPatient, setActiveDoctorPatient] = useState<ClinicalPatientData | null>(null);
+  const getInitialView = (): AppView => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlView = params.get('view');
       const hashView = window.location.hash.replace('#', '');
       const candidate = urlView || hashView;
-      const validViews = [
+      const validViews: AppView[] = [
         'landing',
         'booking',
         'login',
@@ -42,29 +61,17 @@ export const App: React.FC = () => {
         'inventory',
         'communications',
         'telegram-bot',
+        'clinical-knowledge',
         'patient-portal',
       ];
-      if (candidate && validViews.includes(candidate)) {
-        return candidate as any;
+      if (candidate && validViews.includes(candidate as AppView)) {
+        return candidate as AppView;
       }
     }
     return 'landing';
   };
 
-  const [currentView, setCurrentViewState] = useState<
-    | 'landing'
-    | 'booking'
-    | 'login'
-    | 'dashboard'
-    | 'doctor-schedule'
-    | 'reception-booking'
-    | 'clinical-consultation'
-    | 'cash-register'
-    | 'inventory'
-    | 'communications'
-    | 'telegram-bot'
-    | 'patient-portal'
-  >(getInitialView);
+  const [currentView, setCurrentViewState] = useState<AppView>(getInitialView);
 
   const setCurrentView = (view: typeof currentView) => {
     setCurrentViewState(view);
@@ -94,6 +101,9 @@ export const App: React.FC = () => {
 
   const handleNavigateToLogin = () => {
     setSupervisedClinic(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('vitalsalud_access_token');
+    }
     setCurrentView('login');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -104,7 +114,7 @@ export const App: React.FC = () => {
   };
 
   const handleLoginSuccess = (user: { roles: string[] }) => {
-    const primaryRole = (user.roles?.[0] as any) || 'ADMIN_CLINIC';
+    const primaryRole = (user.roles?.[0] as AppRole) || 'ADMIN_CLINIC';
     setActiveRole(primaryRole);
     setSupervisedClinic(null);
     setCurrentView('dashboard');
@@ -166,7 +176,7 @@ export const App: React.FC = () => {
               </div>
 
               <ClinicAdminDashboard
-                onNavigate={(v) => setCurrentView(v as any)}
+                onNavigate={(v) => setCurrentView(v as AppView)}
                 clinicName={supervisedClinic.name}
                 adminName="Alessander (Super Admin Global)"
               />
@@ -175,18 +185,20 @@ export const App: React.FC = () => {
         }
         return (
           <SuperAdminDashboard
-            onSwitchClinic={(id) => console.log('Switched to clinic:', id)}
+            onSwitchClinic={() => {
+              /* Contexto de sede seleccionado en el directorio SuperAdmin */
+            }}
             onOpenClinicConsole={(clinic) => {
               setSupervisedClinic(clinic);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            onNavigate={(v) => setCurrentView(v as any)}
+            onNavigate={(v) => setCurrentView(v as AppView)}
           />
         );
       case 'ADMIN_CLINIC':
         return (
           <ClinicAdminDashboard
-            onNavigate={(v) => setCurrentView(v as any)}
+            onNavigate={(v) => setCurrentView(v as AppView)}
             clinicName="Clínica Sanitas Lima"
             adminName="Alessander (Director Médico)"
           />
@@ -196,7 +208,12 @@ export const App: React.FC = () => {
           <DoctorDashboard
             doctorName="Dra. María González"
             specialty="Fisioterapia y Rehabilitación"
-            onOpenConsultation={() => setCurrentView('clinical-consultation')}
+            onOpenConsultation={(patient) => {
+              if (patient) {
+                setActiveDoctorPatient(patient);
+              }
+              setCurrentView('clinical-consultation');
+            }}
           />
         );
       case 'RECEPCION':
@@ -210,12 +227,14 @@ export const App: React.FC = () => {
         return (
           <PatientDashboard
             patientName="Juan Pérez Quispe"
-            onBookAppointment={() => handleStartBooking()}
+            onBookAppointment={() => {
+              /* El modal rápido QuickBookingModal gestiona la reserva en línea sin salir del portal */
+            }}
             onLogout={handleNavigateToLogin}
           />
         );
       default:
-        return <ClinicAdminDashboard onNavigate={(v) => setCurrentView(v as any)} />;
+        return <ClinicAdminDashboard onNavigate={(v) => setCurrentView(v as AppView)} />;
     }
   };
 
@@ -235,7 +254,7 @@ export const App: React.FC = () => {
       handleStartBooking();
     } else if (target === 'patient_dashboard') {
       setActiveRole('PACIENTE');
-      setCurrentView('patient-portal');
+      setCurrentView('dashboard');
     } else if (target === 'prescriptions') {
       setActiveRole('PACIENTE');
       setCurrentView('patient-portal');
@@ -254,6 +273,9 @@ export const App: React.FC = () => {
     } else if (target === 'doctor_dashboard') {
       setActiveRole('PROFESIONAL');
       setCurrentView('dashboard');
+    } else if (target === 'doctor_schedule') {
+      setActiveRole('PROFESIONAL');
+      setCurrentView('doctor-schedule');
     } else if (target === 'clinical_consultation') {
       setActiveRole('PROFESIONAL');
       setCurrentView('clinical-consultation');
@@ -327,6 +349,8 @@ export const App: React.FC = () => {
     } else if (action === 'clinical_eva') {
       setActiveRole('PROFESIONAL');
       setCurrentView('clinical-consultation');
+    } else if (action === 'whatsapp') {
+      setCurrentView('communications');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -337,7 +361,7 @@ export const App: React.FC = () => {
         currentView={currentView}
         activeRole={activeRole}
         onNavigate={(view) => {
-          setCurrentView(view as any);
+          setCurrentView(view as AppView);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onRoleChange={(role) => {
@@ -356,7 +380,12 @@ export const App: React.FC = () => {
               doctorName="Dra. María González"
               specialty="Fisioterapia y Rehabilitación"
               initialTab="weekly"
-              onOpenConsultation={() => setCurrentView('clinical-consultation')}
+              onOpenConsultation={(patient) => {
+                if (patient) {
+                  setActiveDoctorPatient(patient);
+                }
+                setCurrentView('clinical-consultation');
+              }}
             />
           )}
 
@@ -369,6 +398,7 @@ export const App: React.FC = () => {
 
           {currentView === 'clinical-consultation' && (
             <ClinicalConsultationView
+              patientData={activeDoctorPatient}
               onBack={() => setCurrentView('dashboard')}
               onNavigateToCash={() => setCurrentView('cash-register')}
               onNavigateToBooking={() => setCurrentView('reception-booking')}
@@ -388,6 +418,7 @@ export const App: React.FC = () => {
           )}
           {currentView === 'communications' && <CommunicationsPage />}
           {currentView === 'telegram-bot' && <TelegramBotPage />}
+          {currentView === 'clinical-knowledge' && <ClinicalKnowledgeAdminPage />}
           {currentView === 'patient-portal' && (
             <PatientPortal
               onLogout={handleNavigateToLogin}
@@ -397,7 +428,7 @@ export const App: React.FC = () => {
         </Suspense>
       </AppShell>
 
-      <SpeedDialFAB onAction={handleSpeedDialAction} />
+      {activeRole !== 'PACIENTE' && <SpeedDialFAB onAction={handleSpeedDialAction} />}
 
       <MobileBottomNav
         activeView={currentView}

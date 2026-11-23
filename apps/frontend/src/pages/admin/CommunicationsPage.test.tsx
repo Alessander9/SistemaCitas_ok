@@ -6,7 +6,7 @@ describe('CommunicationsPage', () => {
   it('should render without errors and show page title and templates', () => {
     render(<CommunicationsPage />);
     expect(screen.getByText('Comunicaciones & Correos')).toBeTruthy();
-    expect(screen.getByText('appointment_confirmation')).toBeTruthy();
+    expect(screen.getByText('Confirmación de cita')).toBeTruthy();
   });
 
   it('should switch to logs tab and display audit logs table', () => {
@@ -20,12 +20,8 @@ describe('CommunicationsPage', () => {
     expect(screen.getByText('elena.gomez@example.com')).toBeTruthy();
   });
 
-  it('should allow typing test recipient and dispatching test email', () => {
+  it('should allow typing test recipient and dispatching test email directly from templates tab', () => {
     render(<CommunicationsPage />);
-    const testTab = document.getElementById('tab-test');
-    expect(testTab).toBeTruthy();
-    fireEvent.click(testTab!);
-
     const recipientInput = document.getElementById('test-recipient') as HTMLInputElement;
     expect(recipientInput).toBeTruthy();
     fireEvent.change(recipientInput, { target: { value: 'nuevo.paciente@correo.com' } });

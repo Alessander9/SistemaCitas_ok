@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ClinicalService } from './clinical.service';
+import { ClinicalKnowledgeService } from './clinical-knowledge.service';
 import {
   ClinicalVoiceAssistantService,
   ParsedClinicalData,
@@ -22,8 +23,10 @@ import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { CreateTreatmentSessionDto } from './dto/create-treatment-session.dto';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { SavePainMapDto } from './dto/save-pain-map.dto';
-import { CurrentTenant, CurrentUser, Roles, Public } from '../../common/decorators';
+import { CurrentTenant, CurrentUser, Roles } from '../../common/decorators';
 import { JwtAuthGuard, TenantGuard, RolesGuard } from '../../common/guards';
+import { DatabaseService } from '../../database/database.service';
+import { assertPatientOwnership } from '../../common/security/patient-ownership.util';
 import {
   MedicalRecord,
   Treatment,
@@ -41,6 +44,8 @@ export class ClinicalController {
   constructor(
     private readonly clinicalService: ClinicalService,
     private readonly voiceAssistantService: ClinicalVoiceAssistantService,
+    private readonly knowledgeService: ClinicalKnowledgeService,
+    private readonly db: DatabaseService,
   ) {}
 
   // ---------------------------------------------------------------------------
@@ -61,8 +66,10 @@ export class ClinicalController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.PACIENTE)
   async getPatientRecords(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('patientId') patientId: string,
   ): Promise<MedicalRecord[]> {
+    await assertPatientOwnership(this.db, clinicId, user, patientId);
     return this.clinicalService.getPatientMedicalRecords(clinicId, patientId);
   }
 
@@ -70,9 +77,12 @@ export class ClinicalController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.PACIENTE)
   async getRecordById(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ): Promise<MedicalRecord> {
-    return this.clinicalService.getMedicalRecordById(clinicId, id);
+    const rec = await this.clinicalService.getMedicalRecordById(clinicId, id);
+    await assertPatientOwnership(this.db, clinicId, user, rec.patientId);
+    return rec;
   }
 
   // ---------------------------------------------------------------------------
@@ -93,8 +103,10 @@ export class ClinicalController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.PACIENTE)
   async getPatientTreatments(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('patientId') patientId: string,
   ): Promise<Treatment[]> {
+    await assertPatientOwnership(this.db, clinicId, user, patientId);
     return this.clinicalService.getPatientTreatments(clinicId, patientId);
   }
 
@@ -102,9 +114,12 @@ export class ClinicalController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.PACIENTE)
   async getTreatmentById(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ): Promise<Treatment> {
-    return this.clinicalService.getTreatmentById(clinicId, id);
+    const tr = await this.clinicalService.getTreatmentById(clinicId, id);
+    await assertPatientOwnership(this.db, clinicId, user, tr.patientId);
+    return tr;
   }
 
   @Post('treatments/:treatmentId/sessions')
@@ -148,8 +163,10 @@ export class ClinicalController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.PACIENTE)
   async getPatientPrescriptions(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('patientId') patientId: string,
   ): Promise<Prescription[]> {
+    await assertPatientOwnership(this.db, clinicId, user, patientId);
     return this.clinicalService.getPatientPrescriptions(clinicId, patientId);
   }
 
@@ -157,9 +174,12 @@ export class ClinicalController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.PACIENTE)
   async getPrescriptionById(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ): Promise<Prescription> {
-    return this.clinicalService.getPrescriptionById(clinicId, id);
+    const rx = await this.clinicalService.getPrescriptionById(clinicId, id);
+    await assertPatientOwnership(this.db, clinicId, user, rx.patientId);
+    return rx;
   }
 
   // ---------------------------------------------------------------------------
@@ -181,10 +201,12 @@ export class ClinicalController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.PACIENTE)
   async getPainMap(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('patientId') patientId: string,
     @Query('recordId') recordId?: string,
     @Query('sessionId') sessionId?: string,
   ): Promise<PainPoint[]> {
+    await assertPatientOwnership(this.db, clinicId, user, patientId);
     return this.clinicalService.getPainMap(clinicId, patientId, {
       recordId,
       sessionId,
@@ -206,33 +228,104 @@ export class ClinicalController {
   // ---------------------------------------------------------------------------
 
   @Post('voice-assistant/process')
-  @Public()
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL)
   @HttpCode(HttpStatus.OK)
   async processVoiceDictation(
-    @Body() body: { transcript: string; currentData?: Partial<ParsedClinicalData> },
+    @CurrentTenant() clinicId: string,
+    @Body()
+    body: {
+      transcript: string;
+      currentData?: Partial<ParsedClinicalData>;
+      mode?: 'ambient' | 'active';
+      patientId?: string;
+      patientAllergies?: string;
+      privacyMode?: boolean;
+    },
   ): Promise<VoiceAssistantProcessResult> {
     return this.voiceAssistantService.processDictation(
       body.transcript || '',
       body.currentData,
+      {
+        mode: body.mode || 'ambient',
+        clinicId,
+        patientId: body.patientId,
+        patientAllergies: body.patientAllergies,
+        privacyMode: body.privacyMode,
+      },
     );
   }
 
   @Post('voice-assistant/save')
-  @Public()
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL)
   @HttpCode(HttpStatus.CREATED)
   async saveVoiceConsultation(
     @CurrentTenant() clinicId: string,
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: SaveConsultationDto,
   ): Promise<{ recordId: string; prescriptionId?: string; spokenConfirmation: string }> {
-    const effectiveClinicId = clinicId || 'a0000000-0000-4000-a000-000000000001';
-    const effectiveProfessionalId = dto.professionalId || user?.id || 'e0000000-0000-4000-a000-000000000001';
-    const effectivePatientId = dto.patientId || '20175da2-1cfe-4934-829b-9e32de9f06d9';
+    const effectiveProfessionalId = dto.professionalId || user.id;
 
-    return this.voiceAssistantService.saveConsultationRecord(effectiveClinicId, {
+    return this.voiceAssistantService.saveConsultationRecord(clinicId, {
       ...dto,
-      patientId: effectivePatientId,
       professionalId: effectiveProfessionalId,
     });
+  }
+
+  @Post('voice-assistant/transcribe')
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL)
+  @HttpCode(HttpStatus.OK)
+  async transcribeVoiceAudio(
+    @Body() body: { audioBase64: string; mimeType?: string },
+  ): Promise<{ transcript: string; provider: string }> {
+    return this.voiceAssistantService.transcribeAudioWithGroq(body.audioBase64, body.mimeType);
+  }
+
+  @Post('voice-assistant/patient-summary')
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL)
+  @HttpCode(HttpStatus.OK)
+  async generatePatientSummary(
+    @Body() body: { clinicalData: ParsedClinicalData; patientName?: string },
+  ): Promise<{ whatsappMessage: string; portalSummary: string; provider: string }> {
+    return this.voiceAssistantService.generatePatientSummary(body.clinicalData || {}, body.patientName);
+  }
+
+  @Get('voice-assistant/briefing/:patientId')
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL)
+  async getPatientBriefing(
+    @CurrentTenant() clinicId: string,
+    @Param('patientId') patientId: string,
+    @Query('patientName') patientName?: string,
+    @Query('allergies') allergies?: string,
+    @Query('diagnosis') diagnosis?: string,
+    @Query('evaLast') evaLast?: string,
+    @Query('sessionLabel') sessionLabel?: string,
+  ) {
+    return this.voiceAssistantService.getPatientBriefing(clinicId, patientId, {
+      patientName,
+      allergies,
+      diagnosis,
+      evaLast: evaLast !== undefined ? Number(evaLast) : undefined,
+      sessionLabel,
+    });
+  }
+
+  @Post('voice-assistant/deduct-supplies')
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL)
+  @HttpCode(HttpStatus.OK)
+  async deductConfirmedSupplies(
+    @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body()
+    body: {
+      supplies: Array<{ productId?: string; name: string; quantity: number }>;
+      reference?: string;
+    },
+  ): Promise<{ deductedCount: number; details: string[] }> {
+    return this.knowledgeService.deductConfirmedSupplies(
+      clinicId,
+      user.id,
+      body.supplies || [],
+      body.reference,
+    );
   }
 }

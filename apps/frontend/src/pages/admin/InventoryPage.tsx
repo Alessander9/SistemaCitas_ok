@@ -1,316 +1,396 @@
 import { useState, Fragment } from 'react';
 import './InventoryPage.css';
 import { MaterialIcon } from '../../components/ui/MaterialIcon';
-
-type MovementType = 'sale' | 'purchase' | 'adjustment' | 'return' | 'waste';
-
-interface InventoryProduct {
-  id: string;
-  name: string;
-  sku?: string;
-  category?: string;
-  unit: string;
-  currentStock: number;
-  minStock: number;
-  costPrice: number;
-  sellPrice: number;
-  isActive: boolean;
-  isLowStock: boolean;
-}
-
-interface InventoryMovement {
-  id: string;
-  productId: string;
-  productName: string;
-  type: MovementType;
-  quantity: number;
-  notes?: string;
-  createdAt: string;
-}
-
-const MOVEMENT_LABELS: Record<MovementType, string> = {
-  sale: 'Salida – Venta',
-  purchase: 'Entrada – Compra',
-  adjustment: 'Ajuste de inventario',
-  return: 'Devolución',
-  waste: 'Merma',
-};
-
-const mockProducts: InventoryProduct[] = [
-  { id: 'p1', name: 'Alcohol Isopropílico 70%', sku: 'ALC-70', category: 'Antisépticos', unit: 'ml', currentStock: 450, minStock: 200, costPrice: 5.0, sellPrice: 8.0, isActive: true, isLowStock: false },
-  { id: 'p2', name: 'Guantes Nitrilo M', sku: 'GLV-NIT-M', category: 'EPP', unit: 'par', currentStock: 30, minStock: 100, costPrice: 0.8, sellPrice: 1.5, isActive: true, isLowStock: true },
-  { id: 'p3', name: 'Algodón Estéril', sku: 'ALG-EST', category: 'Insumos', unit: 'gr', currentStock: 80, minStock: 80, costPrice: 3.0, sellPrice: 5.0, isActive: true, isLowStock: true },
-  { id: 'p4', name: 'Jeringa 5cc', sku: 'JER-5CC', category: 'Descartables', unit: 'unidad', currentStock: 500, minStock: 100, costPrice: 0.3, sellPrice: 0.8, isActive: true, isLowStock: false },
-];
-
-const mockMovements: InventoryMovement[] = [
-  { id: 'm1', productId: 'p1', productName: 'Alcohol Isopropílico 70%', type: 'purchase', quantity: 1000, notes: 'Pedido mensual', createdAt: '2026-09-01T08:00:00Z' },
-  { id: 'm2', productId: 'p2', productName: 'Guantes Nitrilo M', type: 'sale', quantity: 70, notes: 'Sesión fisioterapia', createdAt: '2026-09-02T09:30:00Z' },
-  { id: 'm3', productId: 'p1', productName: 'Alcohol Isopropílico 70%', type: 'waste', quantity: 50, notes: 'Vencimiento lote', createdAt: '2026-09-02T11:00:00Z' },
-];
-
-const MOVEMENT_COLORS: Record<MovementType, string> = {
-  purchase: '#10b981',
-  return: '#10b981',
-  sale: '#ef4444',
-  waste: '#f97316',
-  adjustment: '#f59e0b',
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  'Antisépticos': '#6366f1',
-  'EPP': '#f59e0b',
-  'Insumos': '#10b981',
-  'Descartables': '#3b82f6',
-};
+import { IconSearch } from '../../components/ui/Icons';
+import {
+  useInventoryKardex,
+  INV_MOVEMENT_LABELS,
+  InventoryMovementType,
+} from '../../components/admin/inventory/useInventoryKardex';
 
 interface InventoryPageProps {
   onNavigateToCash?: () => void;
 }
 
 export function InventoryPage({ onNavigateToCash }: InventoryPageProps = {}) {
-  const [products, setProducts] = useState<InventoryProduct[]>(mockProducts);
-  const [movements] = useState<InventoryMovement[]>(mockMovements);
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const {
+    products,
+    filteredProducts,
+    lowStockProducts,
+    categories,
+    movements,
+    totalInventoryValue,
+    searchTerm,
+    setSearchTerm,
+    filterCategory,
+    setFilterCategory,
+    showLowStockOnly,
+    setShowLowStockOnly,
+    recordMovement,
+  } = useInventoryKardex();
+
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [showMovementForm, setShowMovementForm] = useState(false);
-  const [movForm, setMovForm] = useState<{ productId: string; type: MovementType; quantity: string; notes: string }>({
-    productId: '',
-    type: 'purchase',
-    quantity: '',
-    notes: '',
-  });
-  const [filterCategory, setFilterCategory] = useState('');
-  const [showLowStockOnly, setShowLowStockOnly] = useState(false);
+  const [movProductId, setMovProductId] = useState('');
+  const [movType, setMovType] = useState<InventoryMovementType>('purchase');
+  const [movQty, setMovQty] = useState('');
+  const [movNotes, setMovNotes] = useState('');
 
-  const lowStockProducts = products.filter(p => p.isLowStock);
-  const categories = [...new Set(products.map(p => p.category).filter(Boolean))] as string[];
+  const handleOpenRestock = (productId: string) => {
+    setMovProductId(productId);
+    setMovType('purchase');
+    setMovQty('');
+    setMovNotes('Reposición de stock bajo');
+    setShowMovementForm(true);
+  };
 
-  const filteredProducts = products.filter(p => {
-    if (showLowStockOnly && !p.isLowStock) return false;
-    if (filterCategory && p.category !== filterCategory) return false;
-    return true;
-  });
-
-  const handleMovementSubmit = () => {
-    if (!movForm.productId || !movForm.quantity) return;
-    const qty = parseInt(movForm.quantity);
-    setProducts(prev =>
-      prev.map(p => {
-        if (p.id !== movForm.productId) return p;
-        let newStock = p.currentStock;
-        if (movForm.type === 'purchase' || movForm.type === 'return') newStock += qty;
-        else if (movForm.type === 'adjustment') newStock = qty;
-        else newStock = Math.max(0, newStock - qty);
-        return { ...p, currentStock: newStock, isLowStock: newStock <= p.minStock };
-      }),
-    );
-    setMovForm({ productId: '', type: 'purchase', quantity: '', notes: '' });
-    setShowMovementForm(false);
+  const handleSaveMovement = () => {
+    const qty = parseInt(movQty, 10);
+    if (recordMovement(movProductId, movType, qty, movNotes)) {
+      setSelectedProductId(movProductId);
+      setMovProductId('');
+      setMovQty('');
+      setMovNotes('');
+      setShowMovementForm(false);
+    }
   };
 
   return (
-    <div className="inventory-page">
+    <div className="inv-shell">
       {/* Header */}
-      <div className="inv-header">
+      <header className="inv-header">
         <div>
+          <span className="inv-kicker">Control de insumos médicos · Stock y trazabilidad</span>
           <h1 className="inv-title">Inventario & Kardex</h1>
-          <p className="inv-subtitle">Catálogo de insumos · Control de stock · Movimientos</p>
         </div>
+
         <div className="inv-header-actions">
           {onNavigateToCash && (
-            <button
-              type="button"
-              className="inv-btn ghost"
-              onClick={onNavigateToCash}
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem', color: '#16a34a', borderColor: '#bbf7d0', background: '#f0fdf4', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              title="Ir a arqueo y movimientos de caja chica"
-            >
-              <MaterialIcon name="payments" size={15} />
-              <span>Ver Caja Chica ↗</span>
+            <button type="button" className="inv-btn ghost" onClick={onNavigateToCash}>
+              <MaterialIcon name="payments" size={16} />
+              <span>Caja Chica</span>
             </button>
           )}
           {lowStockProducts.length > 0 && (
-            <span className="low-stock-badge" id="low-stock-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <MaterialIcon name="warning" size={13} color="#dc2626" />
-              <span>{lowStockProducts.length} alerta{lowStockProducts.length > 1 ? 's' : ''}</span>
+            <span className="low-stock-badge" id="low-stock-badge">
+              <MaterialIcon name="warning" size={14} />
+              <span>
+                {lowStockProducts.length} alerta{lowStockProducts.length > 1 ? 's' : ''}
+              </span>
             </span>
           )}
-          <button id="btn-new-movement" className="inv-btn primary" onClick={() => setShowMovementForm(v => !v)}>
-            + Ajustar Stock
+          <button
+            id="btn-new-movement"
+            type="button"
+            className="inv-btn primary"
+            onClick={() => setShowMovementForm((v) => !v)}
+          >
+            <MaterialIcon name="add" size={17} />
+            <span>Ajustar stock</span>
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Low stock alerts panel */}
+      {/* 3 KPIs Ejecutivos */}
+      <section className="inv-kpi-grid" aria-label="Resumen de inventario">
+        <article className="inv-kpi-card">
+          <span className="inv-kpi-label">Insumos activos</span>
+          <strong className="inv-kpi-val">{products.length}</strong>
+          <small>{categories.length} categorías registradas</small>
+        </article>
+
+        <button
+          type="button"
+          className={`inv-kpi-card clickable ${lowStockProducts.length > 0 ? 'tone-danger' : ''} ${showLowStockOnly ? 'active' : ''}`}
+          onClick={() => setShowLowStockOnly((v) => !v)}
+        >
+          <span className="inv-kpi-label">Stock crítico</span>
+          <strong className="inv-kpi-val danger-text">{lowStockProducts.length}</strong>
+          <small>{showLowStockOnly ? 'Mostrando solo críticos' : 'Clic para filtrar críticos'}</small>
+        </button>
+
+        <article className="inv-kpi-card">
+          <span className="inv-kpi-label">Valorización en stock</span>
+          <strong className="inv-kpi-val">
+            S/ {totalInventoryValue.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </strong>
+          <small>Costo acumulado en almacén</small>
+        </article>
+      </section>
+
+      {/* Panel de Alertas Accionables */}
       {lowStockProducts.length > 0 && (
-        <div className="alerts-panel" id="alerts-panel">
-          <h3 className="alerts-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <section className="inv-alerts-panel" id="alerts-panel" aria-label="Insumos con stock bajo">
+          <div className="inv-alerts-head">
             <MaterialIcon name="warning" size={18} color="#dc2626" />
-            <span>Stock Bajo — Requiere Atención</span>
-          </h3>
-          <div className="alerts-grid">
-            {lowStockProducts.map(p => (
-              <div className="alert-card" key={p.id}>
-                <span className="alert-name">{p.name}</span>
-                <span className="alert-stock">
-                  <strong>{p.currentStock}</strong> / {p.minStock} {p.unit}
-                </span>
-                <div className="alert-bar">
-                  <div className="alert-fill" style={{ width: `${Math.min(100, (p.currentStock / p.minStock) * 100)}%` }} />
-                </div>
-              </div>
-            ))}
+            <h2>Stock bajo — requiere reposición</h2>
           </div>
-        </div>
+          <div className="inv-alerts-grid">
+            {lowStockProducts.map((p) => {
+              const pct = Math.min(100, Math.round((p.currentStock / Math.max(1, p.minStock)) * 100));
+              return (
+                <div className="inv-alert-card" key={p.id}>
+                  <div className="inv-alert-card-top">
+                    <div>
+                      <strong>{p.name}</strong>
+                      <span>
+                        Quedan <strong>{p.currentStock}</strong> / mín. {p.minStock} {p.unit}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="inv-btn-restock"
+                      onClick={() => handleOpenRestock(p.id)}
+                    >
+                      + Reponer
+                    </button>
+                  </div>
+                  <div className="inv-alert-bar">
+                    <div className="inv-alert-fill" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       )}
 
-      {/* Movement form */}
+      {/* Formulario de Movimiento de Stock */}
       {showMovementForm && (
-        <div className="inv-form-card">
-          <h3>Registrar Movimiento de Stock</h3>
-          <div className="inv-form-row">
+        <section className="inv-form-card" aria-label="Registrar movimiento de stock">
+          <h3>Registrar movimiento en Kardex</h3>
+          <div className="inv-form-grid">
             <select
               id="mov-product"
               className="inv-input"
-              value={movForm.productId}
-              onChange={e => setMovForm(p => ({ ...p, productId: e.target.value }))}
+              value={movProductId}
+              onChange={(e) => setMovProductId(e.target.value)}
             >
               <option value="">Seleccionar producto…</option>
-              {products.map(p => <option key={p.id} value={p.id}>{p.name} (stock: {p.currentStock})</option>)}
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} (actual: {p.currentStock} {p.unit})
+                </option>
+              ))}
             </select>
+
             <select
               id="mov-type"
               className="inv-input"
-              value={movForm.type}
-              onChange={e => setMovForm(p => ({ ...p, type: e.target.value as MovementType }))}
+              value={movType}
+              onChange={(e) => setMovType(e.target.value as InventoryMovementType)}
             >
-              {(Object.entries(MOVEMENT_LABELS) as [MovementType, string][]).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
+              {(Object.entries(INV_MOVEMENT_LABELS) as [InventoryMovementType, string][]).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
               ))}
             </select>
+
             <input
               id="mov-quantity"
               type="number"
               min="1"
               placeholder="Cantidad"
               className="inv-input"
-              value={movForm.quantity}
-              onChange={e => setMovForm(p => ({ ...p, quantity: e.target.value }))}
+              value={movQty}
+              onChange={(e) => setMovQty(e.target.value)}
             />
           </div>
+
           <input
             id="mov-notes"
             type="text"
-            placeholder="Notas (opcional)"
-            className="inv-input full"
-            value={movForm.notes}
-            onChange={e => setMovForm(p => ({ ...p, notes: e.target.value }))}
+            placeholder="Nota o referencia (ej. Factura proveedor, sesión clínica)"
+            className="inv-input"
+            value={movNotes}
+            onChange={(e) => setMovNotes(e.target.value)}
           />
-          <div className="form-actions">
-            <button id="btn-save-movement" className="inv-btn primary" onClick={handleMovementSubmit}>Guardar Movimiento</button>
-            <button className="inv-btn ghost" onClick={() => setShowMovementForm(false)}>Cancelar</button>
+
+          <div className="inv-form-actions">
+            <button type="button" className="inv-btn ghost" onClick={() => setShowMovementForm(false)}>
+              Cancelar
+            </button>
+            <button id="btn-save-movement" type="button" className="inv-btn primary" onClick={handleSaveMovement}>
+              Guardar en Kardex
+            </button>
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Filters */}
-      <div className="inv-filters">
-        <select className="inv-input sm" value={filterCategory} onChange={e => setFilterCategory(e.target.value)} id="filter-category">
-          <option value="">Todas las categorías</option>
-          {categories.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <label className="inv-toggle" htmlFor="filter-low-stock">
-          <input
-            id="filter-low-stock"
-            type="checkbox"
-            checked={showLowStockOnly}
-            onChange={e => setShowLowStockOnly(e.target.checked)}
-          />
-          Solo stock bajo
-        </label>
-      </div>
+      {/* Catálogo y Kardex Expandible */}
+      <section className="inv-panel" id="products-table-wrapper">
+        <div className="inv-toolbar">
+          <div className="inv-search-box">
+            <span className="inv-search-icon"><IconSearch className="w-4 h-4" /></span>
+            <input
+              type="text"
+              placeholder="Buscar insumo o SKU..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-      {/* Products table */}
-      <div className="inv-table-wrapper" id="products-table-wrapper">
-        <h3 className="table-title">Productos ({filteredProducts.length})</h3>
-        <table className="inv-table" id="products-table">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>SKU</th>
-              <th>Categoría</th>
-              <th>Stock Actual</th>
-              <th>Mín.</th>
-              <th>Unidad</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.length === 0 ? (
-              <tr><td colSpan={7} className="no-data">Sin productos encontrados</td></tr>
-            ) : filteredProducts.map(p => (
-              <Fragment key={p.id}>
-                <tr className={`inv-row ${selectedProduct === p.id ? 'selected' : ''}`} onClick={() => setSelectedProduct(selectedProduct === p.id ? null : p.id)}>
-                  <td className="product-name-cell">
-                    <span>{p.name}</span>
-                  </td>
-                  <td><span className="sku-chip">{p.sku ?? '—'}</span></td>
-                  <td>
-                    {p.category && (
-                      <span className="category-chip" style={{ background: (CATEGORY_COLORS[p.category] ?? '#6366f1') + '22', color: CATEGORY_COLORS[p.category] ?? '#6366f1', borderColor: (CATEGORY_COLORS[p.category] ?? '#6366f1') + '55' }}>
-                        {p.category}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <span className={p.isLowStock ? 'stock-low' : 'stock-ok'}>{p.currentStock}</span>
-                  </td>
-                  <td>{p.minStock}</td>
-                  <td>{p.unit}</td>
-                  <td>
-                    {p.isLowStock
-                      ? <span className="status-chip danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><MaterialIcon name="warning" size={12} /> Bajo</span>
-                      : <span className="status-chip ok" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><MaterialIcon name="check_circle" size={12} /> OK</span>}
+          <div className="inv-filter-controls">
+            <select
+              id="filter-category"
+              className="inv-input sm"
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+            >
+              <option value="">Todas las categorías</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+
+            <label className="inv-toggle" htmlFor="filter-low-stock">
+              <input
+                id="filter-low-stock"
+                type="checkbox"
+                checked={showLowStockOnly}
+                onChange={(e) => setShowLowStockOnly(e.target.checked)}
+              />
+              <span>Solo stock bajo</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="inv-table-wrap">
+          <table className="inv-table" id="products-table">
+            <thead>
+              <tr>
+                <th>Insumo</th>
+                <th>Categoría</th>
+                <th>Stock Actual</th>
+                <th>Mínimo</th>
+                <th>Estado</th>
+                <th className="inv-th-right">Kardex</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="inv-no-data">
+                    Sin insumos encontrados con el filtro actual.
                   </td>
                 </tr>
-                {/* Expandable Kardex */}
-                {selectedProduct === p.id && (
-                  <tr className="kardex-row">
-                    <td colSpan={7}>
-                      <div className="kardex-panel">
-                        <h4>Kardex — {p.name}</h4>
-                        <table className="kardex-table">
-                          <thead>
-                            <tr><th>Tipo</th><th>Cantidad</th><th>Notas</th><th>Fecha</th></tr>
-                          </thead>
-                          <tbody>
-                            {movements.filter(m => m.productId === p.id).length === 0 ? (
-                              <tr><td colSpan={4} className="no-data">Sin movimientos</td></tr>
-                            ) : movements.filter(m => m.productId === p.id).map(m => (
-                              <tr key={m.id}>
-                                <td>
-                                  <span className="movement-chip" style={{ color: MOVEMENT_COLORS[m.type], background: MOVEMENT_COLORS[m.type] + '15', borderColor: MOVEMENT_COLORS[m.type] + '40', border: '1px solid' }}>
-                                    {MOVEMENT_LABELS[m.type]}
-                                  </span>
-                                </td>
-                                <td className={m.type === 'purchase' || m.type === 'return' ? 'qty-positive' : 'qty-negative'}>
-                                  {m.type === 'purchase' || m.type === 'return' ? '+' : '-'}{m.quantity}
-                                </td>
-                                <td>{m.notes ?? '—'}</td>
-                                <td>{new Date(m.createdAt).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                filteredProducts.map((p) => {
+                  const isOpen = selectedProductId === p.id;
+                  const productMovements = movements.filter((m) => m.productId === p.id);
+
+                  return (
+                    <Fragment key={p.id}>
+                      <tr
+                        className={`inv-row ${isOpen ? 'selected' : ''}`}
+                        onClick={() => setSelectedProductId(isOpen ? null : p.id)}
+                      >
+                        <td>
+                          <strong className="inv-prod-name">{p.name}</strong>
+                          <span className="inv-prod-sku">{p.sku}</span>
+                        </td>
+                        <td>
+                          <span className="inv-cat-chip">{p.category}</span>
+                        </td>
+                        <td>
+                          <strong className={p.isLowStock ? 'stock-low' : 'stock-ok'}>
+                            {p.currentStock} {p.unit}
+                          </strong>
+                        </td>
+                        <td className="inv-min-cell">
+                          {p.minStock} {p.unit}
+                        </td>
+                        <td>
+                          {p.isLowStock ? (
+                            <span className="inv-status-chip danger">Bajo</span>
+                          ) : (
+                            <span className="inv-status-chip ok">OK</span>
+                          )}
+                        </td>
+                        <td className="inv-cell-right">
+                          <span className="inv-kardex-toggle">
+                            <span>{productMovements.length} mov.</span>
+                            <MaterialIcon name={isOpen ? 'expand_less' : 'expand_more'} size={18} />
+                          </span>
+                        </td>
+                      </tr>
+
+                      {isOpen && (
+                        <tr className="kardex-row">
+                          <td colSpan={6}>
+                            <div className="kardex-panel">
+                              <div className="kardex-head">
+                                <h4>Kardex — {p.name}</h4>
+                                <button
+                                  type="button"
+                                  className="inv-btn-restock"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenRestock(p.id);
+                                  }}
+                                >
+                                  + Registrar movimiento
+                                </button>
+                              </div>
+
+                              <table className="kardex-table">
+                                <thead>
+                                  <tr>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Nota</th>
+                                    <th>Fecha</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {productMovements.length === 0 ? (
+                                    <tr>
+                                      <td colSpan={4} className="inv-no-data">
+                                        Sin movimientos registrados aún.
+                                      </td>
+                                    </tr>
+                                  ) : (
+                                    productMovements.map((m) => {
+                                      const isEntry = m.type === 'purchase' || m.type === 'return';
+                                      return (
+                                        <tr key={m.id}>
+                                          <td>
+                                            <span className={`inv-mov-chip ${isEntry ? 'entry' : 'exit'}`}>
+                                              {INV_MOVEMENT_LABELS[m.type]}
+                                            </span>
+                                          </td>
+                                          <td className={isEntry ? 'qty-pos' : 'qty-neg'}>
+                                            {isEntry ? '+' : '-'}
+                                            {m.quantity} {p.unit}
+                                          </td>
+                                          <td>{m.notes || '—'}</td>
+                                          <td>
+                                            {new Date(m.createdAt).toLocaleString('es-PE', {
+                                              dateStyle: 'short',
+                                              timeStyle: 'short',
+                                            })}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

@@ -15,12 +15,17 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { ProcessWebhookDto } from './dto/process-webhook.dto';
 import { Public, CurrentTenant, CurrentUser, Roles } from '../../common/decorators';
 import { JwtAuthGuard, TenantGuard, RolesGuard } from '../../common/guards';
-import { Payment, PaymentStatus, UserRole } from '@citassistema/shared-types';
+import { DatabaseService } from '../../database/database.service';
+import { assertPatientOwnership } from '../../common/security/patient-ownership.util';
+import { AuthenticatedUser, Payment, PaymentStatus, UserRole } from '@citassistema/shared-types';
 
 @Controller('payments')
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly db: DatabaseService,
+  ) { }
 
   @Post()
   @Roles(UserRole.ADMIN_CLINIC, UserRole.RECEPCION, UserRole.PACIENTE)
@@ -34,14 +39,19 @@ export class PaymentsController {
   }
 
   @Get(':id')
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.RECEPCION, UserRole.PACIENTE)
   async findOne(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ): Promise<Payment> {
-    return this.paymentsService.findOne(clinicId, id);
+    const payment = await this.paymentsService.findOne(clinicId, id);
+    await assertPatientOwnership(this.db, clinicId, user, payment.patientId);
+    return payment;
   }
 
   @Get()
+  @Roles(UserRole.ADMIN_CLINIC, UserRole.RECEPCION)
   async findAll(
     @CurrentTenant() clinicId: string,
     @Query('patientId') patientId?: string,

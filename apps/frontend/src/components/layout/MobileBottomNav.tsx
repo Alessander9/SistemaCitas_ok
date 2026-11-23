@@ -187,8 +187,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
             <button
               type="button"
-              className={`mobile-nav-item ${activeView === 'schedules' ? 'active' : ''}`}
-              onClick={() => handleTabClick('doctor_dashboard')}
+              className={`mobile-nav-item ${activeView === 'doctor-schedule' || activeView === 'doctor_schedule' ? 'active' : ''}`}
+              onClick={() => handleTabClick('doctor_schedule')}
             >
               <span className="mobile-nav-icon"><MaterialIcon name="calendar_today" size={20} /></span>
               <span className="mobile-nav-label">Mi Turno</span>
@@ -196,11 +196,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
             <button
               type="button"
-              className={`mobile-nav-item ${activeView === 'profile' ? 'active' : ''}`}
-              onClick={() => handleTabClick('home')}
+              className={`mobile-nav-item ${activeView === 'dashboard' ? 'active' : ''}`}
+              onClick={() => handleTabClick('doctor_dashboard')}
             >
-              <span className="mobile-nav-icon"><MaterialIcon name="settings" size={20} /></span>
-              <span className="mobile-nav-label">Ajustes</span>
+              <span className="mobile-nav-icon"><MaterialIcon name="today" size={20} /></span>
+              <span className="mobile-nav-label">Cola Hoy</span>
             </button>
           </div>
         )}

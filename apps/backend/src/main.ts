@@ -1,14 +1,36 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
 import { AppModule } from './app.module';
+import { validateEnv } from './config/env.schema';
 
 async function bootstrap() {
+  const env = validateEnv();
   const app = await NestFactory.create(AppModule);
+
+  // Harden HTTP response headers & hide framework fingerprint
+  const httpAdapter = app.getHttpAdapter();
+  const instance = httpAdapter.getInstance();
+  if (typeof instance?.disable === 'function') {
+    instance.disable('x-powered-by');
+  }
+
+  app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
+    next();
+  });
 
   app.setGlobalPrefix('api');
 
+  const allowedOrigins = env.FRONTEND_URL
+    ? env.FRONTEND_URL.split(',').map((o) => o.trim())
+    : ['http://localhost:5173', 'http://localhost:5300'];
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: allowedOrigins,
     credentials: true,
   });
 
@@ -20,9 +42,9 @@ async function bootstrap() {
     }),
   );
 
-  const port = process.env.PORT || 3000;
+  const port = env.PORT;
   await app.listen(port);
-  console.log(`🚀 CitasSistema API running on http://localhost:${port}/api`);
+  Logger.log(`🚀 CitasSistema API running on http://localhost:${port}/api`, 'Bootstrap');
 }
 
 bootstrap();

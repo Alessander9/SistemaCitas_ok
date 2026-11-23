@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { MaterialIcon } from '../../ui/MaterialIcon';
 import { PainPoint } from '@citassistema/shared-types';
 import { usePainMapState } from './usePainMapState';
@@ -8,8 +8,11 @@ import { RegionDetailView } from './RegionDetailView';
 import { PainPointForm } from './PainPointForm';
 import { PainPointList } from './PainPointList';
 import { AnatomySearch } from './AnatomySearch';
-import { PainMap3DViewer } from './PainMap3DViewer';
 import './PainMap.css';
+
+const PainMap3DViewer = lazy(() =>
+  import('./PainMap3DViewer').then((m) => ({ default: m.PainMap3DViewer })),
+);
 
 export interface PainMapPickerProps {
   initialPoints?: PainPoint[];
@@ -190,19 +193,27 @@ export const PainMapPicker: React.FC<PainMapPickerProps> = ({
         {/* Columna Izquierda: Visualizador 3D Human Atlas (BodyParts3D), Silueta General 2D o Detalle Zoom */}
         <div className="pain-visualizer-column">
           {displayMode === '3d' && (
-            <PainMap3DViewer
-              atlasUrl="/models/atlas.json"
-              points={state.points}
-              selectedRegionCode={state.selectedRegionCode}
-              selectedStructureCode={state.selectedStructureCode}
-              hoveredRegionCode={state.hoveredRegionCode}
-              onHoverRegion={setHoveredRegion}
-              onSelectRegion={selectRegion}
-              onSelectStructure={selectStructure}
-              onSelectPoint={editPoint}
-              isExpanded={is3DExpanded}
-              onToggleExpand={() => setIs3DExpanded((prev) => !prev)}
-            />
+            <Suspense
+              fallback={
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b', fontSize: '0.85rem', fontWeight: 700 }}>
+                  Cargando Atlas Anatómico 3D...
+                </div>
+              }
+            >
+              <PainMap3DViewer
+                atlasUrl="/models/atlas.json"
+                points={state.points}
+                selectedRegionCode={state.selectedRegionCode}
+                selectedStructureCode={state.selectedStructureCode}
+                hoveredRegionCode={state.hoveredRegionCode}
+                onHoverRegion={setHoveredRegion}
+                onSelectRegion={selectRegion}
+                onSelectStructure={selectStructure}
+                onSelectPoint={editPoint}
+                isExpanded={is3DExpanded}
+                onToggleExpand={() => setIs3DExpanded((prev) => !prev)}
+              />
+            </Suspense>
           )}
 
           {displayMode === '2d' && state.level === 'body' && (

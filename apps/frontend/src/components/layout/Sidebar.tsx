@@ -93,6 +93,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Bot de Telegram Staff',
               icon: <IconBot className="w-4 h-4" />,
             },
+            {
+              id: 'clinical-knowledge',
+              label: 'Conocimiento Médico IA',
+              icon: <IconStethoscope className="w-4 h-4" />,
+            },
           ],
         };
 
@@ -115,11 +120,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Mi Agenda Semanal',
               icon: <IconCalendar className="w-4 h-4" />,
             },
-            {
-              id: 'telegram-bot',
-              label: 'Notificaciones Telegram',
-              icon: <IconBot className="w-4 h-4" />,
-            },
+            // {
+            //   id: 'telegram-bot',
+            //   label: 'Notificaciones Telegram',
+            //   icon: <IconBot className="w-4 h-4" />,
+            // },
           ],
         };
 

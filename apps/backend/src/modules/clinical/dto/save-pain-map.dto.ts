@@ -90,20 +90,20 @@ export class CreatePainPointItemDto {
 }
 
 export class SavePainMapDto {
-  @IsUUID('4', { message: 'El patientId debe ser un UUID válido.' })
+  @IsUUID('all', { message: 'El patientId debe ser un UUID válido.' })
   @IsNotEmpty()
   patientId!: string;
 
   @IsOptional()
-  @IsUUID('4', { message: 'El professionalId debe ser un UUID válido.' })
+  @IsUUID('all', { message: 'El professionalId debe ser un UUID válido.' })
   professionalId?: string;
 
   @IsOptional()
-  @IsUUID('4', { message: 'El medicalRecordId debe ser un UUID válido.' })
+  @IsUUID('all', { message: 'El medicalRecordId debe ser un UUID válido.' })
   medicalRecordId?: string;
 
   @IsOptional()
-  @IsUUID('4', { message: 'El treatmentSessionId debe ser un UUID válido.' })
+  @IsUUID('all', { message: 'El treatmentSessionId debe ser un UUID válido.' })
   treatmentSessionId?: string;
 
   @IsArray()

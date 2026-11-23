@@ -13,6 +13,8 @@
     "build:backend": "npm run build --workspace=apps/backend",
     "build:frontend": "npm run build --workspace=apps/frontend",
     "test": "npm run test --workspace=apps/backend && npm run test --workspace=apps/frontend",
+    "test:all": "npm run test:backend && npm run test:e2e && npm run test:frontend",
+    "test:e2e:browser": "node scripts/e2e-browser-smoke.mjs",
     "test:backend": "npm run test --workspace=apps/backend",
     "test:frontend": "npm run test --workspace=apps/frontend",
     "test:e2e": "npm run test:e2e --workspace=apps/backend",

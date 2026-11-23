@@ -113,14 +113,16 @@ describe('AppointmentPatientStep (Step 6 — Completa tus datos)', () => {
     expect(screen.getByText(/El DNI debe tener 8 dígitos/i)).toBeInTheDocument();
   });
 
-  it('masks what the patient types according to the selected type', () => {
+  it('masks what the patient types according to the selected type', async () => {
     const props = renderStep();
 
     fireEvent.change(screen.getByLabelText(/Número de documento/i), {
       target: { value: '73a82b9104' },
     });
 
-    expect(props.onChange).toHaveBeenCalledWith('documentNumber', '73829104');
+    await waitFor(() => {
+      expect(props.onChange).toHaveBeenCalledWith('documentNumber', '73829104');
+    });
   });
 
   it('looks up an existing patient and reports it without inventing data', async () => {

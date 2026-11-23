@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { soundEffects } from '../../utils/soundEffects';
 import { MaterialIcon } from '../ui/MaterialIcon';
 
@@ -28,13 +28,25 @@ export const WhatsAppReminderModal: React.FC<WhatsAppReminderModalProps> = ({
   const [template, setTemplate] = useState<'reminder' | 'confirm' | 'prescription'>('reminder');
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    setPhone(data.patientPhone || '51987654321');
+  }, [data.patientPhone]);
+
+  const triageCode = useMemo(() => Math.floor(1000 + Math.random() * 9000), [data.patientName, isOpen]);
+  const recipeCode = useMemo(() => Math.floor(100000 + Math.random() * 900000), [data.patientName, isOpen]);
+
   if (!isOpen) return null;
 
   const getMessageText = () => {
     const loc = data.location || 'Clínica Médica Central - Sede Principal (Av. Javier Prado Este 1234)';
-    const doc = data.doctorName ? `Dr(a). ${data.doctorName}` : 'nuestro equipo médico';
+    const rawDoc = data.doctorName?.trim();
+    const doc = rawDoc
+      ? /^(dr\.?|dra\.?|lic\.?)/i.test(rawDoc)
+        ? rawDoc
+        : `Dr(a). ${rawDoc}`
+      : 'nuestro equipo médico';
     const spec = data.specialty ? ` (${data.specialty})` : '';
-    const dt = data.dateStr ? `${data.dateStr} a las ${data.timeStr || '10:00 AM'}` : 'su horario reservado';
+    const dt = data.dateStr ? `${data.dateStr} a las ${data.timeStr || '10:00 AM'}` : data.timeStr || 'su horario reservado';
 
     if (template === 'reminder') {
       return (
@@ -62,7 +74,7 @@ Su consulta con ${doc}${spec} ha sido validada con éxito.
 
 *Cita programada:* ${dt}
 *Consultorio:* Box 102 - Piso 1
-*Código de Triage:* #${Math.floor(1000 + Math.random() * 9000)}
+*Código de Triage:* #${triageCode}
 
 Por favor presente este mensaje en el counter de recepción al llegar.`
       );
@@ -72,10 +84,10 @@ Por favor presente este mensaje en el counter de recepción al llegar.`
 `*Receta Médica y Plan de Tratamiento*
 
 Estimado(a) *${data.patientName}*,
-El ${doc} ha emitido su receta médica electrónica y resumen de consulta.
+${doc} ha emitido su receta médica electrónica y resumen de consulta.
 
 *Ver Receta Oficial con QR:*
-https://vitalsalud.pe/receta-digital/consulta-${Math.floor(100000 + Math.random() * 900000)}
+https://vitalsalud.pe/receta-digital/consulta-${recipeCode}
 
 *Farmacia Institucional:* Puede reclamar sus medicamentos con su DNI directamente en nuestra farmacia con 15% de descuento.`
     );

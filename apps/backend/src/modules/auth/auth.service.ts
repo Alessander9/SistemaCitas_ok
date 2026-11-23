@@ -62,6 +62,12 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @Optional() private readonly emailsService?: EmailsService,
   ) {
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET)
+    ) {
+      throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must be configured in production');
+    }
     this.jwtSecret =
       process.env.JWT_SECRET || 'citassistema-jwt-secret-key-2026';
     this.jwtRefreshSecret =

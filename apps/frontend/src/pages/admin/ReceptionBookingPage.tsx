@@ -27,6 +27,23 @@ interface SlotItem {
   statusLabel?: string;
 }
 
+const SERVICE_PRICES: Record<string, string> = {
+  'Rehabilitación Deportiva': 'S/ 100.00',
+  'Terapia Manual Ortopédica': 'S/ 80.00',
+  'Consulta Traumatológica': 'S/ 150.00',
+  'Descarga Muscular Completa': 'S/ 70.00',
+  'Punción Seca y Electroterapia': 'S/ 90.00',
+};
+
+const WEEK_DAYS = [
+  { key: 'lun', dayName: 'Lun', dayNum: '11', label: 'Lunes 11 Sep' },
+  { key: 'mar', dayName: 'Mar', dayNum: '12', label: 'Martes 12 Sep' },
+  { key: 'mie', dayName: 'Mié', dayNum: '13', label: 'Hoy (Miércoles 13 Sep)', isToday: true },
+  { key: 'jue', dayName: 'Jue', dayNum: '14', label: 'Mañana (Jueves 14 Sep)' },
+  { key: 'vie', dayName: 'Vie', dayNum: '15', label: 'Viernes 15 Sep' },
+  { key: 'sab', dayName: 'Sáb', dayNum: '16', label: 'Sábado 16 Sep' },
+];
+
 export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
   onNavigateToCash,
   onBack,
@@ -40,6 +57,7 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
   // Fast Booking Modal State
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [prefilledSlot, setPrefilledSlot] = useState<SlotItem | null>(null);
+  const [newDayKey, setNewDayKey] = useState('mie');
   const [newDni, setNewDni] = useState('');
   const [newName, setNewName] = useState('');
   const [newPhone, setNewPhone] = useState('');
@@ -57,6 +75,7 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
   };
 
   const handleOpenBooking = (slot?: SlotItem) => {
+    setNewDayKey(selectedDay);
     if (slot) {
       setPrefilledSlot(slot);
       setNewTime(slot.time);
@@ -180,9 +199,36 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
         status: 'available',
       },
     ],
+    lun: [
+      { id: 'lun-1', time: '08:30 AM', doctor: 'Lic. María González', room: 'Box 101', patient: 'Mariana Ríos Soto', dni: '44219830', service: 'Rehabilitación Deportiva', price: 'S/ 100.00', paid: true, status: 'occupied', statusLabel: 'Confirmada' },
+      { id: 'lun-2', time: '09:45 AM', doctor: 'Dr. Carlos Mendoza', room: 'Box 102', patient: 'Gonzalo Vera Paz', dni: '08921433', service: 'Consulta Traumatológica', price: 'S/ 150.00', paid: true, status: 'occupied', statusLabel: 'Confirmada' },
+      { id: 'lun-3', time: '11:00 AM', doctor: 'Lic. Andrea Ruiz', room: 'Box 103', status: 'available' },
+      { id: 'lun-4', time: '03:30 PM', doctor: 'Lic. María González', room: 'Box 101', status: 'available' },
+    ],
+    mar: [
+      { id: 'mar-1', time: '08:30 AM', doctor: 'Lic. María González', room: 'Box 101', patient: 'Renato Silva Cano', dni: '71928341', service: 'Terapia Manual Ortopédica', price: 'S/ 80.00', paid: true, status: 'occupied', statusLabel: 'Confirmada' },
+      { id: 'mar-2', time: '10:00 AM', doctor: 'Dr. Carlos Mendoza', room: 'Box 102', status: 'available' },
+      { id: 'mar-3', time: '03:00 PM', doctor: 'Lic. Andrea Ruiz', room: 'Box 103', patient: 'Sofía Navarro Cruz', dni: '46821905', service: 'Punción Seca y Electroterapia', price: 'S/ 90.00', paid: false, status: 'occupied', statusLabel: 'Pendiente' },
+    ],
+    jue: [
+      { id: 'jue-1', time: '09:00 AM', doctor: 'Lic. María González', room: 'Box 101', patient: 'Diego Herrera Solís', dni: '43190822', service: 'Rehabilitación Deportiva', price: 'S/ 100.00', paid: true, status: 'occupied', statusLabel: 'Confirmada' },
+      { id: 'jue-2', time: '10:30 AM', doctor: 'Dr. Carlos Mendoza', room: 'Box 102', status: 'available' },
+      { id: 'jue-3', time: '04:00 PM', doctor: 'Lic. Andrea Ruiz', room: 'Box 103', status: 'available' },
+    ],
+    vie: [
+      { id: 'vie-1', time: '08:30 AM', doctor: 'Lic. María González', room: 'Box 101', patient: 'Patricia Gil Díaz', dni: '09128374', service: 'Terapia Manual Ortopédica', price: 'S/ 80.00', paid: true, status: 'occupied', statusLabel: 'Confirmada' },
+      { id: 'vie-2', time: '11:00 AM', doctor: 'Dr. Carlos Mendoza', room: 'Box 102', status: 'available' },
+      { id: 'vie-3', time: '03:30 PM', doctor: 'Lic. Andrea Ruiz', room: 'Gimnasio Terapéutico', patient: 'Joaquín Rivas Castro', dni: '72910482', service: 'Descarga Muscular Completa', price: 'S/ 70.00', paid: true, status: 'occupied', statusLabel: 'Confirmada' },
+    ],
+    sab: [
+      { id: 'sab-1', time: '08:30 AM', doctor: 'Lic. María González', room: 'Box 101', patient: 'Guillermo Paz Loyola', dni: '40192837', service: 'Descarga Muscular Completa', price: 'S/ 70.00', paid: true, status: 'occupied', statusLabel: 'Confirmada' },
+      { id: 'sab-2', time: '10:00 AM', doctor: 'Dr. Carlos Mendoza', room: 'Box 102', status: 'available' },
+    ],
   });
 
   const currentSlots = slotsData[selectedDay] || slotsData.mie;
+  const occupiedCount = currentSlots.filter((s) => s.status === 'occupied').length;
+  const capacityPct = Math.round((occupiedCount / Math.max(1, currentSlots.length)) * 100);
 
   const filteredSlots = currentSlots.filter((slot) => {
     const matchesDoctor = doctorFilter === 'all' || slot.doctor === doctorFilter;
@@ -218,15 +264,21 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
     };
 
     setSlotsData((prev) => {
-      const dayList = prev[selectedDay] || prev.mie;
-      // Replace available slot if prefilled
-      const updated = prefilledSlot
-        ? dayList.map((s) => (s.id === prefilledSlot.id ? newSlot : s))
-        : [newSlot, ...dayList];
-      return { ...prev, [selectedDay]: updated };
+      const targetDay = newDayKey || selectedDay;
+      const dayList = prev[targetDay] || prev.mie;
+      // Replace available slot if prefilled on the same day
+      const updated =
+        prefilledSlot && targetDay === selectedDay
+          ? dayList.map((s) => (s.id === prefilledSlot.id ? newSlot : s))
+          : [newSlot, ...dayList];
+      return { ...prev, [targetDay]: updated };
     });
 
-    showToast(`¡Cita agendada con éxito para ${newName} a las ${newTime}! Notificación enviada a WhatsApp.`);
+    if (newDayKey !== selectedDay) {
+      setSelectedDay(newDayKey);
+    }
+
+    showToast(`¡Cita agendada con éxito para ${newName} (${newPrice}) a las ${newTime}! Notificación enviada a WhatsApp.`);
     setIsBookingModalOpen(false);
     setNewDni('');
     setNewName('');
@@ -326,10 +378,10 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
               <IconCalendar className="w-4 h-4" />
             </div>
           </div>
-          <div className="kpi-value">{currentSlots.filter((s) => s.status === 'occupied').length} Pacientes</div>
+          <div className="kpi-value">{occupiedCount} Pacientes</div>
           <div className="kpi-footer">
             <span style={{ color: '#0284c7', fontWeight: 700 }}>
-              ● 88% de capacidad en sede
+              ● {capacityPct}% de capacidad en sede
             </span>
           </div>
         </div>
@@ -370,28 +422,24 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
 
       {/* Nivel 2: Selector de Días de la Semana */}
       <div className="weekly-days-grid" style={{ marginBottom: '1.25rem' }}>
-        {[
-          { key: 'lun', dayName: 'Lun', dayNum: '11', citas: 7 },
-          { key: 'mar', dayName: 'Mar', dayNum: '12', citas: 8 },
-          { key: 'mie', dayName: 'Mié', dayNum: '13', citas: 8, isToday: true },
-          { key: 'jue', dayName: 'Jue', dayNum: '14', citas: 6 },
-          { key: 'vie', dayName: 'Vie', dayNum: '15', citas: 7 },
-          { key: 'sab', dayName: 'Sáb', dayNum: '16', citas: 4 },
-        ].map((d) => (
-          <div
-            key={d.key}
-            className={`weekly-day-card ${selectedDay === d.key ? 'active' : ''} ${d.isToday ? 'today' : ''}`}
-            onClick={() => setSelectedDay(d.key)}
-          >
-            <span className="day-name">{d.dayName}</span>
-            <span className="day-number">{d.dayNum}</span>
-            {d.isToday ? (
-              <span className="day-citas-badge today-badge">● HOY ({d.citas})</span>
-            ) : (
-              <span className="day-citas-badge normal">{d.citas} citas</span>
-            )}
-          </div>
-        ))}
+        {WEEK_DAYS.map((d) => {
+          const dayCount = (slotsData[d.key] || []).filter((s) => s.status === 'occupied').length;
+          return (
+            <div
+              key={d.key}
+              className={`weekly-day-card ${selectedDay === d.key ? 'active' : ''} ${d.isToday ? 'today' : ''}`}
+              onClick={() => setSelectedDay(d.key)}
+            >
+              <span className="day-name">{d.dayName}</span>
+              <span className="day-number">{d.dayNum}</span>
+              {d.isToday ? (
+                <span className="day-citas-badge today-badge">● HOY ({dayCount})</span>
+              ) : (
+                <span className="day-citas-badge normal">{dayCount} citas</span>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Nivel 3: Tabla y Tarjeta de Slots de la Agenda */}
@@ -723,11 +771,7 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                         onChange={(e) => {
                           const s = e.target.value;
                           setNewService(s);
-                          if (s.includes('150')) setNewPrice('S/ 150.00');
-                          else if (s.includes('80')) setNewPrice('S/ 80.00');
-                          else if (s.includes('70')) setNewPrice('S/ 70.00');
-                          else if (s.includes('90')) setNewPrice('S/ 90.00');
-                          else setNewPrice('S/ 100.00');
+                          setNewPrice(SERVICE_PRICES[s] || 'S/ 100.00');
                         }}
                       >
                         <option value="Rehabilitación Deportiva">Rehabilitación Deportiva (S/ 100.00)</option>
@@ -772,11 +816,16 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.65rem' }}>
                     <div className="input-field-wrap">
                       <label className="input-field-label">Día de Atención</label>
-                      <select className="modern-form-input" defaultValue="Hoy (Miércoles 13 Sep)">
-                        <option value="Hoy (Miércoles 13 Sep)">Hoy (Miércoles 13 Sep)</option>
-                        <option value="Mañana (Jueves 14 Sep)">Mañana (Jueves 14 Sep)</option>
-                        <option value="Viernes 15 Sep">Viernes 15 Sep</option>
-                        <option value="Sábado 16 Sep">Sábado 16 Sep</option>
+                      <select
+                        className="modern-form-input"
+                        value={newDayKey}
+                        onChange={(e) => setNewDayKey(e.target.value)}
+                      >
+                        {WEEK_DAYS.map((d) => (
+                          <option key={d.key} value={d.key}>
+                            {d.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -805,7 +854,7 @@ export const ReceptionBookingPage: React.FC<ReceptionBookingPageProps> = ({
                       <select
                         className="modern-form-input"
                         value={newPayMode}
-                        onChange={(e) => setNewPayMode(e.target.value as any)}
+                        onChange={(e) => setNewPayMode(e.target.value as 'immediate' | 'post_consultation')}
                       >
                         <option value="immediate">Cobrado en Ventanilla ({newPrice})</option>
                         <option value="post_consultation">Pagar al Salir de Consulta</option>

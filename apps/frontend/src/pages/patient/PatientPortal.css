@@ -212,6 +212,70 @@
   box-shadow: 0 8px 24px -4px rgba(2, 132, 199, 0.1);
 }
 
+.portal-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.portal-action-btn {
+  padding: 0.48rem 0.95rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 140ms ease;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+}
+
+.portal-action-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.portal-action-btn.primary {
+  color: #0284c7;
+  border-color: #bae6fd;
+  background: #f0f9ff;
+}
+
+.portal-action-btn.primary:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+  color: #0369a1;
+}
+
+.portal-action-btn.reschedule {
+  color: #4338ca;
+  border-color: #c7d2fe;
+  background: #eef2ff;
+}
+
+.portal-action-btn.reschedule:hover {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+  color: #3730a3;
+}
+
+.portal-action-btn.danger {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.portal-action-btn.danger:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
 .appt-card-inner {
   display: flex;
   align-items: center;

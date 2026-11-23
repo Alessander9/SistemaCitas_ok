@@ -112,7 +112,9 @@ describe('BookingWizard (Streamlined 5-Step Booking Flow)', { timeout: 15000 }, 
     fireEvent.change(screen.getByLabelText(/Número de documento/i), {
       target: { value: '08502322' },
     });
-    expect(screen.getByRole('button', { name: /Revisar mi reserva/i })).toBeDisabled();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Revisar mi reserva/i })).toBeDisabled();
+    });
 
     fireEvent.change(screen.getByLabelText(/^Nombres/), { target: { value: 'Luis' } });
     fireEvent.change(screen.getByLabelText(/^Apellidos/), { target: { value: 'Fernandez' } });

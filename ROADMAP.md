@@ -255,18 +255,18 @@ graph TD
 *Objetivo: Control de flujo de efectivo diario y control automatizado de stock de insumos.*
 
 ### 9.1 Módulo de Caja Chica (Arqueo Diario)
-- [ ] Apertura de caja diaria con monto inicial por usuario de recepción.
-- [ ] Registro de movimientos de ingresos (asociados a citas/pagos) y egresos operativos.
-- [ ] Cierre de caja con balance automático, detección de diferencias y observaciones.
+- [x] Apertura de caja diaria con monto inicial por usuario de recepción.
+- [x] Registro de movimientos de ingresos (asociados a citas/pagos) y egresos operativos.
+- [x] Cierre de caja con balance automático, detección de diferencias y observaciones.
 
 ### 9.2 Inventario de Insumos y Kardex Automático
-- [ ] Catálogo de productos/insumos con unidad de medida, categoría, stock actual y stock mínimo.
-- [ ] Descuento automático de stock al registrar insumos en una sesión de tratamiento (Fase 8).
-- [ ] Registro de movimientos de almacén: Entrada (compras), Salida (sesiones/merma), Ajuste.
-- [ ] Alertas automáticas cuando el stock actual $\le$ stock mínimo.
+- [x] Catálogo de productos/insumos con unidad de medida, categoría, stock actual y stock mínimo.
+- [x] Descuento automático de stock al registrar insumos en una sesión de tratamiento (Fase 8).
+- [x] Registro de movimientos de almacén: Entrada (compras), Salida (sesiones/merma), Ajuste.
+- [x] Alertas automáticas cuando el stock actual $\le$ stock mínimo.
 
 ### 9.3 Dashboard y Reportes Operativos
-- [ ] Indicadores en tiempo real: citas del día, tasa de inasistencia, ingresos por método de pago.
+- [x] Indicadores en tiempo real: citas del día, tasa de inasistencia, ingresos por método de pago.
 - [ ] Exportación de reportes a Excel, CSV y PDF con permisos controlados.
 
 > [!TIP]

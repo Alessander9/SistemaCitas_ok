@@ -3,6 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DatabaseService } from '../src/database/database.service';
+import { ResendEmailProvider } from '../src/modules/emails/providers/resend-email-provider';
 import { AppointmentStatus } from '@citassistema/shared-types';
 
 describe('CitasSistema — Super E2E Test Suite (Anti-Colisión, Ciclo de Vida y Roles)', () => {
@@ -23,7 +24,12 @@ describe('CitasSistema — Super E2E Test Suite (Anti-Colisión, Ciclo de Vida y
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(ResendEmailProvider)
+      .useValue({
+        send: jest.fn().mockResolvedValue({ success: true, messageId: 'e2e-mock-msg' }),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');

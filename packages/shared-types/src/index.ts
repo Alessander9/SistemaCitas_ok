@@ -11,3 +11,4 @@ export * from './telegram';
 export * from './ai';
 export * from './anatomy-catalog';
 export * from './pain-map';
+export * from './clinical-speech-parser';

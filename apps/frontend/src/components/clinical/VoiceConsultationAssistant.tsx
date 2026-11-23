@@ -1,43 +1,54 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MaterialIcon } from '../ui/MaterialIcon';
 import './VoiceConsultationAssistant.css';
+import { parseClinicalSpeechShared } from '@citassistema/shared-types';
 import {
   processVoiceDictation,
   saveVoiceConsultation,
+  transcribeVoiceAudio,
   ParsedClinicalVoiceData,
   MissingFieldInfo,
+  ClinicalAlertItem,
+  SuggestedSupplyItem,
 } from '../../services/api';
+import { soundEffects } from '../../utils/soundEffects';
+
+interface BrowserSpeechRecognitionEvent {
+  results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
+}
+
+interface BrowserSpeechRecognitionErrorEvent {
+  error: string;
+}
+
+interface BrowserSpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: BrowserSpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+type SpeechRecognitionCtor = new () => BrowserSpeechRecognition;
 
 export type { ParsedClinicalVoiceData };
 
 interface VoiceConsultationAssistantProps {
   onApplyVoiceData: (data: ParsedClinicalVoiceData) => void;
+  onSuggestedSupplies?: (supplies: SuggestedSupplyItem[]) => void;
   onConsultationSaved?: (result: { recordId: string; prescriptionId?: string }) => void;
   isOpenInitial?: boolean;
   activeContext?: 'consultation' | 'quick-note';
   patientId?: string;
+  patientAllergies?: string;
   professionalId?: string;
   appointmentId?: string;
   currentData?: Partial<ParsedClinicalVoiceData>;
 }
-
-const AVAILABLE_TECHNIQUES = [
-  'Terapia Manual Ortopédica',
-  'Terapia Manual',
-  'Electroterapia (TENS / EMS)',
-  'Electroterapia TENS',
-  'Ultrasonido Terapéutico',
-  'Ultrasonido',
-  'Punción Seca',
-  'Termoterapia / Crioterapia',
-  'Termoterapia',
-  'Crioterapia',
-  'Ejercicio Terapéutico Funcional',
-  'Ejercicios Terapéuticos',
-  'Liberación Miofascial',
-  'Magnetoterapia',
-  'Kinesiotape',
-];
 
 const PRESET_SAMPLE_DICTATIONS = [
   {
@@ -53,164 +64,27 @@ const PRESET_SAMPLE_DICTATIONS = [
     text: 'Motivo: Esguince grado 2 ligamento peroneoastragalino. Escala de dolor EVA 4. Diagnóstico: Esguince de tobillo en fase de readaptación. Plan: 6 sesiones de propiocepción. Técnicas: Crioterapia, Kinesiotape y Liberación Miofascial. Recomendaciones: Ejercicios de apoyo monopodal 10 minutos al día.',
   },
   {
+    title: 'Invocación Bilateral: "Chanfainita, ¿qué alergias tiene?"',
+    text: 'Chanfainita, ¿qué alergias tiene este paciente y cómo estuvo en su última sesión?',
+  },
+  {
     title: 'Consulta Incompleta (Prueba de Alerta Verbal)',
-    text: 'Motivo de consulta: Paciente presenta dolor cervical intenso tras accidente leve. Dolor EVA 9 sobre 10.',
+    text: 'Chanfainita, apunta motivo de consulta: Paciente presenta dolor cervical intenso tras accidente leve. Dolor EVA 9 sobre 10.',
   },
 ];
 
 export const parseClinicalSpeech = (rawText: string): ParsedClinicalVoiceData => {
-  const data: ParsedClinicalVoiceData = {};
-  const text = rawText.trim();
-  if (!text) return data;
-
-  // 1. Escala EVA / Dolor
-  const evaMatch =
-    text.match(/(?:dolor|escala|eva|nivel de dolor)\s*(?:eva)?\s*(?:de\s*)?(\d{1,2})(?:\s*(?:sobre|\/)\s*10)?/i) ||
-    text.match(/(\d{1,2})\s*(?:sobre|\/)\s*10/i);
-  if (evaMatch) {
-    const score = parseInt(evaMatch[1], 10);
-    if (score >= 0 && score <= 10) {
-      data.painScale = score;
-    }
-  }
-
-  const evaBeforeMatch = text.match(/(?:dolor|eva)\s*(?:al ingresar|antes|inicial)\s*(?:es\s*de\s*)?(\d{1,2})/i);
-  if (evaBeforeMatch) {
-    const s = parseInt(evaBeforeMatch[1], 10);
-    if (s >= 0 && s <= 10) data.painBefore = s;
-  }
-
-  const evaAfterMatch = text.match(/(?:dolor|eva)\s*(?:al salir|despu[eé]s|final)\s*(?:es\s*de\s*)?(\d{1,2})/i);
-  if (evaAfterMatch) {
-    const s = parseInt(evaAfterMatch[1], 10);
-    if (s >= 0 && s <= 10) data.painAfter = s;
-  }
-
-  // 2. Definición de secciones clínicas
-  const sectionDefs: Array<{
-    key: string;
-    patterns: RegExp[];
-  }> = [
-    { key: 'chiefComplaint', patterns: [/\bmotivo(?: de consulta)?\s*[:\-]/i, /\bpaciente (?:viene por|refiere)\s*[:\-]?/i] },
-    { key: 'painScaleText', patterns: [/\b(?:escala de dolor|dolor eva|escala eva)\s*[:\-]?/i] },
-    { key: 'anamnesis', patterns: [/\banamnesis\s*[:\-]/i, /\benfermedad actual\s*[:\-]/i, /\bhistoria cl[ií]nica\s*[:\-]/i] },
-    { key: 'physicalExam', patterns: [/\bexamen f[ií]sico\s*[:\-]/i, /\bevaluaci[oó]n f[ií]sica\s*[:\-]/i, /\ba la palpaci[oó]n\s*[:\-]?/i] },
-    { key: 'diagnosis', patterns: [/\bdiagn[oó]stico\s*[:\-]/i, /\bcie-?10\s*[:\-]/i] },
-    { key: 'treatmentPlan', patterns: [/\bplan(?: de tratamiento| terap[eé]utico| m[eé]dico)?\s*[:\-]/i] },
-    { key: 'notes', patterns: [/\bobservaciones\s*[:\-]/i, /\bnotas(?: de evoluci[oó]n)?\s*[:\-]/i, /\bevoluci[oó]n\s*[:\-]/i] },
-    { key: 'homeRecommendations', patterns: [/\brecomendaciones\s*[:\-]/i, /\bindicaciones(?: para la casa| para el hogar)?\s*[:\-]/i] },
-    { key: 'techniques', patterns: [/\bt[eé]cnicas(?: aplicadas)?\s*[:\-]/i, /\bprocedimientos\s*[:\-]/i] },
-    { key: 'medications', patterns: [/\brecetar\s*[:\-]/i, /\breceta(?: m[eé]dica)?\s*[:\-]/i, /\bmedicamentos?\s*[:\-]/i, /\bprescripci[oó]n\s*[:\-]/i] },
-  ];
-
-  interface HeaderOccurrence {
-    key: string;
-    startIndex: number;
-    headerLength: number;
-  }
-
-  const occurrences: HeaderOccurrence[] = [];
-
-  sectionDefs.forEach((def) => {
-    def.patterns.forEach((pattern) => {
-      const match = text.match(pattern);
-      if (match && match.index !== undefined) {
-        occurrences.push({
-          key: def.key,
-          startIndex: match.index,
-          headerLength: match[0].length,
-        });
-      }
-    });
-  });
-
-  occurrences.sort((a, b) => a.startIndex - b.startIndex);
-
-  for (let i = 0; i < occurrences.length; i++) {
-    const current = occurrences[i];
-    const contentStart = current.startIndex + current.headerLength;
-    const contentEnd = i + 1 < occurrences.length ? occurrences[i + 1].startIndex : text.length;
-    const content = text.slice(contentStart, contentEnd).trim().replace(/[.,;]+$/, '');
-
-    if (content) {
-      if (current.key === 'medications') {
-        const meds: Array<{ medicationName: string; dose: string; route: string; frequency: string; duration: string }> = [];
-        const items = content.split(/;|\ny|\. /);
-        items.forEach((item) => {
-          const cleanItem = item.trim();
-          if (!cleanItem) return;
-
-          const freqMatch = cleanItem.match(/(cada\s*\d+\s*(?:horas|h|d[ií]as)|en ayunas|antes de dormir|cada ma[nñ]ana)/i);
-          const durMatch = cleanItem.match(/(por\s*\d+\s*(?:d[ií]as|semanas|meses))/i);
-          const doseMatch = cleanItem.match(/(\b(?:1|2|3|\d+)\s*(?:c[aá]psulas?|tabletas?|comprimidos?|gotas?|ampollas?|sobres?)|(?:\d+\s*(?:mg|g|ml|mcg|ui)))/i);
-
-          let drugName = cleanItem;
-          if (freqMatch && freqMatch.index !== undefined) {
-            drugName = drugName.slice(0, freqMatch.index);
-          }
-          if (durMatch && durMatch.index !== undefined && durMatch.index < drugName.length) {
-            drugName = drugName.slice(0, durMatch.index);
-          }
-          drugName = drugName.replace(/[,;]+$/, '').trim();
-
-          if (drugName.length > 2) {
-            meds.push({
-              medicationName: drugName,
-              dose: doseMatch ? doseMatch[1].trim() : '1 cápsula',
-              route: cleanItem.toLowerCase().includes('t[oó]pico') ? 'Tópica' : cleanItem.toLowerCase().includes('inyectable') ? 'Intramuscular' : 'Oral',
-              frequency: freqMatch ? freqMatch[1].trim() : 'Cada 8 horas',
-              duration: durMatch ? durMatch[1].trim() : 'Por 5 días',
-            });
-          }
-        });
-        if (meds.length > 0) {
-          data.medications = meds;
-        }
-      } else if (current.key !== 'techniques' && current.key !== 'painScaleText') {
-        (data as any)[current.key] = content;
-      }
-    }
-  }
-
-  // 3. Detección Inteligente de Técnicas Clínicas
-  const matchedTechniques: string[] = [];
-  AVAILABLE_TECHNIQUES.forEach((tech) => {
-    const simpleTech = tech.toLowerCase().replace(/[()]/g, '');
-    if (text.toLowerCase().includes(simpleTech) || (tech === 'Terapia Manual Ortopédica' && text.toLowerCase().includes('terapia manual'))) {
-      const canonical = tech.includes('TENS')
-        ? 'Electroterapia (TENS / EMS)'
-        : tech.includes('Ultrasonido')
-        ? 'Ultrasonido Terapéutico'
-        : tech.includes('Ejercicio')
-        ? 'Ejercicio Terapéutico Funcional'
-        : tech.includes('Termoterapia') || tech.includes('Crioterapia')
-        ? 'Termoterapia / Crioterapia'
-        : tech === 'Terapia Manual'
-        ? 'Terapia Manual Ortopédica'
-        : tech;
-      if (!matchedTechniques.includes(canonical)) {
-        matchedTechniques.push(canonical);
-      }
-    }
-  });
-  if (matchedTechniques.length > 0) {
-    data.techniques = matchedTechniques;
-  }
-
-  if (!data.chiefComplaint && !data.anamnesis && !data.diagnosis && text.length > 5) {
-    data.chiefComplaint = text;
-    data.notes = text;
-  }
-
-  return data;
+  return parseClinicalSpeechShared(rawText);
 };
 
 export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProps> = ({
   onApplyVoiceData,
+  onSuggestedSupplies,
   onConsultationSaved,
   isOpenInitial = false,
   activeContext = 'consultation',
   patientId,
+  patientAllergies,
   professionalId,
   appointmentId,
   currentData,
@@ -225,28 +99,34 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
   const [micSupported, setMicSupported] = useState(true);
   const [speechError, setSpeechError] = useState<string | null>(null);
 
-  // Estados del Asistente Bidireccional por Voz & Altavoz
+  // Estados del Asistente Bilateral "Chanfainita" (Ambient Silencioso + Wake-Word)
+  const [listenMode, setListenMode] = useState<'ambient' | 'active'>('ambient');
+  const [privacyMode, setPrivacyMode] = useState<boolean>(false);
   const [speakerEnabled, setSpeakerEnabled] = useState<boolean>(true);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [lastSpokenMessage, setLastSpokenMessage] = useState<string | null>(null);
   const [aiProvider, setAiProvider] = useState<string | null>(null);
   const [missingFields, setMissingFields] = useState<MissingFieldInfo[]>([]);
+  const [clinicalAlerts, setClinicalAlerts] = useState<ClinicalAlertItem[]>([]);
   const [isComplete, setIsComplete] = useState<boolean>(false);
   const [isProcessingAi, setIsProcessingAi] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [previousSnapshot, setPreviousSnapshot] = useState<Partial<ParsedClinicalVoiceData> | null>(null);
 
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const latestTranscriptRef = useRef<string>('');
+  const wasListeningBeforeSpeakRef = useRef<boolean>(false);
 
   // ---------------------------------------------------------------------------
-  // ALTAVOZ / TEXT-TO-SPEECH (TTS) - Emisión de Voz Clara en Español
+  // ALTAVOZ / TEXT-TO-SPEECH (TTS) con Pausa Anti-Eco Automática
   // ---------------------------------------------------------------------------
   const speakAlert = useCallback(
     (text: string) => {
+      if (!text) return;
       setLastSpokenMessage(text);
-      if (!speakerEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      if (privacyMode || !speakerEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) {
         return;
       }
 
@@ -254,7 +134,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'es-PE';
-        utterance.rate = 1.05; // Ritmo clínico natural y comprensible
+        utterance.rate = 1.05;
         utterance.pitch = 1.0;
 
         const voices = window.speechSynthesis.getVoices();
@@ -268,8 +148,31 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
           utterance.voice = spanishVoice;
         }
 
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
+        utterance.onstart = () => {
+          setIsSpeaking(true);
+          // Anti-eco: pausar reconocimiento mientras Chanfainita habla
+          if (recognitionRef.current && isListening) {
+            wasListeningBeforeSpeakRef.current = true;
+            try {
+              recognitionRef.current.stop();
+            } catch {
+              // ignore
+            }
+          }
+        };
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          if (wasListeningBeforeSpeakRef.current && recognitionRef.current) {
+            wasListeningBeforeSpeakRef.current = false;
+            setTimeout(() => {
+              try {
+                recognitionRef.current?.start();
+              } catch {
+                // ignore
+              }
+            }, 300);
+          }
+        };
         utterance.onerror = () => setIsSpeaking(false);
 
         window.speechSynthesis.speak(utterance);
@@ -278,8 +181,15 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         setIsSpeaking(false);
       }
     },
-    [speakerEnabled],
+    [speakerEnabled, privacyMode, isListening],
   );
+
+  const handleUndoLast = useCallback(() => {
+    if (!previousSnapshot) return;
+    onApplyVoiceData(previousSnapshot);
+    setPreviousSnapshot(null);
+    setLastSpokenMessage('Listo, deshice el último cambio en la ficha.');
+  }, [previousSnapshot, onApplyVoiceData]);
 
   // Cargar lista de voces del navegador
   useEffect(() => {
@@ -292,7 +202,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
   }, []);
 
   // ---------------------------------------------------------------------------
-  // PROCESAMIENTO IA (Groq LPU -> Gemini -> OpenRouter -> Local)
+  // PROCESAMIENTO IA BILATERAL ("Chanfainita" Wake-Word + Modo Ambiental)
   // ---------------------------------------------------------------------------
   const runAiAnalysis = useCallback(
     async (textToProcess: string) => {
@@ -301,31 +211,64 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
       setIsProcessingAi(true);
 
       try {
-        const result = await processVoiceDictation(clean, currentData);
+        const result = await processVoiceDictation(clean, currentData, {
+          mode: listenMode,
+          patientId,
+          patientAllergies,
+          privacyMode,
+        });
         setAiProvider(result.providerUsed);
         setMissingFields(result.missingFields || []);
+        setClinicalAlerts(result.clinicalAlerts || []);
         setIsComplete(result.isComplete);
-
-        // Actualizar ficha médica
-        onApplyVoiceData(result.parsedData);
-
-        // Hablar por el altavoz (avisa faltantes o completitud)
-        if (result.spokenAlert) {
-          speakAlert(result.spokenAlert);
+        if (result.suggestedSupplies && result.suggestedSupplies.length > 0 && onSuggestedSupplies) {
+          onSuggestedSupplies(result.suggestedSupplies);
         }
-      } catch (err: any) {
+
+        if (result.intent === 'UNDO') {
+          if (previousSnapshot) {
+            onApplyVoiceData(previousSnapshot);
+            setPreviousSnapshot(null);
+          }
+        } else if (
+          result.intent !== 'ASK_PATIENT_HISTORY' &&
+          result.intent !== 'ASK_CLINICAL_PROTOCOL' &&
+          result.intent !== 'COMMAND_SAVE'
+        ) {
+          // Guardar snapshot previo para Undo de 1 paso
+          if (currentData) {
+            setPreviousSnapshot({ ...currentData });
+          }
+          onApplyVoiceData(result.parsedData);
+        }
+
+        // Alerta discreta en modo ambiental si hay alergia/bandera roja
+        if (result.clinicalAlerts && result.clinicalAlerts.length > 0 && !result.shouldSpeak) {
+          soundEffects.playChime();
+        }
+
+        // Solo hablar cuando Chanfainita fue invocada o está en modo activo (y no en privacidad)
+        if (result.shouldSpeak && result.spokenAlert) {
+          speakAlert(result.spokenAlert);
+        } else if (result.spokenAlert && privacyMode) {
+          setLastSpokenMessage(result.spokenAlert);
+        }
+      } catch (err: unknown) {
         console.warn('Fallo en API de IA, ejecutando analizador determinista local:', err);
+        const wakeDetected = /\b(chanfainita|chanfanita|chanfaina|chanfa)\b/i.test(clean);
+        if (currentData) {
+          setPreviousSnapshot({ ...currentData });
+        }
         const localParsed = parseClinicalSpeech(clean);
         onApplyVoiceData(localParsed);
-        setAiProvider('Motor Local Inteligente');
+        setAiProvider('Chanfainita · Motor Local');
 
-        // Auditoría clínica local
         const missing: MissingFieldInfo[] = [];
         if (!localParsed.chiefComplaint) {
           missing.push({ field: 'chiefComplaint', label: 'Motivo de consulta', spokenPrompt: 'el motivo de consulta' });
         }
         if (localParsed.painScale === undefined) {
-          missing.push({ field: 'painScale', label: 'Escala EVA (0-10)', spokenPrompt: 'la escala de dolor EVA' });
+          missing.push({ field: 'painScale', label: 'Escala EVA (0-10)', spokenPrompt: 'la escala de dolor' });
         }
         if (!localParsed.diagnosis) {
           missing.push({ field: 'diagnosis', label: 'Diagnóstico', spokenPrompt: 'el diagnóstico clínico' });
@@ -338,17 +281,19 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         const complete = missing.length === 0;
         setIsComplete(complete);
 
-        if (complete) {
-          speakAlert('Doctor, todos los datos requeridos de la consulta están completos y listos para guardar.');
-        } else {
-          const prompts = missing.map((m) => m.spokenPrompt).join(', ');
-          speakAlert(`Doctor, información registrada, pero falta esta información: ${prompts}.`);
+        if (wakeDetected || listenMode === 'active') {
+          if (complete) {
+            speakAlert('Ficha completa y lista para guardar cuando confirmes.');
+          } else {
+            const prompts = missing.map((m) => m.spokenPrompt).join(', ');
+            speakAlert(`Anotado. Solo falta ${prompts}.`);
+          }
         }
       } finally {
         setIsProcessingAi(false);
       }
     },
-    [currentData, onApplyVoiceData, speakAlert],
+    [currentData, listenMode, patientId, patientAllergies, privacyMode, previousSnapshot, onApplyVoiceData, speakAlert],
   );
 
   // ---------------------------------------------------------------------------
@@ -382,9 +327,9 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
       });
 
       setTimeout(() => setSaveSuccess(false), 5000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error al guardar consulta:', err);
-      setSaveError(err.message || 'Error al persistir en base de datos');
+      setSaveError(err instanceof Error ? err.message : 'Error al persistir en base de datos');
       speakAlert('Doctor, ocurrió un inconveniente al guardar la información en la base de datos.');
     } finally {
       setIsSaving(false);
@@ -400,11 +345,80 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
     onConsultationSaved,
   ]);
 
+  const [isRecordingWhisper, setIsRecordingWhisper] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const handleToggleWhisperRecording = useCallback(async () => {
+    if (isRecordingWhisper && mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecordingWhisper(false);
+      return;
+    }
+
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      setSpeechError('Grabación Whisper no disponible en este navegador.');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (ev) => {
+        if (ev.data.size > 0) audioChunksRef.current.push(ev.data);
+      };
+
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64 = typeof reader.result === 'string' ? reader.result : '';
+          if (!base64) return;
+          setIsProcessingAi(true);
+          try {
+            const res = await transcribeVoiceAudio(base64, blob.type || 'audio/webm');
+            if (res.transcript) {
+              setTranscript(res.transcript);
+              latestTranscriptRef.current = res.transcript;
+              setAiProvider(res.provider);
+              await runAiAnalysis(res.transcript);
+            }
+          } catch (err: unknown) {
+            setSpeechError(err instanceof Error ? err.message : 'No se pudo transcribir con Groq Whisper.');
+          } finally {
+            setIsProcessingAi(false);
+          }
+        };
+        reader.readAsDataURL(blob);
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecordingWhisper(true);
+      setSpeechError(null);
+    } catch {
+      setSpeechError('Permiso de micrófono requerido para grabación Whisper.');
+    }
+  }, [isRecordingWhisper, runAiAnalysis]);
+
+  const QUICK_VOICE_MACROS = [
+    { label: 'Control Lumbar Favorable', command: 'Chanfainita, aplica control lumbar favorable' },
+    { label: 'Control Hombro Favorable', command: 'Chanfainita, aplica control hombro favorable' },
+    { label: 'Alta Fisioterapia', command: 'Chanfainita, aplica alta fisioterapia' },
+  ];
+
   // ---------------------------------------------------------------------------
   // Inicializar Web Speech API (Dictado por Micrófono)
   // ---------------------------------------------------------------------------
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const win = window as unknown as {
+      SpeechRecognition?: SpeechRecognitionCtor;
+      webkitSpeechRecognition?: SpeechRecognitionCtor;
+    };
+    const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setMicSupported(false);
       return;
@@ -421,7 +435,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         setSpeechError(null);
       };
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: BrowserSpeechRecognitionEvent) => {
         let finalStr = '';
         let interimStr = '';
 
@@ -472,7 +486,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         }
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event: BrowserSpeechRecognitionErrorEvent) => {
         console.warn('Speech recognition warning:', event.error);
         if (event.error === 'not-allowed') {
           setSpeechError('Permiso de micrófono denegado. Puedes usar los dictados clínicos de muestra.');
@@ -535,7 +549,7 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
         console.error('Could not start recognition:', err);
         try {
           recognitionRef.current.stop();
-          setTimeout(() => recognitionRef.current.start(), 200);
+          setTimeout(() => recognitionRef.current?.start(), 200);
         } catch {
           // ignore
         }
@@ -605,9 +619,13 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
               <MaterialIcon name="mic" size={20} color="#0284c7" />
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                  <span>{activeContext === 'quick-note' ? 'Notas Rápidas por Voz' : 'Asistente Clínico Inteligente'}</span>
+                  <span>{activeContext === 'quick-note' ? 'Notas Rápidas por Voz' : 'Asistente Clínico Inteligente · Chanfainita'}</span>
                   <span className={`voice-status-pill ${isListening ? 'listening' : 'idle'}`}>
-                    {isListening ? '● Escuchando...' : 'En Espera'}
+                    {isListening
+                      ? listenMode === 'ambient'
+                        ? '● Escucha ambiental (en silencio)'
+                        : '● Chanfainita activa...'
+                      : 'Di "Chanfainita"'}
                   </span>
                   {aiProvider && (
                     <span className="voice-provider-badge" title="Motor de IA activo">
@@ -620,6 +638,43 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {/* Toggle Modo Ambiental vs Activo */}
+              <button
+                type="button"
+                className="voice-speaker-btn"
+                onClick={() => setListenMode((m) => (m === 'ambient' ? 'active' : 'ambient'))}
+                title={
+                  listenMode === 'ambient'
+                    ? 'Modo Ambiental Silencioso: solo responde si dices "Chanfainita"'
+                    : 'Modo Bilateral Directo: responde después de cada intervención'
+                }
+                style={{ fontSize: '0.7rem', fontWeight: 800, padding: '4px 8px', width: 'auto' }}
+              >
+                {listenMode === 'ambient' ? 'Ambiental' : 'Directo'}
+              </button>
+
+              {/* Toggle Modo Privacidad (Solo Visual) */}
+              <button
+                type="button"
+                className={`voice-speaker-btn ${privacyMode ? 'muted' : ''}`}
+                onClick={() => setPrivacyMode((p) => !p)}
+                title={privacyMode ? 'Modo Discreto activo (solo alertas visuales)' : 'Activar Modo Discreto (silenciar voz frente al paciente)'}
+              >
+                <MaterialIcon name={privacyMode ? 'visibility_off' : 'visibility'} size={17} />
+              </button>
+
+              {/* Botón Deshacer 1 Paso */}
+              {previousSnapshot && (
+                <button
+                  type="button"
+                  className="voice-speaker-btn"
+                  onClick={handleUndoLast}
+                  title="Deshacer último cambio dictado"
+                >
+                  <MaterialIcon name="undo" size={17} />
+                </button>
+              )}
+
               {/* Toggle de Altavoz */}
               <button
                 type="button"
@@ -660,6 +715,94 @@ export const VoiceConsultationAssistant: React.FC<VoiceConsultationAssistantProp
               </button>
             </div>
           </div>
+
+          {/* Barra de Macros Clínicas Rápidas & Grabación Whisper Pro (Fase 3) */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.45rem 0.85rem',
+              background: '#f8fafc',
+              borderBottom: '1px solid #e2e8f0',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>
+              Macros:
+            </span>
+            {QUICK_VOICE_MACROS.map((m) => (
+              <button
+                key={m.label}
+                type="button"
+                onClick={() => {
+                  setTranscript(m.command);
+                  latestTranscriptRef.current = m.command;
+                  runAiAnalysis(m.command);
+                }}
+                style={{
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  borderRadius: '999px',
+                  padding: '0.18rem 0.55rem',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                ⚡ {m.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={handleToggleWhisperRecording}
+              title="Transcripción médica de alta precisión con Groq Whisper"
+              style={{
+                marginLeft: 'auto',
+                border: isRecordingWhisper ? '1px solid #ef4444' : '1px solid #bae6fd',
+                background: isRecordingWhisper ? '#fef2f2' : '#f0f9ff',
+                color: isRecordingWhisper ? '#dc2626' : '#0369a1',
+                borderRadius: '999px',
+                padding: '0.18rem 0.6rem',
+                fontSize: '0.7rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}
+            >
+              <MaterialIcon name={isRecordingWhisper ? 'stop_circle' : 'graphic_eq'} size={13} />
+              {isRecordingWhisper ? 'Detener Whisper' : 'Whisper IA'}
+            </button>
+          </div>
+
+          {/* Alertas Clínicas Prioritarias (Alergias y Banderas Rojas) */}
+          {clinicalAlerts.length > 0 && (
+            <div
+              role="alert"
+              style={{
+                margin: '0.5rem 0.85rem 0',
+                padding: '0.65rem 0.85rem',
+                borderRadius: '12px',
+                background: '#fef2f2',
+                border: '1.5px solid #fca5a5',
+                color: '#991b1b',
+                fontSize: '0.78rem',
+              }}
+            >
+              {clinicalAlerts.map((alert, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.45rem' }}>
+                  <MaterialIcon name="gpp_maybe" size={18} color="#dc2626" />
+                  <div>
+                    <strong>{alert.title}</strong>
+                    <div style={{ marginTop: '2px', fontSize: '0.74rem' }}>{alert.detail}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Barra de Emisión Verbal del Altavoz (TTS Feedback) */}
           {lastSpokenMessage && (

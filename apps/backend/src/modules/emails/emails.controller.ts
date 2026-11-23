@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { EmailsService } from './emails.service';
 import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
@@ -14,8 +15,10 @@ import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
 import { SendTestEmailDto } from './dto/send-test-email.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
+import { JwtAuthGuard, TenantGuard, RolesGuard } from '../../common/guards';
 
 @Controller('emails')
+@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class EmailsController {
   constructor(private readonly emailsService: EmailsService) {}
 

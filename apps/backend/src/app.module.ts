@@ -16,6 +16,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { EmailsModule } from './modules/emails/emails.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { AiAssistantModule } from './modules/ai/ai.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 
 @Module({
@@ -40,6 +41,7 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware';
     EmailsModule,
     TelegramModule,
     AiAssistantModule,
+    AdminModule,
   ],
 })
 export class AppModule implements NestModule {

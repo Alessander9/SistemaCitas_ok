@@ -1,3 +1,15 @@
+export interface ClinicalVitals {
+  systolicBp?: number;
+  diastolicBp?: number;
+  heartRate?: number;
+  respiratoryRate?: number;
+  temperature?: number;
+  oxygenSaturation?: number;
+  weightKg?: number;
+  heightCm?: number;
+  bmi?: number;
+}
+
 export interface MedicalRecord {
   id: string;
   clinicId: string;
@@ -12,7 +24,7 @@ export interface MedicalRecord {
   treatmentPlan?: string;
   painScale?: number; // EVA 0-10
   notes?: string;
-  vitals?: Record<string, unknown>;
+  vitals?: ClinicalVitals;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,7 +40,7 @@ export interface CreateMedicalRecordPayload {
   treatmentPlan?: string;
   painScale?: number;
   notes?: string;
-  vitals?: Record<string, unknown>;
+  vitals?: ClinicalVitals;
 }
 
 export interface Treatment {

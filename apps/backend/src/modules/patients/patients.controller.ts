@@ -14,14 +14,19 @@ import {
 import { PatientsService } from './patients.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { CurrentTenant, Public, Roles } from '../../common/decorators';
+import { CurrentTenant, CurrentUser, Public, Roles } from '../../common/decorators';
 import { JwtAuthGuard, TenantGuard, RolesGuard } from '../../common/guards';
-import { Patient, PatientHistory, UserRole } from '@citassistema/shared-types';
+import { DatabaseService } from '../../database/database.service';
+import { assertPatientOwnership } from '../../common/security/patient-ownership.util';
+import { AuthenticatedUser, Patient, PatientHistory, UserRole } from '@citassistema/shared-types';
 
 @Controller('patients')
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class PatientsController {
-  constructor(private readonly patientsService: PatientsService) {}
+  constructor(
+    private readonly patientsService: PatientsService,
+    private readonly db: DatabaseService,
+  ) {}
 
   @Post()
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.RECEPCION, UserRole.PACIENTE)
@@ -67,8 +72,10 @@ export class PatientsController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.RECEPCION, UserRole.PACIENTE)
   async findOne(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ): Promise<Patient> {
+    await assertPatientOwnership(this.db, clinicId, user, id);
     return this.patientsService.findOne(clinicId, id);
   }
 
@@ -76,8 +83,10 @@ export class PatientsController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.RECEPCION, UserRole.PACIENTE)
   async getHistory(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ): Promise<PatientHistory> {
+    await assertPatientOwnership(this.db, clinicId, user, id);
     return this.patientsService.getHistory(clinicId, id);
   }
 
@@ -85,9 +94,11 @@ export class PatientsController {
   @Roles(UserRole.ADMIN_CLINIC, UserRole.PROFESIONAL, UserRole.RECEPCION, UserRole.PACIENTE)
   async update(
     @CurrentTenant() clinicId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
     @Body() dto: UpdatePatientDto,
   ): Promise<Patient> {
+    await assertPatientOwnership(this.db, clinicId, user, id);
     return this.patientsService.update(clinicId, id, dto);
   }
 

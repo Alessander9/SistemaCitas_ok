@@ -84,6 +84,9 @@ export class AppointmentsController {
     return this.appointmentsService.createPublicBooking(clinicId, dto);
   }
 
+  /**
+   * @deprecated Use POST /appointments/public-book instead. Maintained as alias for backward compatibility.
+   */
   @Public()
   @Post('book')
   @HttpCode(HttpStatus.CREATED)

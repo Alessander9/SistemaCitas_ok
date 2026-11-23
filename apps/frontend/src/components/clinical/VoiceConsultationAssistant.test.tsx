@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import {
   VoiceConsultationAssistant,
   parseClinicalSpeech,
@@ -33,10 +33,11 @@ describe('VoiceConsultationAssistant & Clinical NLP Parser', () => {
 
     // Click to open drawer
     fireEvent.click(fabButton);
-    expect(screen.getByText(/Dictado Clínico Inteligente/i)).toBeInTheDocument();
+    expect(screen.getByText(/Asistente Clínico Inteligente/i)).toBeInTheDocument();
   });
 
-  it('applies quick preset dictation and triggers callback', () => {
+  it('applies quick preset dictation and triggers callback', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const onApply = vi.fn();
     render(<VoiceConsultationAssistant onApplyVoiceData={onApply} isOpenInitial={true} />);
 
@@ -48,9 +49,12 @@ describe('VoiceConsultationAssistant & Clinical NLP Parser', () => {
     const lumbalgiaPreset = screen.getByText(/Consulta Completa: Lumbalgia/i);
     fireEvent.click(lumbalgiaPreset);
 
-    expect(onApply).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(onApply).toHaveBeenCalled();
+    });
     const calledData = onApply.mock.calls[0][0];
     expect(calledData.chiefComplaint).toBeDefined();
     expect(calledData.painScale).toBe(7);
+    warnSpy.mockRestore();
   });
 });

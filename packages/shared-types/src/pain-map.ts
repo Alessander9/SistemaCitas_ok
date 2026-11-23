@@ -24,6 +24,17 @@ export type AggravatingFactor =
   | 'bipedestacion'
   | 'sedestacion';
 
+export interface PainReferredArea {
+  targetStructureCode?: string;
+  targetRegionCode?: string;
+  description?: string;
+  intensityEva?: number;
+  atlasPartName?: string;
+  atlasPartNameEs?: string;
+  fmaId?: string;
+  [key: string]: unknown;
+}
+
 export interface PainPoint {
   id: string;
   clinicId: string;
@@ -44,7 +55,7 @@ export interface PainPoint {
   triggerPoint?: TriggerPointStatus;
   depth?: PainDepth;
   aggravatingFactors?: string[];
-  referredArea?: Record<string, unknown> | null;
+  referredArea?: PainReferredArea | null;
   notes?: string;
   recordedAt: string;
   createdAt?: string;
@@ -64,7 +75,7 @@ export interface CreatePainPointDto {
   triggerPoint?: TriggerPointStatus;
   depth?: PainDepth;
   aggravatingFactors?: string[];
-  referredArea?: Record<string, unknown> | null;
+  referredArea?: PainReferredArea | null;
   notes?: string;
 }
 

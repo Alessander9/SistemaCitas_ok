@@ -1,9 +1,10 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Pool, QueryResult, QueryResultRow } from 'pg';
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(DatabaseService.name);
   private pool!: Pool;
 
   constructor(private readonly configService: ConfigService) {}
@@ -28,9 +29,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     try {
       await this.pool.query('SELECT 1');
-      console.log('✅ Database connected successfully');
+      this.logger.log('✅ Database connected successfully');
     } catch (error) {
-      console.warn('⚠️ Database connection warning (PostgreSQL unreachable):', (error as Error).message);
+      this.logger.warn(`⚠️ Database connection warning (PostgreSQL unreachable): ${(error as Error).message}`);
       if (process.env.NODE_ENV === 'production') {
         throw error;
       }

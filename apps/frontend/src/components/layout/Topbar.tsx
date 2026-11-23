@@ -1,13 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import './Topbar.css';
 import { MaterialIcon } from '../ui/MaterialIcon';
 import { IconSearch } from '../ui/Icons';
 import { useTheme } from '../../context/ThemeContext';
 import { AccessibilityFontScaler } from './AccessibilityFontScaler';
+import { soundEffects } from '../../utils/soundEffects';
 
 interface TopbarProps {
   currentView: string;
   activeRole: string;
+  onNavigate?: (view: string) => void;
   onRoleChange?: (role: 'SUPER_ADMIN' | 'ADMIN_CLINIC' | 'PROFESIONAL' | 'RECEPCION' | 'PACIENTE') => void;
   onToggleMobileMenu?: () => void;
   onLogout?: () => void;
@@ -18,6 +20,7 @@ interface TopbarProps {
 export const Topbar: React.FC<TopbarProps> = ({
   currentView,
   activeRole,
+  onNavigate,
   onRoleChange,
   onToggleMobileMenu,
   onLogout,
@@ -28,34 +31,86 @@ export const Topbar: React.FC<TopbarProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Preference states
   const [compactDensity, setCompactDensity] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(() => soundEffects.isEnabled());
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown when clicking outside
+  const quickSearchItems = useMemo(() => {
+    const commonByRole: Record<string, Array<{ label: string; sub: string; view: string; icon: string }>> = {
+      SUPER_ADMIN: [
+        { label: 'Panel Multi-Tenant', sub: 'Red global de sedes', view: 'dashboard', icon: 'public' },
+        { label: 'Caja & Liquidación', sub: 'Finanzas de red', view: 'cash-register', icon: 'payments' },
+      ],
+      ADMIN_CLINIC: [
+        { label: 'Dashboard Operativo', sub: 'KPIs, ocupación y alertas', view: 'dashboard', icon: 'monitoring' },
+        { label: 'Agenda & Citas del Día', sub: 'Programación de consultorios', view: 'reception-booking', icon: 'calendar_month' },
+        { label: 'Caja Chica & Arqueo', sub: 'Ingresos, egresos y cierre', view: 'cash-register', icon: 'payments' },
+        { label: 'Kardex de Inventario', sub: 'Stock crítico e insumos', view: 'inventory', icon: 'inventory_2' },
+        { label: 'Emails & Recordatorios', sub: 'Plantillas y envíos', view: 'communications', icon: 'mail' },
+      ],
+      PROFESIONAL: [
+        { label: 'Mi Cola de Consulta', sub: 'Carlos Benítez, Rosa Morales, Jorge Ramírez', view: 'dashboard', icon: 'stethoscope' },
+        { label: 'Ficha EVA & Diagnósticos', sub: 'Atención clínica y receta digital', view: 'clinical-consultation', icon: 'description' },
+        { label: 'Mi Agenda Semanal', sub: 'Turnos y bloqueos semanales', view: 'doctor-schedule', icon: 'calendar_month' },
+      ],
+      RECEPCION: [
+        { label: 'Mesa de Admisión (Triage)', sub: 'Check-in y cobro rápido', view: 'dashboard', icon: 'assignment' },
+        { label: 'Agendar Citas', sub: 'Disponibilidad por profesional', view: 'reception-booking', icon: 'calendar_month' },
+        { label: 'Caja & Cobro Rápido', sub: 'Arqueo de turno', view: 'cash-register', icon: 'payments' },
+      ],
+      PACIENTE: [
+        { label: 'Mi Portal de Salud', sub: 'Próxima cita, progreso y cuidados', view: 'dashboard', icon: 'favorite' },
+        { label: 'Reservar Nueva Cita', sub: 'Agendamiento en línea', view: 'booking', icon: 'calendar_today' },
+        { label: 'Mis Recetas & Pagos', sub: 'Citas, recetas digitales y boletas', view: 'patient-portal', icon: 'receipt_long' },
+      ],
+    };
+    const items = commonByRole[activeRole] || commonByRole.ADMIN_CLINIC;
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (item) => item.label.toLowerCase().includes(q) || item.sub.toLowerCase().includes(q),
+    );
+  }, [activeRole, searchQuery]);
+
+  // Close dropdown when clicking outside & handle Cmd/Ctrl+K shortcut
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
+      if (searchWrapRef.current && !searchWrapRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
     };
-    const handleEscKey = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setIsSearchOpen(true);
+        searchInputRef.current?.focus();
+      }
       if (event.key === 'Escape') {
         setIsDropdownOpen(false);
+        setIsSearchOpen(false);
         setShowCustomizeModal(false);
         setShowProfileModal(false);
+        setShowSecurityModal(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscKey);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscKey);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
@@ -208,18 +263,84 @@ export const Topbar: React.FC<TopbarProps> = ({
         </div>
 
         {/* Center: Global Search Bar with guaranteed zero overlap */}
-        <div className="topbar-search-wrap hidden md:flex">
+        <div className="topbar-search-wrap hidden md:flex" ref={searchWrapRef} style={{ position: 'relative' }}>
           <span className="search-icon-pos">
             <IconSearch className="w-4 h-4" />
           </span>
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Buscar paciente, cita o historia..."
+            value={searchQuery}
+            onFocus={() => setIsSearchOpen(true)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsSearchOpen(true);
+            }}
+            placeholder="Buscar paciente, cita o módulo..."
+            aria-label="Búsqueda rápida"
             className="topbar-search-input"
           />
           <kbd className="search-kbd-badge">
             ⌘K
           </kbd>
+
+          {isSearchOpen && (
+            <div
+              role="listbox"
+              aria-label="Resultados de búsqueda rápida"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 8px)',
+                left: 0,
+                right: 0,
+                background: '#ffffff',
+                border: '1.5px solid #e2e8f0',
+                borderRadius: '14px',
+                boxShadow: '0 16px 36px -8px rgba(15, 23, 42, 0.16)',
+                zIndex: 100,
+                padding: '0.4rem',
+                maxHeight: '280px',
+                overflowY: 'auto',
+              }}
+            >
+              {quickSearchItems.length === 0 ? (
+                <div style={{ padding: '0.85rem', textAlign: 'center', fontSize: '0.8rem', color: '#64748b' }}>
+                  No se encontraron accesos para "{searchQuery}"
+                </div>
+              ) : (
+                quickSearchItems.map((item) => (
+                  <button
+                    key={item.view + item.label}
+                    type="button"
+                    role="option"
+                    onClick={() => {
+                      onNavigate?.(item.view);
+                      setSearchQuery('');
+                      setIsSearchOpen(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      padding: '0.6rem 0.75rem',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: currentView === item.view ? '#f0f9ff' : 'transparent',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <MaterialIcon name={item.icon} size={18} color="#0284c7" />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>{item.label}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{item.sub}</span>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right: Scope Indicator, Font Scaler, Dark Mode Toggle & User Profile Dropdown */}
@@ -333,7 +454,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                     className="dropdown-item"
                     onClick={() => {
                       setIsDropdownOpen(false);
-                      alert('Protocolo de Seguridad Activo: Cifrado TLS 256-bit, Row-Level Security (RLS) y Logs Inmutables Ley 29733.');
+                      setShowSecurityModal(true);
                     }}
                   >
                     <span className="dropdown-item-icon"><MaterialIcon name="security" size={18} /></span>
@@ -452,7 +573,13 @@ export const Topbar: React.FC<TopbarProps> = ({
                 <input
                   type="checkbox"
                   checked={compactDensity}
-                  onChange={e => setCompactDensity(e.target.checked)}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    setCompactDensity(checked);
+                    if (typeof document !== 'undefined') {
+                      document.documentElement.classList.toggle('compact-mode', checked);
+                    }
+                  }}
                   style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#0284c7' }}
                 />
               </div>
@@ -465,7 +592,11 @@ export const Topbar: React.FC<TopbarProps> = ({
                 <input
                   type="checkbox"
                   checked={soundEnabled}
-                  onChange={e => setSoundEnabled(e.target.checked)}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    setSoundEnabled(checked);
+                    soundEffects.setEnabled(checked);
+                  }}
                   style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#0284c7' }}
                 />
               </div>
@@ -526,8 +657,20 @@ export const Topbar: React.FC<TopbarProps> = ({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.82rem' }}>
                 <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ color: '#64748b', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 700 }}>Registro Profesional</span>
-                  <p style={{ margin: '4px 0 0', fontWeight: 700, color: '#0f172a' }}>CMP 48291 / RNE 19283</p>
+                  <span style={{ color: '#64748b', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 700 }}>
+                    {activeRole === 'PACIENTE' ? 'Documento (DNI)' : activeRole === 'PROFESIONAL' ? 'Registro Profesional' : 'Nivel de Acceso'}
+                  </span>
+                  <p style={{ margin: '4px 0 0', fontWeight: 700, color: '#0f172a' }}>
+                    {activeRole === 'PACIENTE'
+                      ? 'DNI 73829104'
+                      : activeRole === 'PROFESIONAL'
+                        ? 'CMP 48291 / RNE 19283'
+                        : activeRole === 'RECEPCION'
+                          ? 'Admisión & Caja Turno AM'
+                          : activeRole === 'SUPER_ADMIN'
+                            ? 'Master Multi-Tenant (RLS)'
+                            : 'Dirección Médica de Sede'}
+                  </p>
                 </div>
                 <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                   <span style={{ color: '#64748b', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 700 }}>Sede Activa</span>
@@ -537,7 +680,11 @@ export const Topbar: React.FC<TopbarProps> = ({
 
               <div style={{ padding: '0.75rem 1rem', background: '#ecfdf5', borderRadius: '10px', border: '1px solid #a7f3d0', color: '#065f46', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <MaterialIcon name="verified_user" size={18} color="#059669" />
-                <span>Firma digital acreditada según Ley N° 27269 para emisión de recetas y órdenes médicas.</span>
+                <span>
+                  {activeRole === 'PACIENTE'
+                    ? 'Tus datos clínicos están protegidos bajo la Ley N° 29733 de Protección de Datos Personales.'
+                    : 'Sesión verificada con auditoría inmutable y cumplimiento normativo MINSA / Ley N° 29733.'}
+                </span>
               </div>
             </div>
             <div className="modal-footer-custom">
@@ -548,6 +695,46 @@ export const Topbar: React.FC<TopbarProps> = ({
                 style={{ padding: '0.55rem 1.25rem', borderRadius: '10px' }}
               >
                 Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 3: Seguridad & Auditoría */}
+      {showSecurityModal && (
+        <div className="modal-overlay-custom" onClick={() => setShowSecurityModal(false)}>
+          <div className="modal-content-custom" onClick={e => e.stopPropagation()}>
+            <div className="modal-header-custom">
+              <h3>Seguridad & Auditoría Activa</h3>
+              <button
+                type="button"
+                className="close-btn"
+                onClick={() => setShowSecurityModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+              >
+                <MaterialIcon name="close" size={20} />
+              </button>
+            </div>
+            <div className="modal-body-custom">
+              <div style={{ padding: '0.9rem 1rem', background: '#ecfdf5', borderRadius: '12px', border: '1px solid #a7f3d0', color: '#065f46', fontSize: '0.84rem', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                <MaterialIcon name="verified_user" size={20} color="#059669" />
+                <div>
+                  <strong>Protocolo de Seguridad Activo</strong>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.78rem' }}>
+                    Cifrado TLS 256-bit, aislamiento multi-tenant con Row-Level Security (RLS) y bitácora inmutable conforme a la Ley N° 29733.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer-custom">
+              <button
+                type="button"
+                className="cash-btn primary"
+                onClick={() => setShowSecurityModal(false)}
+                style={{ padding: '0.55rem 1.25rem', borderRadius: '10px' }}
+              >
+                Entendido
               </button>
             </div>
           </div>

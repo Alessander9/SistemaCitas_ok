@@ -40,6 +40,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         <Topbar
           currentView={currentView}
           activeRole={activeRole}
+          onNavigate={onNavigate}
           onRoleChange={onRoleChange}
           onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           onLogout={onLogout}

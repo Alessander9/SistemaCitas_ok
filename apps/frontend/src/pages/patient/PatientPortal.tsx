@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
 import { MaterialIcon } from '../../components/ui/MaterialIcon';
+import {
+  PatientPrescriptionsPanel,
+  PatientPaymentsPanel,
+  PatientPrescription,
+  PatientReceipt,
+  RescheduleModal,
+  CancelAppointmentModal,
+  PatientUpcomingAppointment,
+} from '../../components/patient';
+import '../dashboards/PatientDashboard.css';
 import './PatientPortal.css';
 
 interface PatientPortalProps {
@@ -7,16 +17,89 @@ interface PatientPortalProps {
   onBookAppointment: () => void;
 }
 
+interface PortalAppointment {
+  id: string;
+  serviceName: string;
+  professionalName: string;
+  date: string;
+  day: string;
+  month: string;
+  time: string;
+  duration: string;
+  status: 'confirmed' | 'pending';
+  notes: string;
+}
+
+const INITIAL_UPCOMING_APPOINTMENTS: PortalAppointment[] = [
+  {
+    id: 'appt-101',
+    serviceName: 'Sesión de Fisioterapia y Punción Seca',
+    professionalName: 'Dra. María González Flores',
+    date: '2026-09-08',
+    day: '08',
+    month: 'Sep',
+    time: '10:00 AM',
+    duration: '45 min',
+    status: 'confirmed',
+    notes: 'Sesión 7 de 10 — Fortalecimiento lumbar y electroterapia.',
+  },
+  {
+    id: 'appt-102',
+    serviceName: 'Evaluación y Control Traumatológico',
+    professionalName: 'Dr. Carlos Mendoza Ruiz',
+    date: '2026-09-22',
+    day: '22',
+    month: 'Sep',
+    time: '04:30 PM',
+    duration: '30 min',
+    status: 'pending',
+    notes: 'Control post-tratamiento de hombro.',
+  },
+];
+
 export const PatientPortal: React.FC<PatientPortalProps> = ({
   onLogout,
   onBookAppointment,
 }) => {
   const [activeTab, setActiveTab] = useState<'citas' | 'tratamientos' | 'perfil' | 'pagos'>('citas');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<PortalAppointment[]>(INITIAL_UPCOMING_APPOINTMENTS);
+  const [reschedulingAppt, setReschedulingAppt] = useState<PatientUpcomingAppointment | null>(null);
+  const [cancellingAppt, setCancellingAppt] = useState<PortalAppointment | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleConfirmReschedule = (newDate: string, newTime: string) => {
+    if (!reschedulingAppt) return;
+    const parts = newDate.replace(',', '').split(' ');
+    const day = parts.length > 1 ? parts[1].padStart(2, '0') : '15';
+    const month = parts.length > 2 ? parts[2] : 'Sep';
+
+    setUpcomingAppointments((prev) =>
+      prev.map((a) =>
+        a.id === reschedulingAppt.id
+          ? {
+              ...a,
+              day,
+              month,
+              time: newTime,
+              notes: `Reprogramada con éxito para el ${newDate} a las ${newTime}.`,
+            }
+          : a
+      )
+    );
+    showToast(`Cita reprogramada con éxito para el ${newDate} a las ${newTime}.`);
+    setReschedulingAppt(null);
+  };
+
+  const handleConfirmCancel = (reason: string) => {
+    if (!cancellingAppt) return;
+    setUpcomingAppointments((prev) => prev.filter((a) => a.id !== cancellingAppt.id));
+    showToast(`Cita cancelada con éxito (${reason}). Horario liberado.`);
+    setCancellingAppt(null);
   };
 
   // Simulated Patient Data
@@ -32,33 +115,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     emergencyContact: 'María Gómez (Madre) - +51 991 223 344',
     consentGranted: true,
   };
-
-  const upcomingAppointments = [
-    {
-      id: 'appt-101',
-      serviceName: 'Sesión de Fisioterapia y Punción Seca',
-      professionalName: 'Dra. María González Flores',
-      date: '2026-09-08',
-      day: '08',
-      month: 'Sep',
-      time: '10:00 AM',
-      duration: '45 min',
-      status: 'confirmed',
-      notes: 'Sesión 7 de 10 — Fortalecimiento lumbar y electroterapia.',
-    },
-    {
-      id: 'appt-102',
-      serviceName: 'Evaluación y Control Traumatológico',
-      professionalName: 'Dr. Carlos Mendoza Ruiz',
-      date: '2026-09-22',
-      day: '22',
-      month: 'Sep',
-      time: '04:30 PM',
-      duration: '30 min',
-      status: 'pending',
-      notes: 'Control post-tratamiento de hombro.',
-    },
-  ];
 
   const activeTreatments = [
     {
@@ -230,51 +286,102 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               Próximas Atenciones Agendadas
             </h2>
             <div>
-              {upcomingAppointments.map((appt) => (
-                <div key={appt.id} className="portal-card">
-                  <div className="appt-card-inner">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div className="appt-date-block">
-                        <div className="appt-day">{appt.day}</div>
-                        <div className="appt-month">{appt.month}</div>
-                      </div>
-                      <div className="appt-info-block">
-                        <h3>{appt.serviceName}</h3>
-                        <p>
-                          Especialista: <strong>{appt.professionalName}</strong> • {appt.time} ({appt.duration})
-                        </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '0.74rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '6px', background: appt.status === 'confirmed' ? '#ecfdf5' : '#fffbeb', color: appt.status === 'confirmed' ? '#065f46' : '#92400e', border: `1px solid ${appt.status === 'confirmed' ? '#a7f3d0' : '#fde68a'}`, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <MaterialIcon name={appt.status === 'confirmed' ? 'check_circle' : 'schedule'} size={13} />
-                            <span>{appt.status === 'confirmed' ? 'Confirmada' : 'Pendiente'}</span>
-                          </span>
-                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                            {appt.notes}
-                          </span>
+              {upcomingAppointments.length === 0 ? (
+                <div className="portal-card" style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#64748b' }}>
+                    <MaterialIcon name="event_busy" size={28} />
+                  </div>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.4rem' }}>
+                    No tienes citas agendadas por el momento
+                  </h3>
+                  <p style={{ fontSize: '0.84rem', color: '#64748b', maxWidth: '420px', margin: '0 auto 1.5rem' }}>
+                    Puedes agendar una nueva consulta o control terapéutico cuando lo necesites.
+                  </p>
+                  <button
+                    type="button"
+                    className="portal-action-btn primary"
+                    style={{ margin: '0 auto' }}
+                    onClick={onBookAppointment}
+                  >
+                    <MaterialIcon name="add_circle" size={16} />
+                    <span>Agendar Nueva Cita</span>
+                  </button>
+                </div>
+              ) : (
+                upcomingAppointments.map((appt) => (
+                  <div key={appt.id} className="portal-card">
+                    <div className="appt-card-inner">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div className="appt-date-block">
+                          <div className="appt-day">{appt.day}</div>
+                          <div className="appt-month">{appt.month}</div>
+                        </div>
+                        <div className="appt-info-block">
+                          <h3>{appt.serviceName}</h3>
+                          <p>
+                            Especialista: <strong>{appt.professionalName}</strong> • {appt.time} ({appt.duration})
+                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.74rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '6px', background: appt.status === 'confirmed' ? '#ecfdf5' : '#fffbeb', color: appt.status === 'confirmed' ? '#065f46' : '#92400e', border: `1px solid ${appt.status === 'confirmed' ? '#a7f3d0' : '#fde68a'}`, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <MaterialIcon name={appt.status === 'confirmed' ? 'check_circle' : 'schedule'} size={13} />
+                              <span>{appt.status === 'confirmed' ? 'Confirmada' : 'Pendiente'}</span>
+                            </span>
+                            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                              {appt.notes}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        style={{ padding: '0.5rem 0.95rem', borderRadius: '10px', background: '#ffffff', border: '1.5px solid #cbd5e1', color: '#0284c7', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                        onClick={() => showToast(`Recordatorio de cita ${appt.id} descargado.`)}
-                      >
-                        <MaterialIcon name="description" size={15} />
-                        <span>Recordatorio</span>
-                      </button>
-                      <button
-                        type="button"
-                        style={{ padding: '0.5rem 0.95rem', borderRadius: '10px', background: '#f8fafc', border: '1.5px solid #cbd5e1', color: '#475569', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
-                        onClick={() => showToast('Para cancelar o reprogramar, también puedes usar el botón en tu portal.')}
-                      >
-                        Reprogramar / Cancelar
-                      </button>
+                      <div className="portal-card-actions">
+                        <button
+                          type="button"
+                          className="portal-action-btn primary"
+                          onClick={() => showToast(`Recordatorio de cita ${appt.id} descargado.`)}
+                        >
+                          <MaterialIcon name="description" size={15} />
+                          <span>Recordatorio</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="portal-action-btn reschedule"
+                          onClick={() => {
+                            setReschedulingAppt({
+                              id: appt.id,
+                              title: appt.serviceName,
+                              durationLabel: appt.duration,
+                              doctorName: appt.professionalName,
+                              doctorSpecialty: 'Especialista',
+                              doctorInitials: appt.professionalName
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')
+                                .slice(0, 2),
+                              dateLabel: `${appt.day} de ${appt.month}, 2026`,
+                              timeLabel: appt.time,
+                              countdownLabel: 'Próxima',
+                              mode: 'presencial',
+                              locationLabel: 'Sede Principal · Sanitas Lima',
+                              status: appt.status,
+                            });
+                          }}
+                        >
+                          <MaterialIcon name="edit_calendar" size={15} />
+                          <span>Reprogramar</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="portal-action-btn danger"
+                          onClick={() => setCancellingAppt(appt)}
+                        >
+                          <MaterialIcon name="cancel" size={15} />
+                          <span>Cancelar</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
         )}
@@ -325,56 +432,24 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               );
             })}
 
-            {/* Recetas Médicas Digitales */}
-            <div style={{ marginTop: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
-                    Recetas Médicas con Firma Digital MINSA
-                  </h3>
-                  <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b' }}>
-                    Prescripciones oficiales autorizadas para farmacias a nivel nacional.
-                  </p>
-                </div>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '0.25rem 0.65rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <MaterialIcon name="verified_user" size={14} />
-                  <span>Validez Legal Ley N° 27269</span>
-                </span>
-              </div>
-
-              {digitalPrescriptions.map((rx) => (
-                <div key={rx.id} className="portal-card" style={{ borderLeft: '4px solid #7c3aed' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-                    <div style={{ flex: 1, minWidth: '260px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#7c3aed', background: '#f3e8ff', border: '1px solid #d8b4fe', padding: '0.15rem 0.5rem', borderRadius: '6px' }}>
-                          {rx.code}
-                        </span>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Emitida: {rx.date}</span>
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#15803d', background: '#f0fdf4', padding: '0.15rem 0.45rem', borderRadius: '6px' }}>● {rx.validity}</span>
-                      </div>
-                      <h4 style={{ margin: '0 0 0.35rem', fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-                        {rx.medication}
-                      </h4>
-                      <p style={{ margin: '0 0 0.35rem', fontSize: '0.82rem', color: '#334155', lineHeight: 1.45 }}>
-                        <strong>Posología:</strong> {rx.dosage}
-                      </p>
-                      <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748b' }}>
-                        <strong>Indicaciones:</strong> {rx.instructions} • Emisor: <em>{rx.doctor}</em>
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      style={{ padding: '0.65rem 1.15rem', borderRadius: '12px', background: '#7c3aed', color: '#ffffff', border: 'none', fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px -2px rgba(124, 58, 237, 0.35)' }}
-                      onClick={() => showToast(`Descargando ${rx.code} oficial en PDF con código QR y firma digital colegiada...`)}
-                    >
-                      <MaterialIcon name="download" size={16} />
-                      <span>Descargar Receta PDF</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
+            {/* Recetas Médicas */}
+            <div style={{ marginTop: '1.75rem' }}>
+              <PatientPrescriptionsPanel
+                prescriptions={digitalPrescriptions.map<PatientPrescription>((rx) => ({
+                  id: rx.id,
+                  code: rx.code,
+                  medication: rx.medication,
+                  schedule: rx.dosage,
+                  instructions: rx.instructions,
+                  issuedDate: rx.date,
+                  validUntil: rx.validity.replace(/^Vigente hasta\s*/i, ''),
+                  doctorName: rx.doctor.split('·')[0].trim(),
+                  isActive: rx.validity.toLowerCase().includes('vigente'),
+                }))}
+                onDownload={(rx) =>
+                  showToast(`Descargando receta de ${rx.medication} en PDF...`)
+                }
+              />
             </div>
           </section>
         )}
@@ -382,52 +457,22 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
         {/* TAB 3: Mis Comprobantes de Pago */}
         {activeTab === 'pagos' && (
           <section>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                  Mis Comprobantes de Pago Electrónicos
-                </h2>
-                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 0' }}>
-                  Boletas electrónicas emitidas y validadas ante SUNAT por Clínica Sanitas.
-                </p>
-              </div>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#15803d', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.35rem 0.85rem', borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                <MaterialIcon name="check_circle" size={14} />
-                <span>Saldo Pendiente: S/ 0.00 (Al Día)</span>
-              </span>
-            </div>
-
-            <div>
-              {paymentReceipts.map((rec) => (
-                <div key={rec.id} className="portal-card">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0f172a' }}>{rec.number}</h4>
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#047857', background: '#ecfdf5', padding: '0.15rem 0.45rem', borderRadius: '6px' }}>{rec.status}</span>
-                      </div>
-                      <p style={{ margin: '0 0 0.25rem', fontSize: '0.82rem', color: '#475569' }}>{rec.service}</p>
-                      <span style={{ fontSize: '0.74rem', color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <MaterialIcon name="calendar_today" size={13} />
-                        <span>{rec.date} • {rec.method} • Ref: {rec.authCode}</span>
-                      </span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <span style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0284c7' }}>{rec.amount}</span>
-                      <button
-                        type="button"
-                        style={{ padding: '0.55rem 1rem', borderRadius: '10px', background: '#ffffff', border: '1.5px solid #cbd5e1', color: '#0369a1', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                        onClick={() => showToast(`Descargando ${rec.number} autorizada por SUNAT en PDF...`)}
-                      >
-                        <MaterialIcon name="receipt_long" size={16} />
-                        <span>Descargar Boleta</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PatientPaymentsPanel
+              receipts={paymentReceipts.map<PatientReceipt>((rec) => ({
+                id: rec.id,
+                number: rec.number.replace(/^Boleta Electrónica\s*/i, ''),
+                concept: rec.service,
+                date: rec.date,
+                paymentMethod: rec.method
+                  .replace(/^Pagado con\s*/i, '')
+                  .replace(/\s*\((POS|App Móvil)\)/gi, ''),
+                amount: rec.amount,
+              }))}
+              pendingBalance={0}
+              onDownload={(rec) =>
+                showToast(`Descargando boleta ${rec.number} (${rec.amount}) en PDF...`)
+              }
+            />
           </section>
         )}
 
@@ -481,6 +526,22 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           </section>
         )}
       </main>
+
+      {/* Modales Interactivos de Reprogramación y Cancelación */}
+      {reschedulingAppt && (
+        <RescheduleModal
+          appointment={reschedulingAppt}
+          onClose={() => setReschedulingAppt(null)}
+          onConfirm={handleConfirmReschedule}
+        />
+      )}
+
+      {cancellingAppt && (
+        <CancelAppointmentModal
+          onClose={() => setCancellingAppt(null)}
+          onConfirm={handleConfirmCancel}
+        />
+      )}
     </div>
   );
 };

@@ -52,7 +52,7 @@ export const StickyBookingSidebar: React.FC<StickyBookingSidebarProps> = ({
   };
 
   const SpecialtyIcon = resolveSpecialtyIcon(
-    (specialty?.icon as any) ?? 'default',
+    (specialty?.icon as Parameters<typeof resolveSpecialtyIcon>[0]) ?? 'default',
   );
 
   const price = service?.price ? Number(service.price) : 120;

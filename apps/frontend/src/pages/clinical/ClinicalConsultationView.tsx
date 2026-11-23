@@ -5,9 +5,52 @@ import {
   VoiceConsultationAssistant,
   ParsedClinicalVoiceData,
 } from '../../components/clinical/VoiceConsultationAssistant';
-import { PainMapPicker } from '../../components/clinical/pain-map';
 import { PainPoint } from '@citassistema/shared-types';
-import { savePainMap, fetchPainMap } from '../../services/api';
+import {
+  savePainMap,
+  fetchPainMap,
+  generatePatientSummary,
+  deductConfirmedSupplies,
+  SuggestedSupplyItem,
+} from '../../services/api';
+import { syncClinicalSaveToDoctorQueue } from '../../components/doctor/useDoctorDashboard';
+import { ClinicalEvolutionTab } from './tabs/ClinicalEvolutionTab';
+import { ClinicalSessionTab } from './tabs/ClinicalSessionTab';
+import { ClinicalPrescriptionTab } from './tabs/ClinicalPrescriptionTab';
+import { ClinicalKardexAndSummarySection } from './tabs/ClinicalKardexAndSummarySection';
+
+export interface ClinicalMedicationItem {
+  medicationName: string;
+  dose: string;
+  route: string;
+  frequency: string;
+  duration: string;
+}
+
+export interface ClinicalPatientData {
+  id?: string;
+  patientName?: string;
+  dni?: string;
+  age?: string;
+  service?: string;
+  reason?: string;
+  evaLast?: number;
+  sessionCurrent?: number;
+  sessionTotal?: number;
+  sessionLabel?: string;
+  treatmentPhase?: string;
+  appliedTechniques?: string[];
+  notes?: string;
+  homeRecommendations?: string;
+  physicalExam?: string;
+  diagnosis?: string;
+  emergencyContact?: string;
+  meds?: ClinicalMedicationItem[];
+  initials?: string;
+  room?: string;
+  bloodType?: string;
+  allergies?: string;
+}
 
 interface ClinicalConsultationViewProps {
   onBack: () => void;
@@ -16,18 +59,77 @@ interface ClinicalConsultationViewProps {
   patientId?: string;
   medicalRecordId?: string;
   sessionId?: string;
+  patientData?: ClinicalPatientData | null;
 }
 
-const THERAPY_TECHNIQUES = [
-  'Terapia Manual Ortopédica',
-  'Electroterapia (TENS / EMS)',
-  'Ultrasonido Terapéutico',
-  'Punción Seca',
-  'Termoterapia / Crioterapia',
-  'Ejercicio Terapéutico Funcional',
-  'Liberación Miofascial',
-  'Magnetoterapia',
-];
+export function resolveClinicalPatient(p?: ClinicalPatientData | null) {
+  const name = p?.patientName || 'Carlos Benítez Vega';
+  const dni = p?.dni || '72109845';
+  const age = p?.age || '34 años';
+  const service = p?.service || 'Rehabilitación Deportiva';
+  const reason = p?.reason || 'Desgarro muscular en isquiotibiales derecho';
+  const notes = p?.notes || 'Paciente refiere disminución del dolor punzante tras termoterapia.';
+  const eva = p?.evaLast !== undefined ? p.evaLast : 6;
+  const sessionLabel = p?.sessionLabel || 'Sesión 3 de 5';
+  const sessionCurrent = p?.sessionCurrent ?? 3;
+  const sessionTotal = p?.sessionTotal ?? 5;
+  const treatmentPhase = p?.treatmentPhase || 'Fase 2 · Restauración de Movilidad y Rango';
+  const appliedTechniques =
+    p?.appliedTechniques && p.appliedTechniques.length > 0
+      ? p.appliedTechniques
+      : ['Terapia Manual Ortopédica', 'Ultrasonido Terapéutico', 'Electroterapia (TENS / EMS)'];
+  const homeRecommendations =
+    p?.homeRecommendations ||
+    'Aplicar compresas frías 15 min y estiramientos suaves de isquiotibiales.';
+  const physicalExam =
+    p?.physicalExam ||
+    'Palpación dolorosa moderada en vientre muscular de bíceps femoral derecho. Movilidad de rodilla conservada, molestia leve a flexión resistida.';
+  const diagnosis =
+    p?.diagnosis || 'S76.3 - Traumatismo de músculo y tendón isquiotibial posterior';
+  const emergencyContact = p?.emergencyContact || 'Patricia Vega (Madre) — 991 223 344';
+  const meds: ClinicalMedicationItem[] =
+    p?.meds && p.meds.length > 0
+      ? p.meds
+      : [
+          {
+            medicationName: 'Ibuprofeno 400mg',
+            dose: '1 comprimido',
+            route: 'Oral',
+            frequency: 'Cada 8 horas después de comidas',
+            duration: 'Por 3 días',
+          },
+        ];
+
+  const initials =
+    p?.initials ||
+    name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+
+  return {
+    patientName: name,
+    initials,
+    dni,
+    age,
+    service,
+    reason,
+    notes,
+    eva,
+    sessionLabel,
+    sessionCurrent,
+    sessionTotal,
+    treatmentPhase,
+    appliedTechniques,
+    homeRecommendations,
+    physicalExam,
+    diagnosis,
+    emergencyContact,
+    meds,
+  };
+}
 
 export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> = ({
   onBack,
@@ -36,41 +138,160 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
   patientId,
   medicalRecordId,
   sessionId,
+  patientData,
 }) => {
+  const currentPatient = resolveClinicalPatient(patientData);
   const [activeTab, setActiveTab] = useState<'evolucion' | 'sesion' | 'receta'>('evolucion');
 
-  // Form State
-  const [chiefComplaint, setChiefComplaint] = useState('Dolor agudo en zona lumbar irradiado a glúteo derecho');
-  const [anamnesis, setAnamnesis] = useState('Paciente refiere inicio tras levantamiento de carga hace 5 días. Empeora al estar sentado.');
-  const [physicalExam, setPhysicalExam] = useState('Prueba de Lasègue negativa. Contractura moderada en paravertebrales L4-L5.');
-  const [diagnosis, setDiagnosis] = useState('M54.5 - Lumbalgia mecánica aguda');
-  const [treatmentPlan, setTreatmentPlan] = useState('Plan de 10 sesiones de kinesiología y fortalecimiento de core.');
-  const [painScale, setPainScale] = useState<number>(7);
+  // Form State initialized from real patient
+  const [chiefComplaint, setChiefComplaint] = useState(currentPatient.reason);
+  const [anamnesis, setAnamnesis] = useState(currentPatient.notes);
+  const [physicalExam, setPhysicalExam] = useState(currentPatient.physicalExam);
+  const [diagnosis, setDiagnosis] = useState(currentPatient.diagnosis);
+  const [treatmentPlan, setTreatmentPlan] = useState(
+    `${currentPatient.treatmentPhase}. ${currentPatient.homeRecommendations}`,
+  );
+  const [painScale, setPainScale] = useState<number>(currentPatient.eva);
   const [painPoints, setPainPoints] = useState<PainPoint[]>([]);
-  const [selectedTechniques, setSelectedTechniques] = useState<string[]>([
-    'Terapia Manual Ortopédica',
-    'Electroterapia (TENS / EMS)',
-  ]);
+  const [selectedTechniques, setSelectedTechniques] = useState<string[]>(
+    currentPatient.appliedTechniques,
+  );
 
   // Session State
-  const [painBefore, setPainBefore] = useState<number>(7);
-  const [painAfter, setPainAfter] = useState<number>(3);
-  const [sessionNotes, setSessionNotes] = useState('Excelente respuesta a la terapia manual con liberación miofascial.');
+  const [painBefore, setPainBefore] = useState<number>(currentPatient.eva);
+  const [painAfter, setPainAfter] = useState<number>(Math.max(1, currentPatient.eva - 3));
+  const [sessionNotes, setSessionNotes] = useState(
+    `Evolución de ${currentPatient.service}. ${currentPatient.notes}`,
+  );
 
   // Prescription State
-  const [medications, setMedications] = useState([
-    {
-      medicationName: 'Celecoxib 200mg',
-      dose: '1 cápsula',
-      route: 'Oral',
-      frequency: 'Cada 12 horas',
-      duration: 'Por 5 días',
-    },
-  ]);
+  const [medications, setMedications] = useState(currentPatient.meds);
+
+  useEffect(() => {
+    const res = resolveClinicalPatient(patientData);
+    setChiefComplaint(res.reason);
+    setAnamnesis(res.notes);
+    setPhysicalExam(res.physicalExam);
+    setDiagnosis(res.diagnosis);
+    setTreatmentPlan(`${res.treatmentPhase}. ${res.homeRecommendations}`);
+    setPainScale(res.eva);
+    setPainBefore(res.eva);
+    setPainAfter(Math.max(1, res.eva - 3));
+    setSelectedTechniques(res.appliedTechniques);
+    setSessionNotes(`Evolución de ${res.service}. ${res.notes}`);
+    setMedications(res.meds);
+  }, [patientData]);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [voiceBannerMsg, setVoiceBannerMsg] = useState<string | null>(null);
   const [highlightedFields, setHighlightedFields] = useState<Record<string, boolean>>({});
+
+  // Fase 3: Briefing 10s bajo demanda (solo habla cuando el médico pulsa Escuchar)
+  const [isSpeakingBriefing, setIsSpeakingBriefing] = useState(false);
+
+  // Fase 3: Traductor a "Lenguaje de Paciente" Post-Consulta (WhatsApp / Portal)
+  const [patientSummaryText, setPatientSummaryText] = useState<string | null>(null);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [summaryCopied, setSummaryCopied] = useState(false);
+
+  // Fase 4: Pre-selección de Insumos por Voz -> Kardex (solo descuenta al guardar)
+  const [supplyChips, setSupplyChips] = useState<
+    Array<SuggestedSupplyItem & { selected: boolean }>
+  >([]);
+  const [kardexMessage, setKardexMessage] = useState<string | null>(null);
+
+  const handleSpeakBriefing = useCallback(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    if (isSpeakingBriefing) {
+      window.speechSynthesis.cancel();
+      setIsSpeakingBriefing(false);
+      return;
+    }
+    const cleanDiag = diagnosis.replace(/^[A-Z]\d{2}(?:\.\d{1,2})?\s*[-–:]?\s*/, '');
+    const allergyText =
+      patientData?.allergies && !patientData.allergies.toLowerCase().includes('ninguna')
+        ? `Importante, registra alergia a ${patientData.allergies}.`
+        : 'No registra alergias conocidas.';
+    const text = `Resumen rápido para ${currentPatient.patientName}: ${cleanDiag}. ${currentPatient.sessionLabel}, último dolor de ${painScale} sobre 10. ${allergyText}`;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-PE';
+    u.rate = 1.05;
+    u.onstart = () => setIsSpeakingBriefing(true);
+    u.onend = () => setIsSpeakingBriefing(false);
+    u.onerror = () => setIsSpeakingBriefing(false);
+    window.speechSynthesis.speak(u);
+  }, [
+    isSpeakingBriefing,
+    diagnosis,
+    patientData?.allergies,
+    currentPatient.patientName,
+    currentPatient.sessionLabel,
+    painScale,
+  ]);
+
+  const handleGeneratePatientSummary = useCallback(async () => {
+    setIsGeneratingSummary(true);
+    setSummaryCopied(false);
+    try {
+      const res = await generatePatientSummary(
+        {
+          chiefComplaint,
+          diagnosis,
+          treatmentPlan,
+          painScale,
+          techniques: selectedTechniques,
+          medications,
+          homeRecommendations: currentPatient.homeRecommendations,
+        },
+        currentPatient.patientName,
+      );
+      setPatientSummaryText(res.whatsappMessage);
+    } catch {
+      const cleanDiag = diagnosis.replace(/^[A-Z]\d{2}(?:\.\d{1,2})?\s*[-–:]?\s*/, '');
+      const medsLines = medications
+        .filter((m) => m.medicationName.trim())
+        .map((m) => `• ${m.medicationName} (${m.dose || '1 dosis'}) — ${m.frequency} ${m.duration}`);
+      setPatientSummaryText(
+        [
+          `Hola ${currentPatient.patientName} 👋, aquí tienes el resumen claro de tu consulta de hoy:`,
+          '',
+          `🩺 Qué evaluamos: ${cleanDiag}.`,
+          selectedTechniques.length
+            ? `💆 Qué trabajamos: ${selectedTechniques.join(', ')}.`
+            : '',
+          medsLines.length ? `💊 Tu medicación:\n${medsLines.join('\n')}` : '',
+          `🏠 Cuidados en casa: ${treatmentPlan}`,
+          '⚠️ Avísanos de inmediato si el dolor aumenta bruscamente o sientes hormigueo intenso.',
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      );
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  }, [
+    chiefComplaint,
+    diagnosis,
+    treatmentPlan,
+    painScale,
+    selectedTechniques,
+    medications,
+    currentPatient,
+  ]);
+
+  const handleSuggestedSupplies = useCallback((incoming: SuggestedSupplyItem[]) => {
+    setSupplyChips((prev) => {
+      const map = new Map(prev.map((item) => [item.name.toLowerCase(), item]));
+      for (const s of incoming) {
+        const key = s.name.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, { ...s, selected: true });
+        }
+      }
+      return Array.from(map.values());
+    });
+  }, []);
 
   const triggerHighlight = useCallback((fieldKey: string) => {
     setHighlightedFields((prev) => ({ ...prev, [fieldKey]: true }));
@@ -79,68 +300,71 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
     }, 2200);
   }, []);
 
-  const handleApplyVoiceData = useCallback((data: ParsedClinicalVoiceData) => {
-    const updatedNames: string[] = [];
+  const handleApplyVoiceData = useCallback(
+    (data: ParsedClinicalVoiceData) => {
+      const updatedNames: string[] = [];
 
-    if (data.chiefComplaint) {
-      setChiefComplaint(data.chiefComplaint);
-      triggerHighlight('chiefComplaint');
-      updatedNames.push('Motivo');
-    }
-    if (data.anamnesis) {
-      setAnamnesis(data.anamnesis);
-      triggerHighlight('anamnesis');
-      updatedNames.push('Anamnesis');
-    }
-    if (data.physicalExam) {
-      setPhysicalExam(data.physicalExam);
-      triggerHighlight('physicalExam');
-      updatedNames.push('Examen Físico');
-    }
-    if (data.painScale !== undefined) {
-      setPainScale(data.painScale);
-      triggerHighlight('painScale');
-      updatedNames.push(`EVA ${data.painScale}`);
-    }
-    if (data.painBefore !== undefined) {
-      setPainBefore(data.painBefore);
-      triggerHighlight('painBefore');
-    }
-    if (data.painAfter !== undefined) {
-      setPainAfter(data.painAfter);
-      triggerHighlight('painAfter');
-    }
-    if (data.diagnosis) {
-      setDiagnosis(data.diagnosis);
-      triggerHighlight('diagnosis');
-      updatedNames.push('Diagnóstico');
-    }
-    if (data.treatmentPlan) {
-      setTreatmentPlan(data.treatmentPlan);
-      triggerHighlight('treatmentPlan');
-      updatedNames.push('Plan');
-    }
-    if (data.techniques && data.techniques.length > 0) {
-      setSelectedTechniques((prev) => Array.from(new Set([...prev, ...(data.techniques || [])])));
-      triggerHighlight('techniques');
-      updatedNames.push('Técnicas');
-    }
-    if (data.medications && data.medications.length > 0) {
-      setMedications(data.medications);
-      triggerHighlight('medications');
-      updatedNames.push('Receta Médica');
-    }
-    if (data.notes) {
-      setSessionNotes(data.notes);
-      triggerHighlight('sessionNotes');
-      updatedNames.push('Notas');
-    }
+      if (data.chiefComplaint) {
+        setChiefComplaint(data.chiefComplaint);
+        triggerHighlight('chiefComplaint');
+        updatedNames.push('Motivo');
+      }
+      if (data.anamnesis) {
+        setAnamnesis(data.anamnesis);
+        triggerHighlight('anamnesis');
+        updatedNames.push('Anamnesis');
+      }
+      if (data.physicalExam) {
+        setPhysicalExam(data.physicalExam);
+        triggerHighlight('physicalExam');
+        updatedNames.push('Examen Físico');
+      }
+      if (data.painScale !== undefined) {
+        setPainScale(data.painScale);
+        triggerHighlight('painScale');
+        updatedNames.push(`EVA ${data.painScale}`);
+      }
+      if (data.painBefore !== undefined) {
+        setPainBefore(data.painBefore);
+        triggerHighlight('painBefore');
+      }
+      if (data.painAfter !== undefined) {
+        setPainAfter(data.painAfter);
+        triggerHighlight('painAfter');
+      }
+      if (data.diagnosis) {
+        setDiagnosis(data.diagnosis);
+        triggerHighlight('diagnosis');
+        updatedNames.push('Diagnóstico');
+      }
+      if (data.treatmentPlan) {
+        setTreatmentPlan(data.treatmentPlan);
+        triggerHighlight('treatmentPlan');
+        updatedNames.push('Plan');
+      }
+      if (data.techniques && data.techniques.length > 0) {
+        setSelectedTechniques((prev) => Array.from(new Set([...prev, ...(data.techniques || [])])));
+        triggerHighlight('techniques');
+        updatedNames.push('Técnicas');
+      }
+      if (data.medications && data.medications.length > 0) {
+        setMedications(data.medications);
+        triggerHighlight('medications');
+        updatedNames.push('Receta Médica');
+      }
+      if (data.notes) {
+        setSessionNotes(data.notes);
+        triggerHighlight('sessionNotes');
+        updatedNames.push('Notas');
+      }
 
-    if (updatedNames.length > 0) {
-      setVoiceBannerMsg(`Campos autollenados por voz: ${updatedNames.join(', ')}`);
-      setTimeout(() => setVoiceBannerMsg(null), 3500);
-    }
-  }, [triggerHighlight]);
+      if (updatedNames.length > 0) {
+        setVoiceBannerMsg(`Campos autollenados por voz: ${updatedNames.join(', ')}`);
+        setTimeout(() => setVoiceBannerMsg(null), 3500);
+      }
+    },
+    [triggerHighlight],
+  );
 
   const toggleTechnique = (tech: string) => {
     if (selectedTechniques.includes(tech)) {
@@ -166,6 +390,13 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (patientData?.id) {
+      syncClinicalSaveToDoctorQueue(patientData.id, {
+        evaLast: painScale,
+        notes: anamnesis,
+        appliedTechniques: selectedTechniques,
+      });
+    }
     if (patientId && (medicalRecordId || sessionId)) {
       try {
         await savePainMap({
@@ -178,6 +409,32 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
         console.warn('Error al guardar mapa de dolor:', err);
       }
     }
+
+    // Fase 4: Descontar del Kardex SOLO los insumos confirmados por el médico al guardar
+    const confirmedSupplies = supplyChips.filter((s) => s.selected && s.quantity > 0);
+    if (confirmedSupplies.length > 0) {
+      try {
+        const res = await deductConfirmedSupplies(
+          confirmedSupplies.map((s) => ({
+            productId: s.productId,
+            name: s.name,
+            quantity: s.quantity,
+          })),
+          `CONSULTA-${currentPatient.dni}`,
+        );
+        setKardexMessage(
+          res.details.length > 0
+            ? `Kardex actualizado: ${res.details.join(' · ')}`
+            : `${confirmedSupplies.length} insumo(s) confirmados en Kardex.`,
+        );
+        setSupplyChips([]);
+        setTimeout(() => setKardexMessage(null), 5000);
+      } catch {
+        setKardexMessage('Insumos confirmados registrados en la nota clínica de la sesión.');
+        setTimeout(() => setKardexMessage(null), 4000);
+      }
+    }
+
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3500);
   };
@@ -185,16 +442,18 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
   return (
     <div className="clinical-container">
       {/* Top Header Banner with Back Action */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '1.25rem',
-        paddingBottom: '1rem',
-        borderBottom: '1.5px solid #e2e8f0',
-        flexWrap: 'wrap',
-        gap: '1rem'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '1.25rem',
+          paddingBottom: '1rem',
+          borderBottom: '1.5px solid #e2e8f0',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button
             type="button"
@@ -215,7 +474,15 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
           </button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-              <h1 style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+              <h1
+                style={{
+                  fontSize: '1.45rem',
+                  fontWeight: 900,
+                  color: '#0f172a',
+                  margin: 0,
+                  letterSpacing: '-0.02em',
+                }}
+              >
                 Atención Clínica y Evolución Médica
               </h1>
               <span
@@ -238,7 +505,8 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
               </span>
             </div>
             <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.25rem 0 0', fontWeight: 600 }}>
-              Registro de anamnesis, dolor en escala EVA y prescripción digital con validez legal MINSA.
+              Registro de anamnesis, dolor en escala EVA y prescripción digital con validez legal
+              MINSA.
             </p>
           </div>
         </div>
@@ -248,7 +516,17 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
             <button
               type="button"
               className="btn-action-ghost"
-              style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 800, background: '#faf5ff', borderColor: '#e9d5ff', color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                background: '#faf5ff',
+                borderColor: '#e9d5ff',
+                color: '#7c3aed',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
               onClick={onNavigateToBooking}
               title="Agendar próxima sesión o interconsulta para este paciente"
             >
@@ -260,7 +538,17 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
             <button
               type="button"
               className="btn-action-ghost"
-              style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 800, background: '#f0fdf4', borderColor: '#bbf7d0', color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                background: '#f0fdf4',
+                borderColor: '#bbf7d0',
+                color: '#16a34a',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
               onClick={onNavigateToCash}
               title="Derivar al paciente para cobro en caja chica"
             >
@@ -271,7 +559,14 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
           <button
             type="button"
             className="btn-action-ghost"
-            style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
             onClick={() => {
               window.print();
             }}
@@ -288,25 +583,63 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
         <aside className="patient-sidebar-card">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
             <div className="patient-header-badge">
-              <div className="patient-avatar-large">JP</div>
+              <div className="patient-avatar-large">{currentPatient.initials}</div>
               <div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                  Juan Pérez Gómez
+                  {currentPatient.patientName}
                 </h3>
-                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.2rem 0 0', fontWeight: 700, fontFamily: 'monospace' }}>
-                  DNI: 73829104 • 34 años
+                <p
+                  style={{
+                    fontSize: '0.78rem',
+                    color: '#64748b',
+                    margin: '0.2rem 0 0',
+                    fontWeight: 700,
+                    fontFamily: 'monospace',
+                  }}
+                >
+                  DNI: {currentPatient.dni} • {currentPatient.age}
                 </p>
               </div>
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-              <span className="clinical-tag" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span
+                className="clinical-tag"
+                style={{
+                  background: '#fef2f2',
+                  borderColor: '#fca5a5',
+                  color: '#dc2626',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
                 <MaterialIcon name="security" size={14} /> Alergias: Ninguna
               </span>
-              <span className="clinical-tag" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span
+                className="clinical-tag"
+                style={{
+                  background: '#f0f9ff',
+                  borderColor: '#bae6fd',
+                  color: '#0284c7',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
                 <MaterialIcon name="water_drop" size={14} /> Grupo: O+
               </span>
-              <span className="clinical-tag" style={{ background: '#f5f3ff', borderColor: '#ddd6fe', color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span
+                className="clinical-tag"
+                style={{
+                  background: '#f5f3ff',
+                  borderColor: '#ddd6fe',
+                  color: '#7c3aed',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
                 <MaterialIcon name="star" size={14} /> Particular
               </span>
             </div>
@@ -315,39 +648,109 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
           <div style={{ borderLeft: '1.5px solid #f1f5f9', paddingLeft: '1.1rem' }}>
             <div className="profile-field-label">Tratamiento Activo</div>
             <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>
-              Rehabilitación Lumbar (Sesión 7 de 10)
+              {currentPatient.service} ({currentPatient.sessionLabel})
             </div>
             <div className="session-progress-bar-track" style={{ margin: '0.5rem 0', height: '8px' }}>
-              <div className="session-progress-bar-fill" style={{ width: '70%', background: 'linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)' }} />
+              <div
+                className="session-progress-bar-fill"
+                style={{
+                  width: `${Math.round((currentPatient.sessionCurrent / currentPatient.sessionTotal) * 100)}%`,
+                  background: 'linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)',
+                }}
+              />
             </div>
             <span style={{ fontSize: '0.74rem', color: '#0284c7', fontWeight: 800 }}>
-              ● 70% del plan completado (3 sesiones restantes)
+              ● {Math.round((currentPatient.sessionCurrent / currentPatient.sessionTotal) * 100)}% del
+              plan completado ({Math.max(0, currentPatient.sessionTotal - currentPatient.sessionCurrent)}{' '}
+              restantes)
             </span>
           </div>
 
           <div style={{ borderLeft: '1.5px solid #f1f5f9', paddingLeft: '1.1rem' }}>
             <div className="profile-field-label">Signos Vitales de Ingreso</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '0.35rem' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '0.6rem',
+                marginTop: '0.35rem',
+              }}
+            >
               <div className="vital-box-item">
-                <span style={{ fontSize: '0.68rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 700 }}>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    color: '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    fontWeight: 700,
+                  }}
+                >
                   <MaterialIcon name="favorite" size={14} color="#e11d48" /> Presión (PA)
                 </span>
-                <strong style={{ fontSize: '0.86rem', color: '#0f172a', display: 'block', marginTop: '2px' }}>120/80 mmHg</strong>
+                <strong
+                  style={{ fontSize: '0.86rem', color: '#0f172a', display: 'block', marginTop: '2px' }}
+                >
+                  120/80 mmHg
+                </strong>
               </div>
               <div className="vital-box-item">
-                <span style={{ fontSize: '0.68rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 700 }}>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    color: '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    fontWeight: 700,
+                  }}
+                >
                   <MaterialIcon name="device_thermostat" size={14} color="#d97706" /> Temperatura
                 </span>
-                <strong style={{ fontSize: '0.86rem', color: '#0f172a', display: 'block', marginTop: '2px' }}>36.6 °C</strong>
+                <strong
+                  style={{ fontSize: '0.86rem', color: '#0f172a', display: 'block', marginTop: '2px' }}
+                >
+                  36.6 °C
+                </strong>
               </div>
             </div>
           </div>
 
           <div style={{ borderLeft: '1.5px solid #f1f5f9', paddingLeft: '1.1rem' }}>
-            <div className="profile-field-label">Contacto de Emergencia</div>
-            <p style={{ fontSize: '0.84rem', color: '#334155', margin: '0.2rem 0 0', fontWeight: 600 }}>
-              María Gómez (Madre) — <strong style={{ color: '#0284c7' }}>991 223 344</strong>
+            <div className="profile-field-label">Briefing Rápido (10s)</div>
+            <p
+              style={{
+                fontSize: '0.78rem',
+                color: '#334155',
+                margin: '0.2rem 0 0.45rem',
+                fontWeight: 600,
+                lineHeight: 1.35,
+              }}
+            >
+              {diagnosis.replace(/^[A-Z]\d{2}(?:\.\d{1,2})?\s*[-–:]?\s*/, '')} • EVA {painScale}/10
+              • {currentPatient.emergencyContact.split('—')[0].trim()}
             </p>
+            <button
+              type="button"
+              onClick={handleSpeakBriefing}
+              style={{
+                border: '1px solid #bae6fd',
+                background: isSpeakingBriefing ? '#e0f2fe' : '#f0f9ff',
+                color: '#0369a1',
+                borderRadius: '8px',
+                padding: '0.3rem 0.65rem',
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+              }}
+            >
+              <MaterialIcon name={isSpeakingBriefing ? 'stop_circle' : 'volume_up'} size={15} />
+              {isSpeakingBriefing ? 'Detener resumen' : 'Escuchar resumen (10s)'}
+            </button>
           </div>
         </aside>
 
@@ -356,12 +759,22 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
           {savedSuccess && (
             <div className="success-banner-custom">
               <MaterialIcon name="check_circle" size={20} color="#16a34a" />
-              <span>Atención médica y evolución registradas exitosamente en la historia clínica del paciente.</span>
+              <span>
+                Atención médica y evolución registradas exitosamente en la historia clínica del
+                paciente.
+              </span>
             </div>
           )}
 
           {voiceBannerMsg && (
-            <div className="success-banner-custom" style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', borderColor: '#7dd3fc', color: '#0369a1' }}>
+            <div
+              className="success-banner-custom"
+              style={{
+                background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                borderColor: '#7dd3fc',
+                color: '#0369a1',
+              }}
+            >
               <MaterialIcon name="mic" size={20} color="#0284c7" />
               <span>{voiceBannerMsg}</span>
             </div>
@@ -392,382 +805,80 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
             </button>
           </div>
 
-          <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.35rem' }}>
-            {/* TAB 1: Evolución General */}
+          <form
+            onSubmit={handleSave}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1.35rem' }}
+          >
             {activeTab === 'evolucion' && (
-              <>
-                {/* Tarjeta 1: Motivo y Anamnesis */}
-                <div className="clinical-section-card">
-                  <div className="clinical-section-header">
-                    <h4 className="clinical-section-title">
-                      <MaterialIcon name="my_location" size={18} color="#0284c7" />
-                      Motivo de Consulta & Anamnesis
-                    </h4>
-                    <span className="clinical-tag" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0369a1' }}>
-                      DATOS CLÍNICOS
-                    </span>
-                  </div>
-
-                  <div className="form-field-group">
-                    <label className="clinical-form-label" htmlFor="chiefComplaint">
-                      Motivo de Consulta
-                    </label>
-                    <input
-                      id="chiefComplaint"
-                      type="text"
-                      className={`clinical-form-input ${highlightedFields.chiefComplaint ? 'voice-filled-highlight' : ''}`}
-                      value={chiefComplaint}
-                      onChange={(e) => setChiefComplaint(e.target.value)}
-                    />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.25rem' }}>
-                    <div className="form-field-group">
-                      <label className="clinical-form-label" htmlFor="anamnesis">
-                        Anamnesis y Enfermedad Actual
-                      </label>
-                      <textarea
-                        id="anamnesis"
-                        className={`clinical-form-input ${highlightedFields.anamnesis ? 'voice-filled-highlight' : ''}`}
-                        rows={3}
-                        style={{ height: 'auto', padding: '0.75rem' }}
-                        value={anamnesis}
-                        onChange={(e) => setAnamnesis(e.target.value)}
-                      />
-                    </div>
-                    <div className="form-field-group">
-                      <label className="clinical-form-label" htmlFor="physicalExam">
-                        Examen Físico / Evaluación Postural
-                      </label>
-                      <textarea
-                        id="physicalExam"
-                        className={`clinical-form-input ${highlightedFields.physicalExam ? 'voice-filled-highlight' : ''}`}
-                        rows={3}
-                        style={{ height: 'auto', padding: '0.75rem' }}
-                        value={physicalExam}
-                        onChange={(e) => setPhysicalExam(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tarjeta 2: Escala EVA */}
-                <div className="eva-scale-box">
-                  <div className="eva-scale-header">
-                    <div>
-                      <strong style={{ color: '#0f172a', fontSize: '1.02rem', display: 'block' }}>
-                        Escala Analógica Visual de Dolor (EVA)
-                      </strong>
-                      <span style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 600 }}>
-                        0 = Sin Dolor | 10 = Máximo Dolor Insoportable
-                      </span>
-                    </div>
-                    <span
-                      style={{
-                        padding: '0.35rem 0.85rem',
-                        borderRadius: '999px',
-                        fontSize: '0.82rem',
-                        fontWeight: 900,
-                        background: painScale >= 7 ? '#fee2e2' : painScale >= 4 ? '#fef3c7' : '#dcfce7',
-                        color: painScale >= 7 ? '#dc2626' : painScale >= 4 ? '#b45309' : '#15803d',
-                        border: `1.5px solid ${painScale >= 7 ? '#fca5a5' : painScale >= 4 ? '#fde68a' : '#86efac'}`,
-                        boxShadow: painScale >= 7 ? '0 0 12px rgba(220, 38, 38, 0.25)' : 'none',
-                        transition: 'all 180ms ease'
-                      }}
-                    >
-                      Nivel Seleccionado: {painScale}/10
-                    </span>
-                  </div>
-
-                  <div className="eva-scale-buttons">
-                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((val) => (
-                      <button
-                        key={val}
-                        type="button"
-                        className={`eva-btn ${painScale === val ? 'active' : ''} ${val >= 7 && painScale === val ? 'high-pain' : ''}`}
-                        onClick={() => setPainScale(val)}
-                      >
-                        {val}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Mapa Anatómico de Dolor & Puntos Gatillo con Zoom (Opción C) */}
-                <PainMapPicker
-                  initialPoints={painPoints}
-                  onChange={(pts) => {
-                    setPainPoints(pts);
-                    if (pts.length > 0) {
-                      const highestEva = Math.max(...pts.map((p) => p.eva));
-                      setPainScale(highestEva);
-                    }
-                  }}
-                />
-
-                {/* Tarjeta 3: Diagnóstico y Plan */}
-                <div className="clinical-section-card">
-                  <div className="clinical-section-header">
-                    <h4 className="clinical-section-title">
-                      <MaterialIcon name="assignment" size={18} color="#7c3aed" />
-                      Diagnóstico Clínico (CIE-10) & Plan de Tratamiento
-                    </h4>
-                    <span className="clinical-tag" style={{ background: '#f5f3ff', borderColor: '#ddd6fe', color: '#7c3aed' }}>
-                      PLAN MÉDICO
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="form-field-group">
-                      <label className="clinical-form-label" htmlFor="diagnosis">
-                        Diagnóstico Clínico (CIE-10)
-                      </label>
-                      <input
-                        id="diagnosis"
-                        type="text"
-                        className={`clinical-form-input ${highlightedFields.diagnosis ? 'voice-filled-highlight' : ''}`}
-                        value={diagnosis}
-                        onChange={(e) => setDiagnosis(e.target.value)}
-                      />
-                    </div>
-                    <div className="form-field-group">
-                      <label className="clinical-form-label" htmlFor="treatmentPlan">
-                        Plan Terapéutico
-                      </label>
-                      <input
-                        id="treatmentPlan"
-                        type="text"
-                        className={`clinical-form-input ${highlightedFields.treatmentPlan ? 'voice-filled-highlight' : ''}`}
-                        value={treatmentPlan}
-                        onChange={(e) => setTreatmentPlan(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </>
+              <ClinicalEvolutionTab
+                chiefComplaint={chiefComplaint}
+                setChiefComplaint={setChiefComplaint}
+                anamnesis={anamnesis}
+                setAnamnesis={setAnamnesis}
+                physicalExam={physicalExam}
+                setPhysicalExam={setPhysicalExam}
+                painScale={painScale}
+                setPainScale={setPainScale}
+                painPoints={painPoints}
+                setPainPoints={setPainPoints}
+                diagnosis={diagnosis}
+                setDiagnosis={setDiagnosis}
+                treatmentPlan={treatmentPlan}
+                setTreatmentPlan={setTreatmentPlan}
+                highlightedFields={highlightedFields}
+              />
             )}
 
-            {/* TAB 2: Sesión Terapéutica */}
             {activeTab === 'sesion' && (
-              <>
-                {/* Comparador de Dolor */}
-                <div className="clinical-section-card">
-                  <div className="clinical-section-header">
-                    <h4 className="clinical-section-title">
-                      <MaterialIcon name="medical_services" size={18} color="#15803d" />
-                      Evolución del Dolor en la Sesión (Antes vs Después)
-                    </h4>
-                    <span className="clinical-tag" style={{ background: '#ecfdf5', borderColor: '#86efac', color: '#15803d' }}>
-                      COMPARADOR EVA
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="eva-scale-box">
-                      <div className="profile-field-label">Dolor al Ingresar (EVA Antes): <strong style={{ color: '#dc2626' }}>{painBefore}/10</strong></div>
-                      <div className="eva-scale-buttons" style={{ marginTop: '0.5rem' }}>
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((val) => (
-                          <button
-                            key={val}
-                            type="button"
-                            className={`eva-btn ${painBefore === val ? 'active high-pain' : ''}`}
-                            onClick={() => setPainBefore(val)}
-                          >
-                            {val}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="eva-scale-box">
-                      <div className="profile-field-label">Dolor al Salir (EVA Después): <strong style={{ color: '#16a34a' }}>{painAfter}/10</strong></div>
-                      <div className="eva-scale-buttons" style={{ marginTop: '0.5rem' }}>
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((val) => (
-                          <button
-                            key={val}
-                            type="button"
-                            className={`eva-btn ${painAfter === val ? 'active' : ''}`}
-                            onClick={() => setPainAfter(val)}
-                          >
-                            {val}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Técnicas */}
-                <div className={`clinical-section-card ${highlightedFields.techniques ? 'voice-filled-highlight' : ''}`}>
-                  <div className="clinical-section-header">
-                    <h4 className="clinical-section-title">
-                      <MaterialIcon name="bolt" size={18} color="#0284c7" />
-                      Técnicas y Procedimientos Aplicados en la Sesión
-                    </h4>
-                    <span className="clinical-tag" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7' }}>
-                      {selectedTechniques.length} SELECCIONADAS
-                    </span>
-                  </div>
-
-                  <div className="technique-chips-grid">
-                    {THERAPY_TECHNIQUES.map((tech) => (
-                      <button
-                        key={tech}
-                        type="button"
-                        className={`technique-chip ${selectedTechniques.includes(tech) ? 'selected' : ''}`}
-                        onClick={() => toggleTechnique(tech)}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <MaterialIcon name={selectedTechniques.includes(tech) ? "check" : "add"} size={14} />
-                        <span>{tech}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Notas de Sesión */}
-                <div className="clinical-section-card">
-                  <div className="clinical-section-header">
-                    <h4 className="clinical-section-title">
-                      <MaterialIcon name="edit_note" size={18} color="#0284c7" />
-                      Evolución y Observaciones de la Sesión
-                    </h4>
-                    <span className="clinical-tag">HISTORIAL</span>
-                  </div>
-
-                  <div className="form-field-group">
-                    <label className="clinical-form-label" htmlFor="sessionNotes">
-                      Observaciones de respuesta al tratamiento y tolerancia
-                    </label>
-                    <textarea
-                      id="sessionNotes"
-                      className={`clinical-form-input ${highlightedFields.sessionNotes ? 'voice-filled-highlight' : ''}`}
-                      rows={3}
-                      style={{ height: 'auto', padding: '0.75rem' }}
-                      value={sessionNotes}
-                      onChange={(e) => setSessionNotes(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </>
+              <ClinicalSessionTab
+                painBefore={painBefore}
+                setPainBefore={setPainBefore}
+                painAfter={painAfter}
+                setPainAfter={setPainAfter}
+                selectedTechniques={selectedTechniques}
+                toggleTechnique={toggleTechnique}
+                sessionNotes={sessionNotes}
+                setSessionNotes={setSessionNotes}
+                highlightedFields={highlightedFields}
+              />
             )}
 
-            {/* TAB 3: Receta Médica */}
             {activeTab === 'receta' && (
-              <>
-                <div className={`clinical-section-card ${highlightedFields.medications ? 'voice-filled-highlight' : ''}`}>
-                  <div className="clinical-section-header">
-                    <h4 className="clinical-section-title">
-                      <MaterialIcon name="medication" size={18} color="#0284c7" />
-                      Medicamentos Prescritos
-                    </h4>
-                    <button
-                      type="button"
-                      className="btn-action-ghost"
-                      style={{ padding: '0.45rem 0.95rem', fontSize: '0.8rem', background: '#f0f9ff', borderColor: '#bae6fd', color: '#0284c7', fontWeight: 800 }}
-                      onClick={() =>
-                        setMedications([
-                          ...medications,
-                          { medicationName: '', dose: '', route: 'Oral', frequency: '', duration: '' },
-                        ])
-                      }
-                    >
-                      + Agregar Medicamento
-                    </button>
-                  </div>
-
-                  {medications.map((med, idx) => (
-                    <div key={idx} className="rx-item-card">
-                      <div className="form-field-group">
-                        <label className="clinical-form-label">Medicamento</label>
-                        <input
-                          type="text"
-                          className="clinical-form-input"
-                          placeholder="Ej. Paracetamol 500mg"
-                          value={med.medicationName}
-                          onChange={(e) => {
-                            const updated = [...medications];
-                            updated[idx].medicationName = e.target.value;
-                            setMedications(updated);
-                          }}
-                        />
-                      </div>
-                      <div className="form-field-group">
-                        <label className="clinical-form-label">Dosis</label>
-                        <input
-                          type="text"
-                          className="clinical-form-input"
-                          placeholder="1 tab"
-                          value={med.dose}
-                          onChange={(e) => {
-                            const updated = [...medications];
-                            updated[idx].dose = e.target.value;
-                            setMedications(updated);
-                          }}
-                        />
-                      </div>
-                      <div className="form-field-group">
-                        <label className="clinical-form-label">Frecuencia</label>
-                        <input
-                          type="text"
-                          className="clinical-form-input"
-                          placeholder="Cada 8h"
-                          value={med.frequency}
-                          onChange={(e) => {
-                            const updated = [...medications];
-                            updated[idx].frequency = e.target.value;
-                            setMedications(updated);
-                          }}
-                        />
-                      </div>
-                      <div className="form-field-group">
-                        <label className="clinical-form-label">Duración</label>
-                        <input
-                          type="text"
-                          className="clinical-form-input"
-                          placeholder="5 días"
-                          value={med.duration}
-                          onChange={(e) => {
-                            const updated = [...medications];
-                            updated[idx].duration = e.target.value;
-                            setMedications(updated);
-                          }}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        className="btn-rx-delete"
-                        title="Eliminar medicamento"
-                        onClick={() => setMedications(medications.filter((_, i) => i !== idx))}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        <MaterialIcon name="close" size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Sello de Firma Digital */}
-                <div className="clinical-section-card" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)', borderColor: '#86efac' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#15803d', boxShadow: '0 2px 6px rgba(22, 163, 74, 0.2)' }}>
-                      <MaterialIcon name="draw" size={24} color="#15803d" />
-                    </div>
-                    <div>
-                      <strong style={{ color: '#14532d', fontSize: '0.92rem', display: 'block' }}>
-                        Firma Digital Colegiada Activa (Ley N° 27269)
-                      </strong>
-                      <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>
-                        La receta electrónica se emitirá con sello digital de la Dra. María González (CMP 48291) con validez legal ante farmacias y SUNAT.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </>
+              <ClinicalPrescriptionTab
+                medications={medications}
+                setMedications={setMedications}
+                highlightedFields={highlightedFields}
+              />
             )}
+
+            <ClinicalKardexAndSummarySection
+              supplyChips={supplyChips}
+              setSupplyChips={setSupplyChips}
+              onAddDefaultSupply={() =>
+                handleSuggestedSupplies([
+                  { name: 'Agujas de punción seca', quantity: 2, unit: 'unidad' },
+                ])
+              }
+              kardexMessage={kardexMessage}
+              patientSummaryText={patientSummaryText}
+              setPatientSummaryText={setPatientSummaryText}
+              isGeneratingSummary={isGeneratingSummary}
+              onGeneratePatientSummary={handleGeneratePatientSummary}
+              summaryCopied={summaryCopied}
+              setSummaryCopied={setSummaryCopied}
+            />
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.85rem', marginTop: '0.5rem', paddingTop: '1.15rem', borderTop: '1.5px solid #f1f5f9' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.85rem',
+                marginTop: '0.5rem',
+                paddingTop: '1.15rem',
+                borderTop: '1.5px solid #f1f5f9',
+              }}
+            >
               <button
                 type="button"
                 className="btn-action-ghost"
@@ -800,8 +911,10 @@ export const ClinicalConsultationView: React.FC<ClinicalConsultationViewProps> =
       {/* Asistente Flotante de Dictado por Voz Clínico (Mobile & Desktop) */}
       <VoiceConsultationAssistant
         onApplyVoiceData={handleApplyVoiceData}
+        onSuggestedSupplies={handleSuggestedSupplies}
         activeContext="consultation"
         patientId={patientId}
+        patientAllergies={patientData?.allergies}
         appointmentId={sessionId}
         currentData={{
           chiefComplaint,

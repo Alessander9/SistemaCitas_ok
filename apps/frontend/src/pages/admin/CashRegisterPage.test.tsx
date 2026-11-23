@@ -2,41 +2,30 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CashRegisterPage } from './CashRegisterPage';
 
-describe('CashRegisterPage', () => {
-  it('should render without errors and show the page title', () => {
+describe('CashRegisterPage (Pruebas de comportamiento accesibles)', () => {
+  it('muestra el encabezado de Caja Chica y el estado de caja abierta', () => {
     render(<CashRegisterPage />);
-    expect(screen.getByText('Caja Chica')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /Caja Chica/i })).toBeInTheDocument();
+    expect(screen.getByText(/CAJA ABIERTA/i)).toBeInTheDocument();
   });
 
-  it('should display open cash status badge when register is open', () => {
+  it('muestra la tabla de movimientos del turno con al menos 3 registros', () => {
     render(<CashRegisterPage />);
-    const badge = document.getElementById('cash-status-badge');
-    expect(badge?.textContent).toContain('CAJA ABIERTA');
+    const rows = screen.getAllByRole('row');
+    // 1 fila de cabecera + al menos 3 filas de movimientos
+    expect(rows.length).toBeGreaterThanOrEqual(4);
   });
 
-  it('should display movements table with mock data', () => {
+  it('permite abrir el formulario de registro de movimiento desde el botón visible', () => {
     render(<CashRegisterPage />);
-    const table = document.getElementById('movements-table');
-    expect(table).toBeTruthy();
-    // Mock has 3 movements
-    const rows = table?.querySelectorAll('tbody tr');
-    expect(rows?.length).toBeGreaterThanOrEqual(3);
+    fireEvent.click(screen.getByRole('button', { name: /Registrar Movimiento/i }));
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton')).toBeInTheDocument();
   });
 
-  it('should show movement form when clicking Registrar Movimiento button', () => {
+  it('permite abrir el formulario de arqueo y cierre de caja desde el botón visible', () => {
     render(<CashRegisterPage />);
-    const btn = document.getElementById('btn-add-movement');
-    expect(btn).toBeTruthy();
-    fireEvent.click(btn!);
-    expect(document.getElementById('movement-type')).toBeTruthy();
-    expect(document.getElementById('movement-amount')).toBeTruthy();
-  });
-
-  it('should show close form when clicking Cerrar Caja button', () => {
-    render(<CashRegisterPage />);
-    const closeBtn = document.getElementById('btn-close-cash');
-    expect(closeBtn).toBeTruthy();
-    fireEvent.click(closeBtn!);
-    expect(document.getElementById('closing-amount')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Cerrar Caja/i }));
+    expect(screen.getByRole('spinbutton')).toBeInTheDocument();
   });
 });
